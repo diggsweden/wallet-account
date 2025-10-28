@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2025 diggsweden/wallet-account
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Release Workflow for wallet-account
+# Maven application with container image publishing
+---
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+" # Stable: v1.0.0
+      - "v[0-9]+.[0-9]+.[0-9]+-alpha*" # Alpha: v1.0.0-alpha.1
+      - "v[0-9]+.[0-9]+.[0-9]+-beta*" # Beta: v1.0.0-beta.1
+      - "v[0-9]+.[0-9]+.[0-9]+-rc*" # RC: v1.0.0-rc.1
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false # Queue releases, don't cancel partial releases
+
+permissions:
+  contents: read # Best Security practice. Jobs only get read as base, and then permissions are added as needed
+
+jobs:
+  release:
+    uses: diggsweden/reusable-ci/.github/workflows/release-orchestrator.yml@1a7dcd9c5257495ebf141e4e4b4bac438a8aae56 # v2.0.0
+    permissions:
+      contents: write # Create GitHub releases and tags
+      packages: write # Publish JARs to GitHub Packages and images to ghcr.io
+      id-token: write # Generate OIDC token for SLSA provenance attestation
+      actions: read # Read workflow runs for SLSA provenance generation
+      security-events: write # Upload vulnerability scan results from container scanning
+      attestations: write # Attach SBOM attestation to container images
+    secrets: inherit # Use org-level GPG keys, Maven credentials if configured
+    with:
+      artifacts-config: .github/artifacts.yml
+      changelog-creator: git-cliff
+      release-publisher: github-cli

@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2025 diggsweden/wallet-account
+#
+# SPDX-License-Identifier: CC0-1.0
+
+---
+name: Pull Request Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - "release/**"
+      - "feature/**"
+
+permissions:
+  contents: read # Best Security practice. Jobs only get read as base, and then permissions are added as needed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-checks:
+    uses: diggsweden/reusable-ci/.github/workflows/pullrequest-orchestrator.yml@1a7dcd9c5257495ebf141e4e4b4bac438a8aae56 # v2.0.0
+    secrets: inherit # Pass org-level secrets (for private Maven dependencies)
+    permissions:
+      contents: read # Clone repository and read source code
+      packages: read # Access GitHub Packages for Maven dependencies
+      security-events: write # Upload SpotBugs/dependency check results to Security tab
+    with:
+      project-type: maven
+      linters.dependencyreview: false # Disabled: requires GitHub Advanced Security
+
+  test:
+    needs: [pr-checks]
+    if: always() # Run tests even if linting fails (get complete feedback)
+    permissions:
+      contents: read # Access test resources and source code
+      packages: read # Fetch test dependencies from GitHub Packages
+    uses: ./.github/workflows/test.yml
