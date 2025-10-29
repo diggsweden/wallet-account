@@ -37,6 +37,7 @@ class AccountControllerTest {
 
   @Autowired
   private ObjectMapper objectMapper;
+  
   private UUID defaulUuid = UUID.randomUUID();
   private AccountDto resulDto = AccountDtoBuilder.builder()
       .emailAdress("none@your.bussiness.se")
