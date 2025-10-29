@@ -26,7 +26,7 @@ SPDX-License-Identifier: EUPL-1.2
     <appender-ref ref="CONSOLE" />
   </logger>
 
-  <root level="WARN">
+  <root level="info">
     <appender-ref ref="CONSOLE" />
   </root>
 </configuration>

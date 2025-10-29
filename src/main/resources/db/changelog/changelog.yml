@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025128-0
+      author: extern.tomas.robertsson@digg.se
+      labels: first-commit
+      changes:
+        - createTable:
+            tableName: accounts
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  # autoIncrement: true  
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: personal_identity_number
+                  type: VARCHAR(12)
+              - column:
+                  name: email_adress
+                  type: VARCHAR(50) 
+              - column:
+                  name: telephone_number
+                  type: VARCHAR(20)  
+              - column:
+                  name: public_key_id
+                  type: UUID
+        - createTable:
+            tableName: publickeys
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+              - column:
+                  name: public_key
+                  type: VARCHAR(300)
+              - column:
+                  name: public_key_identifier
+                  type: VARCHAR(30)

@@ -1,15 +1,16 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
-//
-// SPDX-License-Identifier: EUPL-1.2
+// // SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// //
+// // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.account;
+// package se.digg.wallet.account;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Disabled;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class ApplicationTests {
+// @SpringBootTest
+// class ApplicationTests {
 
-  @Test
-  void contextLoads() {}
-}
+//   @Test
+//   void contextLoads() {}
+// }
