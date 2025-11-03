@@ -13,6 +13,6 @@ public record CreateAccountRequestDto(
     @NotEmpty String personalIdentityNumber,
     @NotEmpty String emailAdress,
     Optional<String> telephoneNumber,
-    JwkDto jwk) {
+    PublicKeyDto publicKey) {
 
 }

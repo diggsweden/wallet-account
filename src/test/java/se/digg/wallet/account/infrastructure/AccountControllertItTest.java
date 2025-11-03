@@ -56,7 +56,7 @@ class AccountControllertItTest {
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.emailAdress()).isEqualTo(accountEntity.getEmailAdress());
-          assertThat(account.jwk()).isNotNull();
+          assertThat(account.publicKey()).isNotNull();
         });
   }
 
@@ -67,7 +67,7 @@ class AccountControllertItTest {
             .emailAdress("none@your.businnes.se")
             .personalIdentityNumber("770101-1234")
             .telephoneNumber(Optional.of("070 123 123 12"))
-            .jwk(TestUtils.jwkDtoBuilderWithDefaults("nollnoll").build())
+            .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("nollnoll").build())
             .build();
     ResponseEntity<AccountDto> response =
         restTemplate.postForEntity("/account", requestDto, AccountDto.class);
@@ -87,13 +87,13 @@ class AccountControllertItTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber(Optional.of("070 123 123 12"))
-        .jwk(TestUtils.jwkDtoBuilderWithDefaults("99").build())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("99").build())
         .build();
     CreateAccountRequestDto secondRequestDto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("none@your.businnes.com")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber(Optional.of("070 123 123 13"))
-        .jwk(TestUtils.jwkDtoBuilderWithDefaults("88").build())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("88").build())
         .build();
     ResponseEntity<AccountDto> firstResponse =
         restTemplate.postForEntity("/account", firstRequestDto, AccountDto.class);

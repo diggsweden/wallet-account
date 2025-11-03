@@ -8,7 +8,7 @@ import io.soabase.recordbuilder.core.RecordBuilder;
 import jakarta.validation.constraints.NotBlank;
 
 @RecordBuilder
-public record JwkDto(
+public record PublicKeyDto(
     @NotBlank(message = "kty cannot be blank") String kty,
     String kid,
     String alg,

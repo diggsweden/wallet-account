@@ -29,10 +29,10 @@ databaseChangeLog:
                   name: telephone_number
                   type: VARCHAR(20)
               - column:
-                  name: jwk_key_id
+                  name: public_key_id
                   type: UUID
         - createTable:
-            tableName: jwk
+            tableName: public_key
             columns:
               - column:
                   name: id

@@ -4,14 +4,14 @@
 
 package se.digg.wallet.account;
 
-import se.digg.wallet.account.application.model.JwkDtoBuilder;
+import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
-import se.digg.wallet.account.infrastructure.model.JwkEntity;
+import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 
 public class TestUtils {
 
-  public static JwkEntity generateJwkEntity(String kid) {
-    return new JwkEntity(
+  public static PublicKeyEntity generateJwkEntity(String kid) {
+    return new PublicKeyEntity(
         "EC",
         kid,
         "alg",
@@ -21,8 +21,8 @@ public class TestUtils {
         "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM");
   }
 
-  public static JwkDtoBuilder jwkDtoBuilderWithDefaults(String kid) {
-    return JwkDtoBuilder.builder()
+  public static PublicKeyDtoBuilder publicKeyDtoBuilderWithDefaults(String kid) {
+    return PublicKeyDtoBuilder.builder()
         .kty("EC")
         .crv("P-256")
         .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
@@ -36,6 +36,6 @@ public class TestUtils {
     return AccountDtoBuilder.builder()
         .emailAdress("dummy@dummy.se")
         .personalIdentityNumber("720202-0234")
-        .jwk(jwkDtoBuilderWithDefaults("99").build());
+        .publicKey(publicKeyDtoBuilderWithDefaults("99").build());
   }
 }

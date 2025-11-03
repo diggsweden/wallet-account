@@ -27,15 +27,15 @@ class AccountMapperTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1234")
         .telephoneNumber(Optional.of("070 123 123 12"))
-        .jwk(TestUtils.jwkDtoBuilderWithDefaults("22").build())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22").build())
         .build();
     assertThat(accountEntityMapper.toAccountEntity(requestDto))
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.getId()).isNull();
           assertThat(account.getEmailAdress()).isEqualTo(requestDto.emailAdress());
-          assertThat(account.getJwk()).isNotNull();
-          assertThat(account.getJwk().getX()).isEqualTo(requestDto.jwk().x());
+          assertThat(account.getPublicKey()).isNotNull();
+          assertThat(account.getPublicKey().getX()).isEqualTo(requestDto.publicKey().x());
         });
   }
 
@@ -56,9 +56,10 @@ class AccountMapperTest {
           assertThat(account.personalIdentityNumber()).isEqualTo("770101-1234");
           assertThat(account.telephoneNumber()).isPresent();
           assertThat(account.telephoneNumber().get()).contains("070 123 123 12");
-          assertThat(account.jwk()).isNotNull();
-          assertThat(account.jwk().x()).isEqualTo(TestUtils.generateJwkEntity("11").getX());
-          assertThat(account.jwk().kid()).isEqualTo("11");
+          assertThat(account.publicKey()).isNotNull();
+          assertThat(account.publicKey().x())
+              .isEqualTo(TestUtils.generateJwkEntity("11").getX());
+          assertThat(account.publicKey().kid()).isEqualTo("11");
 
         });
   }

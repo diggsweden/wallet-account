@@ -10,7 +10,7 @@ import com.nimbusds.jose.jwk.JWK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import se.digg.wallet.account.application.model.JwkDto;
+import se.digg.wallet.account.application.model.PublicKeyDto;
 
 @Service
 public class JwkValidationService {
@@ -22,7 +22,7 @@ public class JwkValidationService {
     this.objectMapper = objectMapper;
   }
 
-  public boolean validateJwk(JwkDto jwkDto) {
+  public boolean validateJwk(PublicKeyDto jwkDto) {
     String jwkJson;
     try {
       jwkJson = objectMapper.writeValueAsString(jwkDto);
@@ -35,7 +35,8 @@ public class JwkValidationService {
       log.debug("JWK is valid: {} ", jwk.getKeyID());
       return true;
     } catch (Exception e) {
-      log.warn("Invalid JWK {}", e.getMessage());
+
+      log.warn("Invalid JWK {}, jwk: {}", e.getMessage(), jwkDto);
       return false;
     }
   }

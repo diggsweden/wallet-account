@@ -7,7 +7,7 @@ package se.digg.wallet.account.domain.model;
 import io.soabase.recordbuilder.core.RecordBuilder;
 import java.util.Optional;
 import java.util.UUID;
-import se.digg.wallet.account.application.model.JwkDto;
+import se.digg.wallet.account.application.model.PublicKeyDto;
 
 @RecordBuilder
 public record AccountDto(
@@ -15,5 +15,5 @@ public record AccountDto(
     String personalIdentityNumber,
     String emailAdress,
     Optional<String> telephoneNumber,
-    JwkDto jwk) {
+    PublicKeyDto publicKey) {
 }

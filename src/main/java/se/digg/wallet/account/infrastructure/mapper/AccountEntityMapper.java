@@ -7,11 +7,11 @@ package se.digg.wallet.account.infrastructure.mapper;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.application.model.JwkDtoBuilder;
+import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.JwkEntity;
+import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 
 @Service
 public class AccountEntityMapper {
@@ -21,14 +21,14 @@ public class AccountEntityMapper {
     return new AccountEntity(accountRequestDto.personalIdentityNumber(),
         accountRequestDto.emailAdress(),
         accountRequestDto.telephoneNumber().orElse(null),
-        new JwkEntity(
-            accountRequestDto.jwk().kty(),
-            accountRequestDto.jwk().kid(),
-            accountRequestDto.jwk().alg(),
-            accountRequestDto.jwk().use(),
-            accountRequestDto.jwk().crv(),
-            accountRequestDto.jwk().x(),
-            accountRequestDto.jwk().y()));
+        new PublicKeyEntity(
+            accountRequestDto.publicKey().kty(),
+            accountRequestDto.publicKey().kid(),
+            accountRequestDto.publicKey().alg(),
+            accountRequestDto.publicKey().use(),
+            accountRequestDto.publicKey().crv(),
+            accountRequestDto.publicKey().x(),
+            accountRequestDto.publicKey().y()));
   }
 
   public AccountDto toAccountDto(AccountEntity accountEntity) {
@@ -37,14 +37,14 @@ public class AccountEntityMapper {
         .emailAdress(accountEntity.getEmailAdress())
         .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
         .telephoneNumber(Optional.of(accountEntity.getTelephoneNumber()))
-        .jwk(JwkDtoBuilder.builder()
-            .kty(accountEntity.getJwk().getKty())
-            .kid(accountEntity.getJwk().getKid())
-            .alg(accountEntity.getJwk().getAlg())
-            .use(accountEntity.getJwk().getUse())
-            .crv(accountEntity.getJwk().getCrv())
-            .x(accountEntity.getJwk().getX())
-            .y(accountEntity.getJwk().getY())
+        .publicKey(PublicKeyDtoBuilder.builder()
+            .kty(accountEntity.getPublicKey().getKty())
+            .kid(accountEntity.getPublicKey().getKid())
+            .alg(accountEntity.getPublicKey().getAlg())
+            .use(accountEntity.getPublicKey().getUse())
+            .crv(accountEntity.getPublicKey().getCrv())
+            .x(accountEntity.getPublicKey().getX())
+            .y(accountEntity.getPublicKey().getY())
             .build())
 
         .build();

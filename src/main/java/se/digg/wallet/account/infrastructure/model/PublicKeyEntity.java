@@ -15,8 +15,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "jwk")
-public class JwkEntity {
+@Table(name = "public_key")
+public class PublicKeyEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,12 +36,12 @@ public class JwkEntity {
   @Column(name = "y")
   private String yvalue;
 
-  @OneToOne(mappedBy = "jwk")
+  @OneToOne(mappedBy = "publicKey")
   private AccountEntity accountEntity;
 
-  public JwkEntity() {}
+  public PublicKeyEntity() {}
 
-  public JwkEntity(String kty, String kid, String alg, String use, String crv, String x,
+  public PublicKeyEntity(String kty, String kid, String alg, String use, String crv, String x,
       String y) {
     this.kty = kty;
     this.kid = kid;
@@ -135,7 +135,7 @@ public class JwkEntity {
       return false;
     }
 
-    JwkEntity other = (JwkEntity) obj;
+    PublicKeyEntity other = (PublicKeyEntity) obj;
     return Objects.equals(id, other.id)
         && Objects.equals(kty, other.kty)
         && Objects.equals(kid, other.kid)

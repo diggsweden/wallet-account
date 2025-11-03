@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+# SPDX-License-Identifier: EUPL-1.2
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgres16
+    restart: always
+    environment:
+      POSTGRES_USER: mywalletuser
+      POSTGRES_PASSWORD: mywalletuser
+      POSTGRES_DB: walletaccount
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -35,7 +35,7 @@ public class AccountController {
   @PostMapping
   public ResponseEntity<AccountDto> createAccount(
       @RequestBody CreateAccountRequestDto createAccountRequestDto) {
-    if (!jwkValidationService.validateJwk(createAccountRequestDto.jwk())) {
+    if (!jwkValidationService.validateJwk(createAccountRequestDto.publicKey())) {
       return ResponseEntity.badRequest().build();
     }
     return ResponseEntity

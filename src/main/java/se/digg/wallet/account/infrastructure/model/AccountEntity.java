@@ -31,18 +31,18 @@ public class AccountEntity {
   private String telephoneNumber;
 
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  @JoinColumn(name = "jwk_key_id", referencedColumnName = "id")
-  private JwkEntity jwk;
+  @JoinColumn(name = "public_key_id", referencedColumnName = "id")
+  private PublicKeyEntity publicKey;
 
 
   public AccountEntity() {}
 
   public AccountEntity(String personalIdentityNumber, String emailAdress,
-      String telephoneNumber, JwkEntity jwk) {
+      String telephoneNumber, PublicKeyEntity publicKey) {
     this.personalIdentityNumber = personalIdentityNumber;
     this.emailAdress = emailAdress;
     this.telephoneNumber = telephoneNumber;
-    this.jwk = jwk;
+    this.publicKey = publicKey;
   }
 
   public UUID getId() {
@@ -77,17 +77,17 @@ public class AccountEntity {
     this.telephoneNumber = telephoneNumber;
   }
 
-  public JwkEntity getJwk() {
-    return jwk;
+  public PublicKeyEntity getPublicKey() {
+    return publicKey;
   }
 
-  public void setJwk(JwkEntity jwk) {
-    this.jwk = jwk;
+  public void setJwk(PublicKeyEntity publicKey) {
+    this.publicKey = publicKey;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, emailAdress, telephoneNumber, jwk);
+    return Objects.hash(id, emailAdress, telephoneNumber, publicKey);
   }
 
   @Override
@@ -107,14 +107,14 @@ public class AccountEntity {
     return Objects.equals(id, other.id)
         && Objects.equals(emailAdress, other.emailAdress)
         && Objects.equals(telephoneNumber, other.telephoneNumber)
-        && Objects.equals(other.jwk, jwk);
+        && Objects.equals(other.publicKey, publicKey);
   }
 
   @Override
   public String toString() {
     return "AccountEntity [id=" + id + ", personalIdentityNumber=" + personalIdentityNumber
         + ", emailAdress=" + emailAdress + ", telephoneNumber=" + telephoneNumber
-        + ", publicKey=" + jwk + "]";
+        + ", publicKey=" + publicKey + "]";
   }
 
 }

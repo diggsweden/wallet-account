@@ -51,9 +51,9 @@ class AccountRepositoryTest {
     assertThat(foundEntity)
         .isNotNull()
         .isEqualTo(storedEntity);
-    assertThat(foundEntity.getJwk())
+    assertThat(foundEntity.getPublicKey())
         .isNotNull();
-    assertThat(foundEntity.getJwk().getId()).isNotNull();
+    assertThat(foundEntity.getPublicKey().getId()).isNotNull();
 
 
     System.out.println("result " + foundEntity.toString());
