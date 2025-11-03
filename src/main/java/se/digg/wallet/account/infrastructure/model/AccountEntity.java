@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 package se.digg.wallet.account.infrastructure.model;
 
 import jakarta.persistence.CascadeType;
@@ -27,18 +31,18 @@ public class AccountEntity {
   private String telephoneNumber;
 
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  @JoinColumn(name = "public_key_id", referencedColumnName = "id")
-  private PublicKeyEntity publicKey;
+  @JoinColumn(name = "jwk_key_id", referencedColumnName = "id")
+  private JwkEntity jwk;
 
 
   public AccountEntity() {}
 
   public AccountEntity(String personalIdentityNumber, String emailAdress,
-      String telephoneNumber, PublicKeyEntity publicKey) {
+      String telephoneNumber, JwkEntity jwk) {
     this.personalIdentityNumber = personalIdentityNumber;
     this.emailAdress = emailAdress;
     this.telephoneNumber = telephoneNumber;
-    this.publicKey = publicKey;
+    this.jwk = jwk;
   }
 
   public UUID getId() {
@@ -73,17 +77,17 @@ public class AccountEntity {
     this.telephoneNumber = telephoneNumber;
   }
 
-  public PublicKeyEntity getPublicKey() {
-    return publicKey;
+  public JwkEntity getJwk() {
+    return jwk;
   }
 
-  public void setPublicKey(PublicKeyEntity publicKey) {
-    this.publicKey = publicKey;
+  public void setJwk(JwkEntity jwk) {
+    this.jwk = jwk;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, emailAdress, telephoneNumber, publicKey);
+    return Objects.hash(id, emailAdress, telephoneNumber, jwk);
   }
 
   @Override
@@ -103,14 +107,14 @@ public class AccountEntity {
     return Objects.equals(id, other.id)
         && Objects.equals(emailAdress, other.emailAdress)
         && Objects.equals(telephoneNumber, other.telephoneNumber)
-        && Objects.equals(other.publicKey, publicKey);
+        && Objects.equals(other.jwk, jwk);
   }
 
   @Override
   public String toString() {
     return "AccountEntity [id=" + id + ", personalIdentityNumber=" + personalIdentityNumber
         + ", emailAdress=" + emailAdress + ", telephoneNumber=" + telephoneNumber
-        + ", publicKey=" + publicKey + "]";
+        + ", publicKey=" + jwk + "]";
   }
 
 }

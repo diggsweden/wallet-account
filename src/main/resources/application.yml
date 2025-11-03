@@ -10,7 +10,6 @@ spring:
     database: POSTGRESQL
     hibernate:
       ddl-auto: none
-    show-sql: true
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/
@@ -21,7 +20,6 @@ spring:
   sql:
     init:
       platform: postgres
-
 
 # Management and Monitoring
 management:

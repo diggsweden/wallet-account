@@ -1,13 +1,17 @@
+// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 package se.digg.wallet.account.infrastructure.mapper;
 
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.application.model.PublicKeyDto;
+import se.digg.wallet.account.application.model.JwkDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
+import se.digg.wallet.account.infrastructure.model.JwkEntity;
 
 @Service
 public class AccountEntityMapper {
@@ -17,9 +21,14 @@ public class AccountEntityMapper {
     return new AccountEntity(accountRequestDto.personalIdentityNumber(),
         accountRequestDto.emailAdress(),
         accountRequestDto.telephoneNumber().orElse(null),
-        new PublicKeyEntity(
-            accountRequestDto.publicKey().publicKeyBase64(),
-            accountRequestDto.publicKey().publicKeyIdentifier()));
+        new JwkEntity(
+            accountRequestDto.jwk().kty(),
+            accountRequestDto.jwk().kid(),
+            accountRequestDto.jwk().alg(),
+            accountRequestDto.jwk().use(),
+            accountRequestDto.jwk().crv(),
+            accountRequestDto.jwk().x(),
+            accountRequestDto.jwk().y()));
   }
 
   public AccountDto toAccountDto(AccountEntity accountEntity) {
@@ -28,9 +37,16 @@ public class AccountEntityMapper {
         .emailAdress(accountEntity.getEmailAdress())
         .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
         .telephoneNumber(Optional.of(accountEntity.getTelephoneNumber()))
-        .publicKey(new PublicKeyDto(
-            accountEntity.getPublicKey().getPublicKey(),
-            accountEntity.getPublicKey().getPublicKeyIdentifier()))
+        .jwk(JwkDtoBuilder.builder()
+            .kty(accountEntity.getJwk().getKty())
+            .kid(accountEntity.getJwk().getKid())
+            .alg(accountEntity.getJwk().getAlg())
+            .use(accountEntity.getJwk().getUse())
+            .crv(accountEntity.getJwk().getCrv())
+            .x(accountEntity.getJwk().getX())
+            .y(accountEntity.getJwk().getY())
+            .build())
+
         .build();
 
 

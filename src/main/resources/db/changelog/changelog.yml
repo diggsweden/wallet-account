@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+# SPDX-License-Identifier: EUPL-1.2
+
 databaseChangeLog:
   - changeSet:
       id: 2025128-0
@@ -10,31 +13,51 @@ databaseChangeLog:
               - column:
                   name: id
                   type: UUID
-                  # autoIncrement: true  
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: personal_identity_number
                   type: VARCHAR(12)
+                  constraints:
+                    nullable: false
+                    unique: true
               - column:
                   name: email_adress
-                  type: VARCHAR(50) 
+                  type: VARCHAR(50)
               - column:
                   name: telephone_number
-                  type: VARCHAR(20)  
+                  type: VARCHAR(20)
               - column:
-                  name: public_key_id
+                  name: jwk_key_id
                   type: UUID
         - createTable:
-            tableName: publickeys
+            tableName: jwk
             columns:
               - column:
                   name: id
                   type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
               - column:
-                  name: public_key
+                  name: kty
+                  type: VARCHAR(30)
+              - column:
+                  name: kid
+                  type: VARCHAR(30)
+              - column:
+                  name: alg
+                  type: VARCHAR(30)
+              - column:
+                  name: use
+                  type: VARCHAR(30)
+              - column:
+                  name: crv
+                  type: VARCHAR(30)
+              - column:
+                  name: x
                   type: VARCHAR(300)
               - column:
-                  name: public_key_identifier
-                  type: VARCHAR(30)
+                  name: y
+                  type: VARCHAR(300)
