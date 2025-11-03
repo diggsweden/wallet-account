@@ -27,7 +27,7 @@ class AccountMapperTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1234")
         .telephoneNumber(Optional.of("070 123 123 12"))
-        .jwk(TestUtils.generateJwkDto("22"))
+        .jwk(TestUtils.jwkDtoBuilderWithDefaults("22").build())
         .build();
     assertThat(accountEntityMapper.toAccountEntity(requestDto))
         .isNotNull()

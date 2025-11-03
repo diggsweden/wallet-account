@@ -4,8 +4,8 @@
 
 package se.digg.wallet.account;
 
-import se.digg.wallet.account.application.model.JwkDto;
 import se.digg.wallet.account.application.model.JwkDtoBuilder;
+import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.infrastructure.model.JwkEntity;
 
 public class TestUtils {
@@ -21,7 +21,7 @@ public class TestUtils {
         "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM");
   }
 
-  public static JwkDto generateJwkDto(String kid) {
+  public static JwkDtoBuilder jwkDtoBuilderWithDefaults(String kid) {
     return JwkDtoBuilder.builder()
         .kty("EC")
         .crv("P-256")
@@ -29,7 +29,13 @@ public class TestUtils {
         .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
         .alg("alg")
         .use("enc")
-        .kid(kid)
-        .build();
+        .kid(kid);
+  }
+
+  public static AccountDtoBuilder accountDtoBuilderWithDefults() {
+    return AccountDtoBuilder.builder()
+        .emailAdress("dummy@dummy.se")
+        .personalIdentityNumber("720202-0234")
+        .jwk(jwkDtoBuilderWithDefaults("99").build());
   }
 }

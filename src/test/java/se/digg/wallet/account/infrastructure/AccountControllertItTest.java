@@ -67,7 +67,7 @@ class AccountControllertItTest {
             .emailAdress("none@your.businnes.se")
             .personalIdentityNumber("770101-1234")
             .telephoneNumber(Optional.of("070 123 123 12"))
-            .jwk(TestUtils.generateJwkDto("nollnoll"))
+            .jwk(TestUtils.jwkDtoBuilderWithDefaults("nollnoll").build())
             .build();
     ResponseEntity<AccountDto> response =
         restTemplate.postForEntity("/account", requestDto, AccountDto.class);
@@ -87,13 +87,13 @@ class AccountControllertItTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber(Optional.of("070 123 123 12"))
-        .jwk(TestUtils.generateJwkDto("99"))
+        .jwk(TestUtils.jwkDtoBuilderWithDefaults("99").build())
         .build();
     CreateAccountRequestDto secondRequestDto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("none@your.businnes.com")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber(Optional.of("070 123 123 13"))
-        .jwk(TestUtils.generateJwkDto("88"))
+        .jwk(TestUtils.jwkDtoBuilderWithDefaults("88").build())
         .build();
     ResponseEntity<AccountDto> firstResponse =
         restTemplate.postForEntity("/account", firstRequestDto, AccountDto.class);

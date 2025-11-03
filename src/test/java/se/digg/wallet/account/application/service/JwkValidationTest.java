@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.JwkDto;
-import se.digg.wallet.account.application.model.JwkDtoBuilder;
 import se.digg.wallet.account.domain.service.JwkValidationService;
 
 class JwkValidationTest {
@@ -20,19 +19,15 @@ class JwkValidationTest {
 
   @Test
   void testJwkValidation() {
-    assertThat(jwkValidationService.validateJwk(TestUtils.generateJwkDto("11"))).isTrue();
+    assertThat(jwkValidationService.validateJwk(
+        TestUtils.jwkDtoBuilderWithDefaults("11").build())).isTrue();
   }
 
   @Test
   void validateBadJwkTest() {
-    JwkDto badJwkDto = JwkDtoBuilder.builder()
-        .kty("EC")
-        .crv("P-256")
-        .x("MKBCTNI7Tu6KPAqv7D4")
-        .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
-        .alg("alg")
-        .use("enc")
-        .kid("kid")
+    JwkDto badJwkDto = TestUtils
+        .jwkDtoBuilderWithDefaults("999")
+        .x("dummykey")
         .build();
     assertThat(jwkValidationService.validateJwk(badJwkDto)).isFalse();
   }
