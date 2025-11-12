@@ -36,7 +36,7 @@ public class AccountEntityMapper {
         .id(accountEntity.getId())
         .emailAdress(accountEntity.getEmailAdress())
         .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
-        .telephoneNumber(Optional.of(accountEntity.getTelephoneNumber()))
+        .telephoneNumber(Optional.ofNullable(accountEntity.getTelephoneNumber()))
         .publicKey(PublicKeyDtoBuilder.builder()
             .kty(accountEntity.getPublicKey().getKty())
             .kid(accountEntity.getPublicKey().getKid())

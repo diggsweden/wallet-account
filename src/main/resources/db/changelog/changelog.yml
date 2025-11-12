@@ -61,3 +61,12 @@ databaseChangeLog:
               - column:
                   name: y
                   type: VARCHAR(300)
+  - changeSet:
+      id: 20251114-4
+      author: extern.tomas.robertsson@digg.se
+      labels: increase-kid-limit
+      changes:
+        - modifyDataType:
+            tableName: public_key
+            columnName: kid
+            newDataType: VARCHAR(300)
