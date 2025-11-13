@@ -7,6 +7,7 @@ package se.digg.wallet.account.infrastructure.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -38,8 +39,8 @@ class AccountRepositoryTest {
     AccountEntity entity =
         new AccountEntity("770101-1234",
             "none@business.se",
-            "070-123 123 1´23",
-            TestUtils.generateJwkEntity("nyckel 9"));
+            "070-123 123 123",
+            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     AccountEntity storedEntity = accountRepository.save(entity);
     entityManager.flush();

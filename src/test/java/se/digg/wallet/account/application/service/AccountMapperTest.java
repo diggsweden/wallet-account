@@ -15,6 +15,7 @@ import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 
 class AccountMapperTest {
 
@@ -36,6 +37,28 @@ class AccountMapperTest {
           assertThat(account.getEmailAdress()).isEqualTo(requestDto.emailAdress());
           assertThat(account.getPublicKey()).isNotNull();
           assertThat(account.getPublicKey().getX()).isEqualTo(requestDto.publicKey().x());
+        });
+  }
+
+  @Test
+  void testToAccountEntityAllOptionalFieldsNull() {
+    CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
+        .emailAdress("none@your.businnes.se")
+        .personalIdentityNumber("770101-1234")
+        .telephoneNumber(Optional.empty())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22")
+            .kid(null)
+            .alg(null)
+            .use(null)
+            .build())
+        .build();
+    assertThat(accountEntityMapper.toAccountEntity(requestDto))
+        .isNotNull()
+        .satisfies(account -> {
+          assertThat(account.getTelephoneNumber()).isNull();
+          assertThat(account.getPublicKey().getAlg()).isNull();
+          assertThat(account.getPublicKey().getUse()).isNull();
+          assertThat(account.getPublicKey().getKid()).isNull();
         });
   }
 
@@ -63,4 +86,32 @@ class AccountMapperTest {
 
         });
   }
+
+  @Test
+  void testToDtoAllOptionalFieldsNull() {
+    AccountEntity entity = new AccountEntity(
+        "770101-1234",
+        "none@your.business.se",
+        null,
+        new PublicKeyEntity(
+            "EC",
+            null,
+            null,
+            null,
+            "P-256",
+            "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+            "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"));
+    entity.setId(UUID.randomUUID());
+    AccountDto accountDto = accountEntityMapper.toAccountDto(entity);
+    assertThat(accountDto)
+        .isNotNull()
+        .satisfies(account -> {
+          assertThat(account.telephoneNumber()).isEmpty();
+          assertThat(account.publicKey()).isNotNull();
+          assertThat(account.publicKey().kid()).isNull();
+          assertThat(account.publicKey().alg()).isNull();
+          assertThat(account.publicKey().use()).isNull();
+        });
+  }
+
 }
