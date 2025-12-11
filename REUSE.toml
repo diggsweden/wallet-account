@@ -9,16 +9,36 @@ path = [
   ".github/pull_request_template.md",
   "renovate.json",
   "CHANGELOG.md",
- "docs/DEVELOPMENT.md",
+  "docs/DEVELOPMENT.md",
   "jreleaser.yml",
   ".mvn/settings.xml",
   "**/*/pmd_default_java.xml",
   "README.md",
   ".gitleaks-test/tests/suite-report-approved.jsonl",
+  "DEVELOPMENT.md",
+  "CONTRIBUTING.md",
+  "SECURITY.md",
+  ".conform.yaml",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Digg - Agency for Digital Government"
 SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+  "GOVERNANCE.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Digg - Agency for Digital Government"
+SPDX-License-Identifier = "EUPL-1.2"
+
+[[annotations]]
+path = [
+  "CODE_OF_CONDUCT.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Contributor Covenant"
+SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 
