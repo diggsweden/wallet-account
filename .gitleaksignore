@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+# SPDX-License-Identifier: CC0-1.0
+
+# False positives: Java package names matching digg-internal-hosts rule
+# These are legitimate se.digg.wallet.account package imports/declarations
+45b3da001e3fef7d5fd65c0dca50e2ebb0be0e3c:src/main/resources/db/changelog/changelog.yml:digg-email-address:66
+6970cbb6493acb96081feaaf886c81b731e74182:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:14
+6970cbb6493acb96081feaaf886c81b731e74182:src/main/java/se/digg/wallet/account/domain/service/AccountService.java:digg-internal-hosts:1
+6970cbb6493acb96081feaaf886c81b731e74182:src/main/resources/db/changelog/changelog.yml:digg-email-address:4
+6970cbb6493acb96081feaaf886c81b731e74182:src/test/java/se/digg/wallet/account/application/controller/AccountControllerTest.java:digg-internal-hosts:26
+ae4001a2566a8d797d02d2451410e9a4a054a12d:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:19
+ae4001a2566a8d797d02d2451410e9a4a054a12d:src/main/java/se/digg/wallet/account/domain/service/JwkValidationService.java:digg-internal-hosts:5
+ae4001a2566a8d797d02d2451410e9a4a054a12d:src/test/java/se/digg/wallet/account/application/controller/AccountControllerTest.java:digg-internal-hosts:30
+ae4001a2566a8d797d02d2451410e9a4a054a12d:src/test/java/se/digg/wallet/account/application/service/JwkValidationTest.java:digg-internal-hosts:14
+ae4001a2566a8d797d02d2451410e9a4a054a12d:src/test/java/se/digg/wallet/account/application/service/JwkValidationTest.java:digg-internal-hosts:5
+c80e016a21ffda5b8b84394cff36e7dc7424c316:src/test/java/se/digg/wallet/account/application/service/AccountServiceTest.java:digg-internal-hosts:21
+c80e016a21ffda5b8b84394cff36e7dc7424c316:src/test/java/se/digg/wallet/account/application/service/AccountServiceTest.java:digg-internal-hosts:5
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:18
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:19
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/domain/service/AccountService.java:digg-internal-hosts:5
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/domain/service/JwkValidationService.java:digg-internal-hosts:5
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/resources/db/changelog/changelog.yml:digg-email-address:7
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/controller/AccountControllerTest.java:digg-internal-hosts:29
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/controller/AccountControllerTest.java:digg-internal-hosts:30
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/service/AccountMapperTest.java:digg-internal-hosts:5
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/service/AccountServiceTest.java:digg-internal-hosts:21
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/service/AccountServiceTest.java:digg-internal-hosts:5
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/service/JwkValidationTest.java:digg-internal-hosts:13
+ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/service/JwkValidationTest.java:digg-internal-hosts:5
+f2c2f48ed099df8d1c4b4d7ded8d443a67a8cd36:src/test/java/se/digg/wallet/account/application/service/AccountMapperTest.java:digg-internal-hosts:1
