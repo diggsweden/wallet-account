@@ -19,7 +19,7 @@ public class JwkValidationService {
   private final ObjectMapper objectMapper;
 
   public JwkValidationService(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+    this.objectMapper = objectMapper.copy();
   }
 
   public boolean validateJwk(PublicKeyDto jwkDto) {
