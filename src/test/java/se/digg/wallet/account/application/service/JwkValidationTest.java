@@ -5,12 +5,11 @@
 package se.digg.wallet.account.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.service.JwkValidationService;
+import tools.jackson.databind.ObjectMapper;
 
 class JwkValidationTest {
 

@@ -5,15 +5,15 @@
 package se.digg.wallet.account.infrastructure;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -26,6 +26,7 @@ import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
+@AutoConfigureRestTestClient
 class AccountControllertItTest {
 
   @Container
@@ -33,7 +34,7 @@ class AccountControllertItTest {
   static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
 
   @Autowired
-  TestRestTemplate restTemplate;
+  RestTestClient restClient;
 
   @Autowired
   AccountRepository repository;
@@ -47,12 +48,16 @@ class AccountControllertItTest {
         "070 123 12 12",
         TestUtils.generateJwkEntity("1"));
     repository.save(accountEntity);
-    ResponseEntity<AccountDto> response =
-        restTemplate.getForEntity("/account/" + accountEntity.getId(), AccountDto.class);
+    EntityExchangeResult<AccountDto> response =
+        restClient.get()
+            .uri("/account/" + accountEntity.getId())
+            .exchange()
+            .expectBody(AccountDto.class)
+            .returnResult();
 
-    assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response.getStatus().is2xxSuccessful()).isTrue();
 
-    assertThat(response.getBody())
+    assertThat(response.getResponseBody())
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.emailAdress()).isEqualTo(accountEntity.getEmailAdress());
@@ -69,12 +74,16 @@ class AccountControllertItTest {
             .telephoneNumber(Optional.of("070 123 123 12"))
             .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("nollnoll").build())
             .build();
-    ResponseEntity<AccountDto> response =
-        restTemplate.postForEntity("/account", requestDto, AccountDto.class);
+    EntityExchangeResult<AccountDto> response = restClient.post()
+        .uri("/account")
+        .body(requestDto)
+        .exchangeSuccessfully()
+        .expectBody(AccountDto.class)
+        .returnResult();
 
-    assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response.getStatus().is2xxSuccessful()).isTrue();
 
-    assertThat(response.getBody())
+    assertThat(response.getResponseBody())
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.id()).isNotNull();
@@ -95,22 +104,42 @@ class AccountControllertItTest {
         .telephoneNumber(Optional.of("070 123 123 13"))
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("88").build())
         .build();
-    ResponseEntity<AccountDto> firstResponse =
-        restTemplate.postForEntity("/account", firstRequestDto, AccountDto.class);
-    ResponseEntity<AccountDto> secondResponse =
-        restTemplate.postForEntity("/account", secondRequestDto, AccountDto.class);
-    assertThat(firstResponse.getStatusCode().is2xxSuccessful()).isTrue();
-    assertThat(secondResponse.getStatusCode().is2xxSuccessful()).isTrue();
-    assertThat(firstResponse.getBody()).isNotNull();
-    assertThat(secondResponse.getBody()).isNotNull();
-    assertThat(firstResponse.getBody().id()).isNotEqualTo(secondResponse.getBody().id());
+    EntityExchangeResult<AccountDto> firstResponse =
+        restClient.post()
+            .uri("/account")
+            .body(firstRequestDto)
+            .exchange()
+            .expectBody(AccountDto.class)
+            .returnResult();
+    EntityExchangeResult<AccountDto> secondResponse =
+        restClient.post()
+            .uri("/account")
+            .body(secondRequestDto)
+            .exchange()
+            .expectBody(AccountDto.class)
+            .returnResult();
+    assertThat(firstResponse.getStatus().is2xxSuccessful()).isTrue();
+    assertThat(secondResponse.getStatus().is2xxSuccessful()).isTrue();
+    assertThat(firstResponse.getResponseBody()).isNotNull();
+    assertThat(secondResponse.getResponseBody()).isNotNull();
+    assertThat(firstResponse.getResponseBody().id())
+        .isNotEqualTo(secondResponse.getResponseBody().id());
 
-    ResponseEntity<AccountDto> response =
-        restTemplate.getForEntity("/account/" + firstResponse.getBody().id(), AccountDto.class);
-    assertThat(response.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)).isTrue();
-    ResponseEntity<AccountDto> response2 =
-        restTemplate.getForEntity("/account/" + secondResponse.getBody().id(), AccountDto.class);
-    assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
+    EntityExchangeResult<AccountDto> response =
+        restClient.get()
+            .uri("/account/" + firstResponse.getResponseBody().id())
+            .exchange()
+            .expectBody(AccountDto.class)
+            .returnResult();
+    assertThat(response.getStatus().isSameCodeAs(HttpStatus.NOT_FOUND)).isTrue();
+
+    EntityExchangeResult<AccountDto> response2 =
+        restClient.get()
+            .uri("/account/" + secondResponse.getResponseBody().id())
+            .exchange()
+            .expectBody(AccountDto.class)
+            .returnResult();
+    assertThat(response2.getStatus().is2xxSuccessful()).isTrue();
 
 
   }

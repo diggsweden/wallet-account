@@ -4,13 +4,13 @@
 
 package se.digg.wallet.account.domain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import se.digg.wallet.account.application.model.PublicKeyDto;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class JwkValidationService {
@@ -26,7 +26,7 @@ public class JwkValidationService {
     String jwkJson;
     try {
       jwkJson = objectMapper.writeValueAsString(jwkDto);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Unable to create json from internal object", e);
       return false;
     }
