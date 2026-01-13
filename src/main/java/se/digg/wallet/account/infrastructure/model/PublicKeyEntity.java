@@ -57,64 +57,32 @@ public class PublicKeyEntity {
     return id;
   }
 
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
   public String getKty() {
     return kty;
-  }
-
-  public void setKty(String kty) {
-    this.kty = kty;
   }
 
   public String getKid() {
     return kid;
   }
 
-  public void setKid(String kid) {
-    this.kid = kid;
-  }
-
   public String getAlg() {
     return alg;
-  }
-
-  public void setAlg(String alg) {
-    this.alg = alg;
   }
 
   public String getUse() {
     return use;
   }
 
-  public void setUse(String use) {
-    this.use = use;
-  }
-
   public String getCrv() {
     return crv;
-  }
-
-  public void setCrv(String crv) {
-    this.crv = crv;
   }
 
   public String getX() {
     return xvalue;
   }
 
-  public void setX(String x) {
-    this.xvalue = x;
-  }
-
   public String getY() {
     return yvalue;
-  }
-
-  public void setY(String y) {
-    this.yvalue = y;
   }
 
   @Override
@@ -152,7 +120,4 @@ public class PublicKeyEntity {
         + use
         + ", crv=" + crv + ", x=" + xvalue + ", y=" + yvalue + "]";
   }
-
-
-
 }
