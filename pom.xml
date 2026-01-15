@@ -19,7 +19,7 @@ SPDX-License-Identifier: EUPL-1.2
   </parent>
   <groupId>se.digg</groupId>
   <artifactId>wallet-account</artifactId>
-  <version>0.0.3</version>
+  <version>0.0.4</version>
   <name>wallet-account</name>
   <description>Backend service for Wallet Account</description>
   <url />
