@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.4] - 2026-01-13
+## [0.0.5] - 2026-01-19
+
+### Changed
+
+- Merge pull request #15 from diggsweden/renovate/lock-file-maintenance
+- Lock file maintenance
+- Merge pull request #7 from diggsweden/renovate/cgr.dev-chainguard-jre-latest
+- Update cgr.dev/chainguard/jre:latest docker digest to f7b0d54
+- Update dependency prettier to v3.8.0 (#20)
+- Update dependency com.nimbusds:nimbus-jose-jwt to v10.7 (#19)
+
+## [0.0.4] - 2026-01-15
 
 ### Added
 
@@ -37,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove setters from PublicKeyEntity and remove exclude filter for AccountEntity
 - Remove duplicate PMD rule
 
+
 ## [0.0.3] - 2025-11-17
 
 ### Fixed
@@ -62,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix license and megalinter
 
 
+[0.0.5]: https://github.com/diggsweden/wallet-account/compare/v0.0.4..v0.0.5
 [0.0.4]: https://github.com/diggsweden/wallet-account/compare/v0.0.3..v0.0.4
 [0.0.3]: https://github.com/diggsweden/wallet-account/compare/v0.0.2..v0.0.3
 
