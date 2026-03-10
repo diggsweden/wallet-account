@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6] - 2026-03-09
+
+### Added
+
+- Add no-op version control linter
+
+### Changed
+
+- Merge pull request #33 from diggsweden/fix/use-gommitlint
+- Use gommitlint
+- Merge pull request #32 from diggsweden/build/fail-on-dirty-working-tree
+- Enable version control linter
+- Merge pull request #30 from diggsweden/chore/bump-reusable-ci-to-v2.6.1
+- Bump workflows to use reusable-ci v2.6.1
+- Merge pull request #31 from diggsweden/fix/bump-hadolint-to-v2.14.0
+- Update actions/setup-java action to v5.2.0 (#27)
+- Update java non-major (#26)
+- Update dependency org.assertj:assertj-core to v3.27.7 [security] (#24)
+- Update dependency prettier to v3.8.1 (#23)
+- Update actions/checkout action to v6.0.2 (#22)
+
+### Fixed
+
+- Bump hadolint to v2.14.0
+
 ## [0.0.5] - 2026-01-19
 
 ### Changed
@@ -15,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update cgr.dev/chainguard/jre:latest docker digest to f7b0d54
 - Update dependency prettier to v3.8.0 (#20)
 - Update dependency com.nimbusds:nimbus-jose-jwt to v10.7 (#19)
+
 
 ## [0.0.4] - 2026-01-15
 
@@ -74,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix license and megalinter
 
 
+[0.0.6]: https://github.com/diggsweden/wallet-account/compare/v0.0.5..v0.0.6
 [0.0.5]: https://github.com/diggsweden/wallet-account/compare/v0.0.4..v0.0.5
 [0.0.4]: https://github.com/diggsweden/wallet-account/compare/v0.0.3..v0.0.4
 [0.0.3]: https://github.com/diggsweden/wallet-account/compare/v0.0.2..v0.0.3
