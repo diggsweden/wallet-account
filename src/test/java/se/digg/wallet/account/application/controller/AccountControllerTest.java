@@ -49,7 +49,7 @@ class AccountControllerTest {
       .emailAdress("none@your.bussiness.se")
       .id(defaulUuid)
       .personalIdentityNumber("770101-1234")
-      .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
+      .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
       .build();
 
 
@@ -58,7 +58,7 @@ class AccountControllerTest {
     CreateAccountRequestDto dto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("none@your.bussiness.se")
         .personalIdentityNumber("770101-1234")
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("77").build())
+        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("77").build())
         .build();
 
     when(jwkValidationService.validateJwk(any())).thenReturn(true);
@@ -76,7 +76,7 @@ class AccountControllerTest {
     CreateAccountRequestDto dto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("none@your.bussiness.se")
         .personalIdentityNumber("770101-1234")
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("77").build())
+        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("77").build())
         .build();
 
     when(jwkValidationService.validateJwk(any())).thenReturn(false);
