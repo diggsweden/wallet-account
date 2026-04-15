@@ -14,8 +14,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "accounts")
@@ -30,19 +33,33 @@ public class AccountEntity {
   @Column
   private String telephoneNumber;
 
+  // security envelope (implementeras med opaque)
+  @JdbcTypeCode(SqlTypes.BLOB)
+  @Column(columnDefinition = "blob")
+  private String securityEnvelope;
+
+  // HSM:ens nyckel (walletKey) , den publika plånboksnyckeln
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(columnDefinition = "jsonb")
+  private Map<String, Object> walletKey;
+
+  // Device:ns nyckel, enhetens publika nyckeln, deviceKey
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  @JoinColumn(name = "public_key_id", referencedColumnName = "id")
-  private PublicKeyEntity publicKey;
+  @JoinColumn(name = "device_key_id", referencedColumnName = "id")
+  private PublicKeyEntity deviceKey;
 
 
   public AccountEntity() {}
 
   public AccountEntity(String personalIdentityNumber, String emailAdress,
-      String telephoneNumber, PublicKeyEntity publicKey) {
+      String telephoneNumber, String securityEnvelope, Map<String, Object> walletKey,
+      PublicKeyEntity deviceKey) {
     this.personalIdentityNumber = personalIdentityNumber;
     this.emailAdress = emailAdress;
     this.telephoneNumber = telephoneNumber;
-    this.publicKey = publicKey;
+    this.securityEnvelope = securityEnvelope;
+    this.walletKey = walletKey;
+    this.deviceKey = deviceKey;
   }
 
   public UUID getId() {
@@ -77,17 +94,33 @@ public class AccountEntity {
     this.telephoneNumber = telephoneNumber;
   }
 
-  public PublicKeyEntity getPublicKey() {
-    return publicKey;
+  public String getSecurityEnvelope() {
+    return securityEnvelope;
   }
 
-  public void setJwk(PublicKeyEntity publicKey) {
-    this.publicKey = publicKey;
+  public void setSecurityEnvelope(String securityEnvelope) {
+    this.securityEnvelope = securityEnvelope;
+  }
+
+  public Map<String, Object> getWalletKey() {
+    return walletKey;
+  }
+
+  public void setWalletKey(Map<String, Object> walletKey) {
+    this.walletKey = walletKey;
+  }
+
+  public PublicKeyEntity getDeviceKey() {
+    return deviceKey;
+  }
+
+  public void setDeviceKey(PublicKeyEntity deviceKey) {
+    this.deviceKey = deviceKey;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, emailAdress, telephoneNumber, publicKey);
+    return Objects.hash(id, emailAdress, telephoneNumber, securityEnvelope, walletKey, deviceKey);
   }
 
   @Override
@@ -107,14 +140,17 @@ public class AccountEntity {
     return Objects.equals(id, other.id)
         && Objects.equals(emailAdress, other.emailAdress)
         && Objects.equals(telephoneNumber, other.telephoneNumber)
-        && Objects.equals(other.publicKey, publicKey);
+        && Objects.equals(securityEnvelope, other.securityEnvelope)
+        && Objects.equals(walletKey, other.walletKey)
+        && Objects.equals(other.deviceKey, deviceKey);
   }
 
   @Override
   public String toString() {
     return "AccountEntity [id=" + id + ", personalIdentityNumber=" + personalIdentityNumber
         + ", emailAdress=" + emailAdress + ", telephoneNumber=" + telephoneNumber
-        + ", publicKey=" + publicKey + "]";
+        + ", securityEnvelope=" + securityEnvelope + ", walletKey=" + walletKey
+        + ", deviceKey=" + deviceKey + "]";
   }
 
 }

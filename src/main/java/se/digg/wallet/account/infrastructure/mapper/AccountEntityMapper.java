@@ -21,14 +21,16 @@ public class AccountEntityMapper {
     return new AccountEntity(accountRequestDto.personalIdentityNumber(),
         accountRequestDto.emailAdress(),
         accountRequestDto.telephoneNumber().orElse(null),
+        accountRequestDto.securityEnvelope(),
+        accountRequestDto.walletKey(),
         new PublicKeyEntity(
-            accountRequestDto.publicKey().kty(),
-            accountRequestDto.publicKey().kid(),
-            accountRequestDto.publicKey().alg(),
-            accountRequestDto.publicKey().use(),
-            accountRequestDto.publicKey().crv(),
-            accountRequestDto.publicKey().x(),
-            accountRequestDto.publicKey().y()));
+            accountRequestDto.deviceKey().kty(),
+            accountRequestDto.deviceKey().kid(),
+            accountRequestDto.deviceKey().alg(),
+            accountRequestDto.deviceKey().use(),
+            accountRequestDto.deviceKey().crv(),
+            accountRequestDto.deviceKey().x(),
+            accountRequestDto.deviceKey().y()));
   }
 
   public AccountDto toAccountDto(AccountEntity accountEntity) {
@@ -37,14 +39,16 @@ public class AccountEntityMapper {
         .emailAdress(accountEntity.getEmailAdress())
         .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
         .telephoneNumber(Optional.ofNullable(accountEntity.getTelephoneNumber()))
-        .publicKey(PublicKeyDtoBuilder.builder()
-            .kty(accountEntity.getPublicKey().getKty())
-            .kid(accountEntity.getPublicKey().getKid())
-            .alg(accountEntity.getPublicKey().getAlg())
-            .use(accountEntity.getPublicKey().getUse())
-            .crv(accountEntity.getPublicKey().getCrv())
-            .x(accountEntity.getPublicKey().getX())
-            .y(accountEntity.getPublicKey().getY())
+        .securityEnvelope(accountEntity.getSecurityEnvelope())
+        .walletKey(accountEntity.getWalletKey())
+        .deviceKey(PublicKeyDtoBuilder.builder()
+            .kty(accountEntity.getDeviceKey().getKty())
+            .kid(accountEntity.getDeviceKey().getKid())
+            .alg(accountEntity.getDeviceKey().getAlg())
+            .use(accountEntity.getDeviceKey().getUse())
+            .crv(accountEntity.getDeviceKey().getCrv())
+            .x(accountEntity.getDeviceKey().getX())
+            .y(accountEntity.getDeviceKey().getY())
             .build())
 
         .build();

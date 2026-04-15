@@ -5,6 +5,7 @@
 package se.digg.wallet.account.infrastructure;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,8 @@ class AccountControllertItTest {
         "770711-1234",
         "none@your.businnes.se",
         "070 123 12 12",
+        null,
+        TestUtils.createJwk(),
         TestUtils.generateJwkEntity("1"));
     repository.save(accountEntity);
     EntityExchangeResult<AccountDto> response =
@@ -61,7 +64,7 @@ class AccountControllertItTest {
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.emailAdress()).isEqualTo(accountEntity.getEmailAdress());
-          assertThat(account.publicKey()).isNotNull();
+          assertThat(account.deviceKey()).isNotNull();
         });
   }
 
@@ -72,7 +75,9 @@ class AccountControllertItTest {
             .emailAdress("none@your.businnes.se")
             .personalIdentityNumber("770101-1234")
             .telephoneNumber(Optional.of("070 123 123 12"))
-            .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("nollnoll").build())
+            .securityEnvelope(null)
+            .walletKey(null)
+            .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("nollnoll").build())
             .build();
     EntityExchangeResult<AccountDto> response = restClient.post()
         .uri("/account")
@@ -96,13 +101,17 @@ class AccountControllertItTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber(Optional.of("070 123 123 12"))
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("99").build())
+        .securityEnvelope(null)
+        .walletKey(TestUtils.createJwk())
+        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("99").build())
         .build();
     CreateAccountRequestDto secondRequestDto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("none@your.businnes.com")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber(Optional.of("070 123 123 13"))
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("88").build())
+        .securityEnvelope(null)
+        .walletKey(null)
+        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("88").build())
         .build();
     EntityExchangeResult<AccountDto> firstResponse =
         restClient.post()
