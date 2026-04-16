@@ -271,3 +271,51 @@ git push origin tag v0.0.32
 ```
 
 The workflow sets the POM version and generates a changelog.
+
+## Access the database
+
+### To start the database
+
+```shell
+docker compose up -d
+```
+
+### Start the Spring Boot Application (and thereby run liquibase)
+
+Create a Run/Debug Configuration for Spring Boot that points to se.digg.wallet.account.Application
+
+### Run the Postgres client
+
+```shell
+docker exec -it postgres16 psql -U mywalletuser -W walletaccount
+```
+
+### Show all tables
+
+```shell
+\dt
+```
+
+### Show all columns for the table accounts
+
+```shell
+select * from accounts;
+```
+
+### Delete a changeSet
+
+```shell
+delete from databasechangelog where id='addColumn-example';
+```
+
+### Rollback example
+
+```shell
+alter table accounts drop column opaque_envelope;
+```
+
+### Describe the table accounts
+
+```shell
+\d accounts;
+```
