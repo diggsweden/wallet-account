@@ -18,9 +18,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.TestUtils;
-import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
-import se.digg.wallet.account.domain.model.AccountDto;
+import se.digg.wallet.account.api.origin.model.AccountDto;
+import se.digg.wallet.account.api.origin.model.CreateAccountRequestDto;
+import se.digg.wallet.account.api.origin.model.PublicKeyDto;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 
@@ -53,26 +53,26 @@ class AccountControllertItTest {
             .uri("/account/" + accountEntity.getId())
             .exchange()
             .expectBody(AccountDto.class)
-            .returnResult();
+          .returnResult();
 
     assertThat(response.getStatus().is2xxSuccessful()).isTrue();
 
     assertThat(response.getResponseBody())
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.emailAdress()).isEqualTo(accountEntity.getEmailAdress());
-          assertThat(account.publicKey()).isNotNull();
+          assertThat(account.getEmailAdress()).isEqualTo(accountEntity.getEmailAdress());
+          assertThat(account.getPublicKey()).isNotNull();
         });
   }
 
   @Test
   void saveAccount() {
     CreateAccountRequestDto requestDto =
-        CreateAccountRequestDtoBuilder.builder()
+        CreateAccountRequestDto.builder()
             .emailAdress("none@your.businnes.se")
             .personalIdentityNumber("770101-1234")
-            .telephoneNumber(Optional.of("070 123 123 12"))
-            .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("nollnoll").build())
+            .telephoneNumber("070 123 123 12")
+            .publicKey(publicKeyDtoWithDefaults("nollnoll"))
             .build();
     EntityExchangeResult<AccountDto> response = restClient.post()
         .uri("/account")
@@ -86,23 +86,23 @@ class AccountControllertItTest {
     assertThat(response.getResponseBody())
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.id()).isNotNull();
+          assertThat(account.getId()).isNotNull();
         });
   }
 
   @Test
   void testSaveDuplicateAccounts() {
-    CreateAccountRequestDto firstRequestDto = CreateAccountRequestDtoBuilder.builder()
+    CreateAccountRequestDto firstRequestDto = CreateAccountRequestDto.builder()
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1235")
-        .telephoneNumber(Optional.of("070 123 123 12"))
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("99").build())
+        .telephoneNumber("070 123 123 12")
+        .publicKey(publicKeyDtoWithDefaults("99"))
         .build();
-    CreateAccountRequestDto secondRequestDto = CreateAccountRequestDtoBuilder.builder()
+    CreateAccountRequestDto secondRequestDto = CreateAccountRequestDto.builder()
         .emailAdress("none@your.businnes.com")
         .personalIdentityNumber("770101-1235")
-        .telephoneNumber(Optional.of("070 123 123 13"))
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("88").build())
+        .telephoneNumber("070 123 123 13")
+        .publicKey(publicKeyDtoWithDefaults("88"))
         .build();
     EntityExchangeResult<AccountDto> firstResponse =
         restClient.post()
@@ -122,12 +122,12 @@ class AccountControllertItTest {
     assertThat(secondResponse.getStatus().is2xxSuccessful()).isTrue();
     assertThat(firstResponse.getResponseBody()).isNotNull();
     assertThat(secondResponse.getResponseBody()).isNotNull();
-    assertThat(firstResponse.getResponseBody().id())
-        .isNotEqualTo(secondResponse.getResponseBody().id());
+    assertThat(firstResponse.getResponseBody().getId())
+        .isNotEqualTo(secondResponse.getResponseBody().getId());
 
     EntityExchangeResult<AccountDto> response =
         restClient.get()
-            .uri("/account/" + firstResponse.getResponseBody().id())
+            .uri("/account/" + firstResponse.getResponseBody().getId())
             .exchange()
             .expectBody(AccountDto.class)
             .returnResult();
@@ -135,12 +135,22 @@ class AccountControllertItTest {
 
     EntityExchangeResult<AccountDto> response2 =
         restClient.get()
-            .uri("/account/" + secondResponse.getResponseBody().id())
+            .uri("/account/" + secondResponse.getResponseBody().getId())
             .exchange()
             .expectBody(AccountDto.class)
             .returnResult();
     assertThat(response2.getStatus().is2xxSuccessful()).isTrue();
+  }
 
-
+  private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
+    return PublicKeyDto.builder()
+      .kty("EC")
+      .crv("P-256")
+      .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
+      .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
+      .alg("alg")
+      .use("enc")
+      .kid(kid)
+      .build();
   }
 }
