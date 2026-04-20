@@ -21,16 +21,16 @@ public class AccountEntityMapper {
     return new AccountEntity(accountRequestDto.personalIdentityNumber(),
         accountRequestDto.emailAdress(),
         accountRequestDto.telephoneNumber().orElse(null),
-        accountRequestDto.securityEnvelope(),
-        accountRequestDto.walletKey(),
+        null,
+        null,
         new PublicKeyEntity(
-            accountRequestDto.deviceKey().kty(),
-            accountRequestDto.deviceKey().kid(),
-            accountRequestDto.deviceKey().alg(),
-            accountRequestDto.deviceKey().use(),
-            accountRequestDto.deviceKey().crv(),
-            accountRequestDto.deviceKey().x(),
-            accountRequestDto.deviceKey().y()));
+            accountRequestDto.publicKey().kty(),
+            accountRequestDto.publicKey().kid(),
+            accountRequestDto.publicKey().alg(),
+            accountRequestDto.publicKey().use(),
+            accountRequestDto.publicKey().crv(),
+            accountRequestDto.publicKey().x(),
+            accountRequestDto.publicKey().y()));
   }
 
   public AccountDto toAccountDto(AccountEntity accountEntity) {
