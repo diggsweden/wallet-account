@@ -28,7 +28,7 @@ class AccountMapperTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1234")
         .telephoneNumber(Optional.of("070 123 123 12"))
-        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("22").build())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22").build())
         .build();
     assertThat(accountEntityMapper.toAccountEntity(requestDto))
         .isNotNull()
@@ -36,7 +36,7 @@ class AccountMapperTest {
           assertThat(account.getId()).isNull();
           assertThat(account.getEmailAdress()).isEqualTo(requestDto.emailAdress());
           assertThat(account.getDeviceKey()).isNotNull();
-          assertThat(account.getDeviceKey().getX()).isEqualTo(requestDto.deviceKey().x());
+          assertThat(account.getDeviceKey().getX()).isEqualTo(requestDto.publicKey().x());
         });
   }
 
@@ -46,7 +46,7 @@ class AccountMapperTest {
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1234")
         .telephoneNumber(Optional.empty())
-        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("22")
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22")
             .kid(null)
             .alg(null)
             .use(null)

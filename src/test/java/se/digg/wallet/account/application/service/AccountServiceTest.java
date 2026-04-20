@@ -51,7 +51,7 @@ class AccountServiceTest {
     CreateAccountRequestDto accountRequestDto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("dummy2@dummy.se")
         .personalIdentityNumber("770707-7777")
-        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("1").build())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("1").build())
         .build();
 
     assertThat(accountService.createAccount(accountRequestDto)).isNotNull();
@@ -74,7 +74,7 @@ class AccountServiceTest {
     CreateAccountRequestDto accountRequestDto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("dummy2@dummy.se")
         .personalIdentityNumber("770707-7777")
-        .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("1").build())
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("1").build())
         .build();
 
     assertThat(accountService.createAccount(accountRequestDto)).isNotNull();
