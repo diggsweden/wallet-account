@@ -4,6 +4,7 @@
 
 package se.digg.wallet.account.domain.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
+import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
@@ -39,20 +41,31 @@ public class AccountService {
 
   }
 
-  public AccountDto createWalletKeys(UUID accountId, List<Map<String, Object>> walletKeys) {
+  public AccountDto createWalletKeys(UUID accountId, List<PublicKeyDto> walletKeyDtoList) {
+    PublicKeyDto walletKeyDto = walletKeyDtoList.getFirst();
+
+    Map<String, Object> walletKey = new HashMap<>();
+    walletKey.put("kty", walletKeyDto.kty());
+    walletKey.put("kid", walletKeyDto.kid());
+    walletKey.put("alg", walletKeyDto.alg());
+    walletKey.put("use", walletKeyDto.use());
+    walletKey.put("crv", walletKeyDto.crv());
+    walletKey.put("x", walletKeyDto.x());
+    walletKey.put("y", walletKeyDto.y());
+
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    entity.setWalletKey(walletKeys.getFirst());
+    entity.setWalletKey(walletKey);
     return accountEntityMapper.toAccountDto(accountRepository.save(entity));
   }
 
-  public List<Map<String, Object>> getWalletKeys(UUID accountId) {
+  public List<PublicKeyDto> getWalletKeys(UUID accountId) {
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return List.of(entity.getWalletKey());
+    return List.of(toPublicKeyDto(entity.getWalletKey()));
   }
 
-  public Map<String, Object> getWalletKey(UUID accountId) {
+  public Optional<PublicKeyDto> getWalletKey(UUID accountId) {
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return entity.getWalletKey();
+    return Optional.of(toPublicKeyDto(entity.getWalletKey()));
   }
 
   public AccountDto createSecurityEnvelopes(UUID accountId, List<String> securityEnvelopes) {
@@ -66,9 +79,9 @@ public class AccountService {
     return List.of(entity.getSecurityEnvelope());
   }
 
-  public String getSecurityEnvelope(UUID accountId, int enumType) {
+  public Optional<String> getSecurityEnvelope(UUID accountId, int enumType) {
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return entity.getSecurityEnvelope();
+    return Optional.of(entity.getSecurityEnvelope());
   }
 
   private AccountEntity verifyUniquenessAndStore(CreateAccountRequestDto accountRequestDto) {
@@ -85,5 +98,16 @@ public class AccountService {
     logger.debug("stored account {}", storedEntity);
     return storedEntity;
 
+  }
+
+  private PublicKeyDto toPublicKeyDto(Map<String, Object> wk) {
+    return new PublicKeyDto(
+        wk.get("kty").toString(),
+        wk.get("kid").toString(),
+        wk.get("alg").toString(),
+        wk.get("use").toString(),
+        wk.get("crv").toString(),
+        wk.get("x").toString(),
+        wk.get("y").toString());
   }
 }
