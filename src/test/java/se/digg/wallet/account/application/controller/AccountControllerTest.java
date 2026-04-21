@@ -49,9 +49,8 @@ class AccountControllerTest {
       .emailAdress("none@your.bussiness.se")
       .id(defaulUuid)
       .personalIdentityNumber("770101-1234")
-      .deviceKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
+      .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
       .build();
-
 
   @Test
   void test_happy_path_save() throws Exception {

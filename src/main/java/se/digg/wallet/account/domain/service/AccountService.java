@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
+import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
@@ -38,10 +39,9 @@ public class AccountService {
 
   public Optional<AccountDto> getAccountById(UUID id) {
     return accountRepository.findById(id).map(accountEntityMapper::toAccountDto);
-
   }
 
-  public AccountDto createWalletKeys(UUID accountId, List<PublicKeyDto> walletKeyDtoList) {
+  public ExtendedAccountDto createWalletKeys(UUID accountId, List<PublicKeyDto> walletKeyDtoList) {
     PublicKeyDto walletKeyDto = walletKeyDtoList.getFirst();
 
     Map<String, Object> walletKey = new HashMap<>();
@@ -55,7 +55,7 @@ public class AccountService {
 
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
     entity.setWalletKey(walletKey);
-    return accountEntityMapper.toAccountDto(accountRepository.save(entity));
+    return accountEntityMapper.toExtendedAccountDto(accountRepository.save(entity));
   }
 
   public List<PublicKeyDto> getWalletKeys(UUID accountId) {
@@ -68,10 +68,11 @@ public class AccountService {
     return Optional.of(toPublicKeyDto(entity.getWalletKey()));
   }
 
-  public AccountDto createSecurityEnvelopes(UUID accountId, List<String> securityEnvelopes) {
+  public ExtendedAccountDto createSecurityEnvelopes(UUID accountId,
+      List<String> securityEnvelopes) {
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
     entity.setSecurityEnvelope(securityEnvelopes.getFirst());
-    return accountEntityMapper.toAccountDto(accountRepository.save(entity));
+    return accountEntityMapper.toExtendedAccountDto(accountRepository.save(entity));
   }
 
   public List<String> getSecurityEnvelopes(UUID accountId) {
