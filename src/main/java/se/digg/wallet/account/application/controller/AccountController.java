@@ -4,9 +4,8 @@
 
 package se.digg.wallet.account.application.controller;
 
-import java.util.UUID;
-
 import jakarta.validation.Valid;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +20,6 @@ import se.digg.wallet.account.domain.service.JwkValidationService;
 public class AccountController implements AccountControllerApi {
 
   private final AccountService accountService;
-
   private final JwkValidationService jwkValidationService;
 
   public AccountController(AccountService accountService,
