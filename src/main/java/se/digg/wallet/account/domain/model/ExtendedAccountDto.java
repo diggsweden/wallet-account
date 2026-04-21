@@ -1,0 +1,22 @@
+// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+//
+// SPDX-License-Identifier: EUPL-1.2
+
+package se.digg.wallet.account.domain.model;
+
+import io.soabase.recordbuilder.core.RecordBuilder;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import se.digg.wallet.account.application.model.PublicKeyDto;
+
+@RecordBuilder
+public record ExtendedAccountDto(
+    UUID id,
+    String personalIdentityNumber,
+    String emailAdress,
+    Optional<String> telephoneNumber,
+    String securityEnvelope,
+    Map<String, Object> walletKey,
+    PublicKeyDto deviceKey) {
+}

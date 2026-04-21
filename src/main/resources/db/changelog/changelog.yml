@@ -70,3 +70,23 @@ databaseChangeLog:
             tableName: public_key
             columnName: kid
             newDataType: VARCHAR(300)
+  - changeSet:
+      id: 20260414-0
+      author: extern.michael.danielsson@digg.se
+      changes:
+        - renameColumn:
+            tableName: accounts
+            oldColumnName: public_key_id
+            newColumnName: device_key_id
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: security_envelope
+                  type: blob
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: wallet_key
+                  type: jsonb

@@ -8,4 +8,18 @@ SPDX-License-Identifier: CC0-1.0
         <Bug pattern="NM_METHOD_NAMING_CONVENTION"/>
         <Class name="~.*Builder"/>
     </Match>
+
+    <!-- Accept expose of internal representations and mutable fields -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+        <Package name="se.digg.wallet.account.domain.model.*"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+        <Package name="se.digg.wallet.account.application.model.*"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+        <Package name="se.digg.wallet.account.infrastructure.model.*"/>
+    </Match>
 </FindBugsFilter>

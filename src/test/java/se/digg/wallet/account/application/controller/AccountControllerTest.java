@@ -52,7 +52,6 @@ class AccountControllerTest {
       .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
       .build();
 
-
   @Test
   void test_happy_path_save() throws Exception {
     CreateAccountRequestDto dto = CreateAccountRequestDtoBuilder.builder()

@@ -36,7 +36,7 @@ public class PublicKeyEntity {
   @Column(name = "y")
   private String yvalue;
 
-  @OneToOne(mappedBy = "publicKey")
+  @OneToOne(mappedBy = "deviceKey")
   private AccountEntity accountEntity;
 
   public PublicKeyEntity() {}

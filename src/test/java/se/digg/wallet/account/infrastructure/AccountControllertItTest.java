@@ -5,6 +5,7 @@
 package se.digg.wallet.account.infrastructure;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
+import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
@@ -46,6 +48,8 @@ class AccountControllertItTest {
         "770711-1234",
         "none@your.businnes.se",
         "070 123 12 12",
+        null,
+        TestUtils.createJwk(),
         TestUtils.generateJwkEntity("1"));
     repository.save(accountEntity);
     EntityExchangeResult<AccountDto> response =
@@ -74,11 +78,11 @@ class AccountControllertItTest {
             .telephoneNumber(Optional.of("070 123 123 12"))
             .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("nollnoll").build())
             .build();
-    EntityExchangeResult<AccountDto> response = restClient.post()
+    EntityExchangeResult<ExtendedAccountDto> response = restClient.post()
         .uri("/account")
         .body(requestDto)
         .exchangeSuccessfully()
-        .expectBody(AccountDto.class)
+        .expectBody(ExtendedAccountDto.class)
         .returnResult();
 
     assertThat(response.getStatus().is2xxSuccessful()).isTrue();
@@ -104,19 +108,19 @@ class AccountControllertItTest {
         .telephoneNumber(Optional.of("070 123 123 13"))
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("88").build())
         .build();
-    EntityExchangeResult<AccountDto> firstResponse =
+    EntityExchangeResult<ExtendedAccountDto> firstResponse =
         restClient.post()
             .uri("/account")
             .body(firstRequestDto)
             .exchange()
-            .expectBody(AccountDto.class)
+            .expectBody(ExtendedAccountDto.class)
             .returnResult();
-    EntityExchangeResult<AccountDto> secondResponse =
+    EntityExchangeResult<ExtendedAccountDto> secondResponse =
         restClient.post()
             .uri("/account")
             .body(secondRequestDto)
             .exchange()
-            .expectBody(AccountDto.class)
+            .expectBody(ExtendedAccountDto.class)
             .returnResult();
     assertThat(firstResponse.getStatus().is2xxSuccessful()).isTrue();
     assertThat(secondResponse.getStatus().is2xxSuccessful()).isTrue();
@@ -125,19 +129,19 @@ class AccountControllertItTest {
     assertThat(firstResponse.getResponseBody().id())
         .isNotEqualTo(secondResponse.getResponseBody().id());
 
-    EntityExchangeResult<AccountDto> response =
+    EntityExchangeResult<ExtendedAccountDto> response =
         restClient.get()
             .uri("/account/" + firstResponse.getResponseBody().id())
             .exchange()
-            .expectBody(AccountDto.class)
+            .expectBody(ExtendedAccountDto.class)
             .returnResult();
     assertThat(response.getStatus().isSameCodeAs(HttpStatus.NOT_FOUND)).isTrue();
 
-    EntityExchangeResult<AccountDto> response2 =
+    EntityExchangeResult<ExtendedAccountDto> response2 =
         restClient.get()
             .uri("/account/" + secondResponse.getResponseBody().id())
             .exchange()
-            .expectBody(AccountDto.class)
+            .expectBody(ExtendedAccountDto.class)
             .returnResult();
     assertThat(response2.getStatus().is2xxSuccessful()).isTrue();
 
