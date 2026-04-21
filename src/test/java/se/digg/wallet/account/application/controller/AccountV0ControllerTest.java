@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static se.digg.wallet.account.TestUtils.publicKeyDtoBuilderWithDefaults;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -24,13 +26,16 @@ import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.KeyRequest;
+import se.digg.wallet.account.api.v0.model.KeyResponse;
 import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeType;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
+import se.digg.wallet.account.application.model.PublicKeyDto;
+import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
-import se.digg.wallet.account.domain.service.AccountService;
+import se.digg.wallet.account.domain.service.AccountService2;
 import se.digg.wallet.account.domain.service.JwkValidationService;
 import tools.jackson.databind.ObjectMapper;
 
@@ -41,7 +46,7 @@ public class AccountV0ControllerTest {
   private MockMvc mockMvc;
 
   @MockitoBean
-  private AccountService accountService;
+  private AccountService2 accountService;
 
   @MockitoBean
   private JwkValidationService jwkValidationService;
@@ -62,7 +67,7 @@ public class AccountV0ControllerTest {
     .build();
 
   @Test
-  void createAccount_nullPersonalIdentityNumber_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withNullPersonalIdentityNumber_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email(EMAIL)
       .personalIdentityNumber(null)
@@ -77,7 +82,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void createAccount_emptyPersonalIdentityNumber_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withEmptyPersonalIdentityNumber_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email(EMAIL)
       .personalIdentityNumber(EMPTY)
@@ -92,7 +97,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void createAccount_nullEmail_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withNullEmail_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email(null)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
@@ -107,7 +112,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void createAccount_emptyEmail_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withEmptyEmail_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email(EMPTY)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
@@ -122,7 +127,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void createAccount_badEmailFormat_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withBadEmailFormat_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email("test.testsson.se")
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
@@ -137,7 +142,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void createAccount_nullDeviceKey_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withNullDeviceKey_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email(EMAIL)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
@@ -152,7 +157,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void createAccount_emptyDeviceKid_returnsBadRequest() throws Exception {
+  void assertThatCreateAccount_withEmptyDeviceKid_returnsBadRequest() throws Exception {
     var accountRequest = AccountRequest.builder()
       .email(EMAIL)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
@@ -166,25 +171,39 @@ public class AccountV0ControllerTest {
       .andExpect(status().isBadRequest());
   }
 
-  // TODO
   @Test
-  void createAccount_acceptableRequest_returnsCreated() throws Exception {
+  void assertThatCreateAccount_withAcceptableRequest_returnsCreatedAccountWithId() throws Exception {
+
     var accountRequest = AccountRequest.builder()
       .email(EMAIL)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
       .deviceKey(keyRequestWithDefaults(randomId()))
       .build();
+    var createdAccount = AccountDtoBuilder.builder()
+      .id(UUID.randomUUID())
+      .emailAdress(EMAIL)
+      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+      .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+      .build();
 
-    mockMvc
+    when(jwkValidationService.validateJwk(any())).thenReturn(true);
+    when(accountService.createAccount(any())).thenReturn(createdAccount);
+
+    var result = mockMvc
       .perform(post("/v0/accounts")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(accountRequest)))
       .andExpect(status().isCreated())
       .andReturn();
+    var accountResponse = objectMapper
+      .readValue(result.getResponse().getContentAsString(), AccountResponse.class);
+    var actualAccountId = accountResponse.getId();
+
+    assertThat(actualAccountId).isNotNull();
   }
 
   @Test
-  void getAccount_nonUuidFormattedAccountId_returnsBadRequest() throws Exception {
+  void assertThatGetAccount_usingNonUuidFormattedAccountId_returnsBadRequest() throws Exception {
 
     var nonUuidFormattedAccountId = "1234567890";
 
@@ -193,9 +212,8 @@ public class AccountV0ControllerTest {
       .andExpect(status().isBadRequest());
   }
 
-  // TODO
   @Test
-  void getAccount_nonExistingAccountId_returnsNotFound() throws Exception {
+  void assertThatGetAccount_usingNonExistingAccountId_returnsNotFound() throws Exception {
 
     when(accountService.getAccountById(any())).thenReturn(Optional.empty());
 
@@ -204,9 +222,8 @@ public class AccountV0ControllerTest {
       .andExpect(status().isNotFound());
   }
 
-  // TODO
   @Test
-  void getAccount_existingAccountId_returnsExpectedAccount() throws Exception {
+  void assertThatGetAccount_usingExistingAccountId_returnsExpectedAccount() throws Exception {
 
     var expectedAccountId = UUID.randomUUID();
     var existingAccount = AccountDtoBuilder.builder()
@@ -216,8 +233,7 @@ public class AccountV0ControllerTest {
       .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
       .build();
 
-    when(jwkValidationService.validateJwk(any())).thenReturn(true);
-    when(accountService.getAccountById(expectedAccountId)).thenReturn(Optional.of(existingAccount));
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}", UUID.randomUUID()))
@@ -231,7 +247,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void addWalletKey_nullKid_returnsBadRequest() throws Exception {
+  void assertThatAddWalletKey_withNulllKid_returnsBadRequest() throws Exception {
 
     var keyRequest = keyRequestWithDefaults(randomId())
       .kid(null);
@@ -243,9 +259,18 @@ public class AccountV0ControllerTest {
       .andExpect(status().isBadRequest());
   }
 
-  // TODO
   @Test
-  void addWalletKey_acceptableRequest_returnsCreated() throws Exception {
+  void assertThatAddWalletKey_withAcceptableRequest_returnsCreated() throws Exception {
+
+    var existingAccount = AccountDtoBuilder.builder()
+      .id(UUID.randomUUID())
+      .emailAdress(EMAIL)
+      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+      .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+      .build();
+
+    when(jwkValidationService.validateJwk(any())).thenReturn(true);
+    when(accountService.createWalletKeys(any(), any())).thenReturn(existingAccount);
 
     var keyRequest = keyRequestWithDefaults(randomId());
 
@@ -253,14 +278,14 @@ public class AccountV0ControllerTest {
       .perform(post("/v0/accounts/{0}/wallet-keys", UUID.randomUUID())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(keyRequest)))
-      .andExpect(status().isCreated());
+      .andExpect(status().isCreated())
+      .andReturn();
   }
 
-  // TODO
   @Test
-  void getWalletKey_nonExistingUserAccount_returnsNotFound() throws Exception {
+  void assertThatGetWalletKey_usingNonExistingUserAccount_returnsNotFound() throws Exception {
 
-    when(accountService.getAccountById(any())).thenReturn(Optional.empty());
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.empty());
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}/wallet-keys", UUID.randomUUID()))
@@ -268,7 +293,17 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void getWalletKey_nonExistingKey_returnsEmptyResult() throws Exception {
+  void assertThatGetWalletKey_userAccountWithoutKey_returnsEmptyList() throws Exception {
+
+    var existingAccount = AccountDtoBuilder.builder()
+      .id(UUID.randomUUID())
+      .emailAdress(EMAIL)
+      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+      .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+      .build();
+
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
+    when(accountService.getWalletKey(any(UUID.class))).thenReturn(Optional.empty());
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}/wallet-keys", UUID.randomUUID()))
@@ -281,19 +316,20 @@ public class AccountV0ControllerTest {
     assertThat(actualItems).isEmpty();
   }
 
-  // TODO
   @Test
-  void getWalletKey_existingUserWithWalletKey_returnsOneExpectedKey() throws Exception {
+  void assertThatGetWalletKey_existingUserWithWalletKey_returnsOneExpectedKey() throws Exception {
 
-    var expectedKid = randomId();
     var existingAccount = AccountDtoBuilder.builder()
       .id(UUID.randomUUID())
       .emailAdress(EMAIL)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-      .publicKey(publicKeyDtoBuilderWithDefaults(expectedKid).build())
+      .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
       .build();
+    var expectedKid = randomId();
+    var existingWalletKey = publicKeyDtoWithDefaults(expectedKid);
 
-    when(accountService.getAccountById(any())).thenReturn(Optional.of(existingAccount));
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
+    when(accountService.getWalletKey(any(UUID.class))).thenReturn(Optional.of(existingWalletKey));
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}/wallet-keys", UUID.randomUUID()))
@@ -309,7 +345,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void addSecurityEnvelope_nullContent_returnsBadRequest() throws Exception {
+  void assertThatAddSecurityEnvelope_withNullContent_returnsBadRequest() throws Exception {
 
     var securityEnvelopeRequest = SecurityEnvelopeRequest.builder()
       .type(SecurityEnvelopeType.SIGN)
@@ -324,7 +360,7 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void addSecurityEnvelope_nullType_returnsBadRequest() throws Exception {
+  void assertThatAddSecurityEnvelope_withNullType_returnsBadRequest() throws Exception {
 
     var securityEnvelopeRequest = SecurityEnvelopeRequest.builder()
       .type(null)
@@ -338,9 +374,8 @@ public class AccountV0ControllerTest {
       .andExpect(status().isBadRequest());
   }
 
-  // TODO
   @Test
-  void addSecurityEnvelope_acceptableRequest_returnsCreated() throws Exception {
+  void assertThatAddSecurityEnvelope_withAcceptableRequest_returnsCreated() throws Exception {
 
     var securityEnvelopeRequest = SecurityEnvelopeRequest.builder()
       .type(SecurityEnvelopeType.SIGN)
@@ -355,9 +390,9 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void getSecurityEnvelope_nonExistingUserAccount_returnsNotFound() throws Exception {
+  void assertThatGetSecurityEnvelope_usingNonExistingUserAccount_returnsNotFound() throws Exception {
 
-    when(accountService.getAccountById(any())).thenReturn(Optional.empty());
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.empty());
 
     mockMvc
       .perform(get("/v0/accounts/{0}/security-envelopes", UUID.randomUUID()))
@@ -365,9 +400,17 @@ public class AccountV0ControllerTest {
   }
 
   @Test
-  void getSecurityEnvelope_nonExistingEnvelope_returnsEmptyResult() throws Exception {
+  void assertThatGetSecurityEnvelope_existingAccountWithoutEnvelope_returnsEmptyList() throws Exception {
 
-    when(accountService.getAccountById(any())).thenReturn(Optional.empty());
+    var existingAccount = AccountDtoBuilder.builder()
+      .id(UUID.randomUUID())
+      .emailAdress(EMAIL)
+      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+      .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+      .build();
+
+    when(accountService.getAccountById(any())).thenReturn(Optional.of(existingAccount));
+    when(accountService.getSecurityEnvelopes(any())).thenReturn(Collections.emptyList());
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}/security-envelopes", UUID.randomUUID()))
@@ -380,9 +423,8 @@ public class AccountV0ControllerTest {
     assertThat(actualItems).isEmpty();
   }
 
-  // TODO
   @Test
-  void getSecurityEnvelope_existingUserWithEnvelope_returnsOneExpectedEnvelope() throws Exception {
+  void assertThatGetSecurityEnvelope_existingAccountWithEnvelope_returnsOneExpectedEnvelope() throws Exception {
 
     var expectedContent = randomId();
     var existingAccount = AccountDtoBuilder.builder()
@@ -390,10 +432,10 @@ public class AccountV0ControllerTest {
       .emailAdress(EMAIL)
       .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
       .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
-      // TODO add security envelope with expected content
       .build();
 
     when(accountService.getAccountById(any())).thenReturn(Optional.of(existingAccount));
+    when(accountService.getSecurityEnvelopes(any())).thenReturn(List.of(expectedContent));
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}/security-envelopes", UUID.randomUUID()))
@@ -411,18 +453,12 @@ public class AccountV0ControllerTest {
 
   // TODO
   @Test
-  void getSecurityEnvelope_existingUserWithEnvelopeFilterByType_returnsOneExpectedEnvelope() throws Exception {
+  void assertThatGetSecurityEnvelope_existingAccountWithEnvelopeFilterByType_returnsOneExpectedEnvelope() throws Exception {
 
-    var expectedType = SecurityEnvelopeType.SIGN;
-    var existingAccount = AccountDtoBuilder.builder()
-      .id(UUID.randomUUID())
-      .emailAdress(EMAIL)
-      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-      .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
-      // TODO add security envelope with expected type
-      .build();
+    var expectedContent = randomId();
+    var expectedType = "SIGN";
 
-    when(accountService.getAccountById(any())).thenReturn(Optional.of(existingAccount));
+    when(accountService.getSecurityEnvelopes(any())).thenReturn(List.of(expectedContent));
 
     var result = mockMvc
       .perform(get("/v0/accounts/{0}/security-envelopes?type={1}",
@@ -441,6 +477,18 @@ public class AccountV0ControllerTest {
 
   private static String randomId() {
     return UUID.randomUUID().toString();
+  }
+
+  private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
+    return PublicKeyDtoBuilder.builder()
+      .kty("EC")
+      .crv("P-256")
+      .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
+      .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
+      .alg("alg")
+      .use("enc")
+      .kid(kid)
+      .build();
   }
 
   private static KeyRequest keyRequestWithDefaults(String kid) {
