@@ -89,6 +89,6 @@ public class TestUtils {
     return AccountDtoBuilder.builder()
         .emailAdress("dummy@dummy.se")
         .personalIdentityNumber("720202-0234")
-        .deviceKey(publicKeyDtoBuilderWithDefaults("99").build());
+        .publicKey(publicKeyDtoBuilderWithDefaults("99").build());
   }
 }

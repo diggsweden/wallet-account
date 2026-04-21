@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
-import se.digg.wallet.account.domain.model.AccountDto;
+import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
@@ -72,7 +72,7 @@ class AccountMapperTest {
         null,
         TestUtils.generateJwkEntity("11"));
     entity.setId(UUID.randomUUID());
-    AccountDto accountDto = accountEntityMapper.toAccountDto(entity);
+    ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
     assertThat(accountDto)
         .isNotNull()
         .satisfies(account -> {
@@ -106,7 +106,7 @@ class AccountMapperTest {
             "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
             "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"));
     entity.setId(UUID.randomUUID());
-    AccountDto accountDto = accountEntityMapper.toAccountDto(entity);
+    ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
     assertThat(accountDto)
         .isNotNull()
         .satisfies(account -> {
