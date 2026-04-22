@@ -72,11 +72,12 @@ class AccountControllerTest {
 
   @Test
   void test_invalid_jwk() throws Exception {
-    se.digg.wallet.account.api.origin.model.CreateAccountRequestDto dto = CreateAccountRequestDto.builder()
-        .emailAdress("none@your.bussiness.se")
-        .personalIdentityNumber("770101-1234")
-        .publicKey(publicKeyDtoWithDefaults("77"))
-        .build();
+    se.digg.wallet.account.api.origin.model.CreateAccountRequestDto dto =
+        CreateAccountRequestDto.builder()
+            .emailAdress("none@your.bussiness.se")
+            .personalIdentityNumber("770101-1234")
+            .publicKey(publicKeyDtoWithDefaults("77"))
+            .build();
 
     when(jwkValidationService.validateJwk(any())).thenReturn(false);
 
@@ -102,13 +103,13 @@ class AccountControllerTest {
 
   private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
     return PublicKeyDto.builder()
-      .kty("EC")
-      .crv("P-256")
-      .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
-      .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
-      .alg("alg")
-      .use("enc")
-      .kid(kid)
-      .build();
+        .kty("EC")
+        .crv("P-256")
+        .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
+        .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
+        .alg("alg")
+        .use("enc")
+        .kid(kid)
+        .build();
   }
 }

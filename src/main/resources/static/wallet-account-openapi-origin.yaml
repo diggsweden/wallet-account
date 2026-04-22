@@ -65,6 +65,7 @@ components:
       required:
         - emailAdress
         - personalIdentityNumber
+        - publicKey
 
     PublicKeyDto:
       type: object
@@ -88,10 +89,11 @@ components:
           type: string
           minLength: 1
       required:
-        - crv
+        - kid
         - kty
+        - crv
         - x
-        - 'y'
+        - y
     AccountDto:
       type: object
       properties:

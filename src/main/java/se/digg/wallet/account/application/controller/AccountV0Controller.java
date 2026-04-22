@@ -21,17 +21,17 @@ import se.digg.wallet.account.api.v0.model.SecurityEnvelopeResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeType;
 import se.digg.wallet.account.application.model.PublicKeyDto;
-import se.digg.wallet.account.domain.service.AccountService2;
+import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
 
 @RestController
 public class AccountV0Controller implements AccountApi {
 
-  private final AccountService2 accountService;
+  private final AccountService accountService;
   private final JwkValidationService jwkValidationService;
 
-  public AccountV0Controller(AccountService2 accountService,
-    JwkValidationService jwkValidationService) {
+  public AccountV0Controller(AccountService accountService,
+      JwkValidationService jwkValidationService) {
     this.accountService = accountService;
     this.jwkValidationService = jwkValidationService;
   }
@@ -47,8 +47,8 @@ public class AccountV0Controller implements AccountApi {
     var createdAccountDto = accountService.createAccount(createAccountDto);
 
     return ResponseEntity
-      .status(HttpStatus.CREATED)
-      .body(toAccountResponse(createdAccountDto));
+        .status(HttpStatus.CREATED)
+        .body(toAccountResponse(createdAccountDto));
   }
 
   @Override
@@ -57,20 +57,29 @@ public class AccountV0Controller implements AccountApi {
     var accountDto = accountService.getAccountById(id);
 
     return accountDto.map(AccountV0Controller::toAccountResponse)
-      .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build());
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @Override
   public ResponseEntity<KeyResponse> addAccountWalletKey(UUID id, KeyRequest keyRequest) {
 
+    var accountDto = accountService.getAccountById(id);
+    if (accountDto.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
     var publicKeyDto = toPublicKeyDto(keyRequest);
-    var accountDto = accountService.createWalletKeys(id, List.of(publicKeyDto));
-    var keyResponse = toKeyResponse(accountDto.publicKey());
+    if (!jwkValidationService.validateJwk(publicKeyDto)) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    var createdWalletKey = accountService.createWalletKey(id, publicKeyDto);
+    var keyResponse = toKeyResponse(createdWalletKey);
 
     return ResponseEntity
-      .status(HttpStatus.CREATED)
-      .body(keyResponse);
+        .status(HttpStatus.CREATED)
+        .body(keyResponse);
   }
 
   @Override
@@ -83,120 +92,113 @@ public class AccountV0Controller implements AccountApi {
 
     var publicKeyDto = accountService.getWalletKey(id);
     return publicKeyDto
-      .filter(key -> kid.map(s -> s.equals(key.kid())).orElse(true))
-      .map(AccountV0Controller::toKeyResponse)
-      .map(key -> KeysResponse.builder().items(List.of(key)).build())
-      .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.ok(KeysResponse.builder().build()));
+        .filter(key -> kid.map(s -> s.equals(key.kid())).orElse(true))
+        .map(AccountV0Controller::toKeyResponse)
+        .map(key -> KeysResponse.builder().items(List.of(key)).build())
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.ok(KeysResponse.builder().build()));
   }
 
   @Override
   public ResponseEntity<SecurityEnvelopeResponse> addAccountSecurityEnvelope(UUID id,
-    SecurityEnvelopeRequest securityEnvelopeRequest) {
+      SecurityEnvelopeRequest securityEnvelopeRequest) {
 
     // TODO convert to dto with type enum
-    var content = List.of(securityEnvelopeRequest.getContent());
-    var accountDto = accountService.createSecurityEnvelopes(id, content);
-    var securityEnvelopesResponse = toSecurityEnvelopeResponse(content.getFirst());
+    var content = securityEnvelopeRequest.getContent();
+    var savedSecurityEnvelope = accountService.createSecurityEnvelope(id, content);
+    var securityEnvelopesResponse = toSecurityEnvelopeResponse(savedSecurityEnvelope);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(securityEnvelopesResponse);
   }
 
   @Override
-  public ResponseEntity<SecurityEnvelopesResponse> getAccountSecurityEnvelope(UUID id,
-    Optional<SecurityEnvelopeType> type) {
+  public ResponseEntity<SecurityEnvelopesResponse> getAccountSecurityEnvelopes(UUID id,
+      Optional<SecurityEnvelopeType> type) {
 
     var accountDto = accountService.getAccountById(id);
     if (accountDto.isEmpty()) {
       return ResponseEntity.notFound().build();
     }
 
-    var securityEnvelopesDto = accountService.getSecurityEnvelopes(id);
-    var filteredResponse = securityEnvelopesDto.stream()
-      // TODO adapt filter to dto
-      //.filter(key -> Optional.of(type).map(s -> s.equals(key)).orElse(true))
-      .map(AccountV0Controller::toSecurityEnvelopeResponse)
-      .toList();
+    var securityEnvelope = accountService.getSecurityEnvelope(id);
+    var filteredResponse = securityEnvelope.stream()
+        .map(AccountV0Controller::toSecurityEnvelopeResponse)
+        .toList();
 
     var securityEnvelopesResponse = SecurityEnvelopesResponse.builder()
-      .items(filteredResponse)
-      .build();
+        .items(filteredResponse)
+        .build();
     return ResponseEntity.ok(securityEnvelopesResponse);
   }
 
   private static se.digg.wallet.account.application.model.CreateAccountRequestDto toCreateAccountDto(
-    AccountRequest accountRequest) {
+      AccountRequest accountRequest) {
 
     var deviceKey = accountRequest.getDeviceKey();
 
     return new se.digg.wallet.account.application.model.CreateAccountRequestDto(
-      accountRequest.getPersonalIdentityNumber(),
-      accountRequest.getEmail(),
-      accountRequest.getPhoneNumber(),
-      Optional.of(deviceKey).map(dk -> new se.digg.wallet.account.application.model.PublicKeyDto(
-          dk.getKty(),
-          dk.getKid(),
-          dk.getAlg().orElse(null),
-          dk.getUse().orElse(null),
-          dk.getCrv(),
-          dk.getX(),
-          dk.getY()))
-        .orElseThrow());
+        accountRequest.getPersonalIdentityNumber(),
+        accountRequest.getEmail(),
+        accountRequest.getPhoneNumber(),
+        Optional.of(deviceKey).map(dk -> new PublicKeyDto(
+            dk.getKty(),
+            dk.getKid(),
+            dk.getAlg().orElse(null),
+            dk.getUse().orElse(null),
+            dk.getCrv(),
+            dk.getX(),
+            dk.getY()))
+            .orElseThrow());
   }
 
-  private static AccountResponse toAccountResponse(se.digg.wallet.account.domain.model.AccountDto accountDto) {
+  private static AccountResponse toAccountResponse(
+      se.digg.wallet.account.domain.model.AccountDto accountDto) {
 
     var publicKey = accountDto.publicKey();
 
     return AccountResponse.builder()
-      .id(accountDto.id())
-      .personalIdentityNumber(accountDto.personalIdentityNumber())
-      .email(accountDto.emailAdress())
-      .phoneNumber(accountDto.telephoneNumber().orElse(null))
-      .deviceKey(se.digg.wallet.account.api.v0.model.KeyResponse.builder()
-        .kty(publicKey.kty())
-        .kid(publicKey.kid())
-        .alg(publicKey.alg())
-        .use(publicKey.use())
-        .x(publicKey.x())
-        .y(publicKey.y())
-        .build())
-      .build();
+        .id(accountDto.id())
+        .personalIdentityNumber(accountDto.personalIdentityNumber())
+        .email(accountDto.emailAdress())
+        .phoneNumber(accountDto.telephoneNumber().orElse(null))
+        .deviceKey(KeyResponse.builder()
+            .kty(publicKey.kty())
+            .kid(publicKey.kid())
+            .alg(publicKey.alg())
+            .use(publicKey.use())
+            .x(publicKey.x())
+            .y(publicKey.y())
+            .build())
+        .build();
   }
 
   private static PublicKeyDto toPublicKeyDto(KeyRequest keyRequest) {
-    return new se.digg.wallet.account.application.model.PublicKeyDto(
-      keyRequest.getKty(),
-      keyRequest.getKid(),
-      keyRequest.getAlg().orElse(null),
-      keyRequest.getUse().orElse(null),
-      keyRequest.getCrv(),
-      keyRequest.getX(),
-      keyRequest.getY());
+    return new PublicKeyDto(
+        keyRequest.getKty(),
+        keyRequest.getKid(),
+        keyRequest.getAlg().orElse(null),
+        keyRequest.getUse().orElse(null),
+        keyRequest.getCrv(),
+        keyRequest.getX(),
+        keyRequest.getY());
   }
 
   private static KeyResponse toKeyResponse(PublicKeyDto publicKeyDto) {
     return KeyResponse.builder()
-      .kty(publicKeyDto.kty())
-      .kid(publicKeyDto.kid())
-      .alg(publicKeyDto.alg())
-      .use(publicKeyDto.use())
-      .crv(publicKeyDto.crv())
-      .x(publicKeyDto.x())
-      .y(publicKeyDto.y())
-      .build();
+        .kty(publicKeyDto.kty())
+        .kid(publicKeyDto.kid())
+        .alg(publicKeyDto.alg())
+        .use(publicKeyDto.use())
+        .crv(publicKeyDto.crv())
+        .x(publicKeyDto.x())
+        .y(publicKeyDto.y())
+        .build();
   }
 
-  // TODO adapt to dto
-  private static String toSecurityEnvelopeDto(SecurityEnvelopeRequest securityEnvelopeRequest) {
-    return securityEnvelopeRequest.getContent();
-  }
-
-  // TODO take dto as input parameter
   private static SecurityEnvelopeResponse toSecurityEnvelopeResponse(String content) {
     return SecurityEnvelopeResponse.builder()
-      // TODO add type enum
-      .content(content)
-      .build();
+        .content(content)
+        .type(SecurityEnvelopeType.SIGN)
+        .build();
   }
 }
