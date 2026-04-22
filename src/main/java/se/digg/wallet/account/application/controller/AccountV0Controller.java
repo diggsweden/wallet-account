@@ -19,7 +19,6 @@ import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
-import se.digg.wallet.account.api.v0.model.SecurityEnvelopeType;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
@@ -103,7 +102,6 @@ public class AccountV0Controller implements AccountApi {
   public ResponseEntity<SecurityEnvelopeResponse> addAccountSecurityEnvelope(UUID id,
       SecurityEnvelopeRequest securityEnvelopeRequest) {
 
-    // TODO convert to dto with type enum
     var content = securityEnvelopeRequest.getContent();
     var savedSecurityEnvelope = accountService.createSecurityEnvelope(id, content);
     var securityEnvelopesResponse = toSecurityEnvelopeResponse(savedSecurityEnvelope);
@@ -112,8 +110,7 @@ public class AccountV0Controller implements AccountApi {
   }
 
   @Override
-  public ResponseEntity<SecurityEnvelopesResponse> getAccountSecurityEnvelopes(UUID id,
-      Optional<SecurityEnvelopeType> type) {
+  public ResponseEntity<SecurityEnvelopesResponse> getAccountSecurityEnvelopes(UUID id) {
 
     var accountDto = accountService.getAccountById(id);
     if (accountDto.isEmpty()) {
@@ -198,7 +195,6 @@ public class AccountV0Controller implements AccountApi {
   private static SecurityEnvelopeResponse toSecurityEnvelopeResponse(String content) {
     return SecurityEnvelopeResponse.builder()
         .content(content)
-        .type(SecurityEnvelopeType.SIGN)
         .build();
   }
 }

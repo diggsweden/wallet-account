@@ -79,12 +79,6 @@ public class AccountService {
     return entity.map(AccountEntity::getSecurityEnvelope);
   }
 
-  /*
-   * public Optional<String> getSecurityEnvelope(UUID accountId, int enumType) { AccountEntity
-   * entity = accountRepository.findById(accountId).orElseThrow(); return
-   * Optional.of(entity.getSecurityEnvelope()); }
-   */
-
   private AccountEntity verifyUniquenessAndStore(CreateAccountRequestDto accountRequestDto) {
     List<AccountEntity> entities =
         accountRepository.findByPersonalIdentityNumber(accountRequestDto.personalIdentityNumber());
