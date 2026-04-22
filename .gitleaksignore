@@ -31,9 +31,17 @@ f2c2f48ed099df8d1c4b4d7ded8d443a67a8cd36:src/test/java/se/digg/wallet/account/ap
 0fbb853c8341beef8505fa34ab091b4e65c3ccf0:src/main/resources/db/changelog/changelog.yml:digg-email-address:75
 2d399d7d6a0ed92060eed5e10231cbf8cfcc4dc0:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:24
 19209db3cc0a45748f34a84f87028ce43f4bd9a9:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:24
+9067ea789aec9b8c55af81d2870000b359db9d33:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:24
+2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:24
 2d399d7d6a0ed92060eed5e10231cbf8cfcc4dc0:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:25
+2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:25
 463ef71ece34c783f05bc90c266ee69d2ce774ee:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:33
+d3fb30de7115d7c986c0bec55e6d3adc1e80d605:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:33
 463ef71ece34c783f05bc90c266ee69d2ce774ee:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:34
+d3fb30de7115d7c986c0bec55e6d3adc1e80d605:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:34
 19209db3cc0a45748f34a84f87028ce43f4bd9a9:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:37
+9067ea789aec9b8c55af81d2870000b359db9d33:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:37
 2d399d7d6a0ed92060eed5e10231cbf8cfcc4dc0:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:38
+2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:38
 2d399d7d6a0ed92060eed5e10231cbf8cfcc4dc0:src/main/java/se/digg/wallet/account/domain/service/AccountService2.java:digg-internal-hosts:1
+2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/main/java/se/digg/wallet/account/domain/service/AccountService2.java:digg-internal-hosts:1
