@@ -20,8 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import se.digg.wallet.account.TestUtils;
-import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
+import se.digg.wallet.account.api.origin.model.PublicKeyDto;
+import se.digg.wallet.account.api.origin.model.CreateAccountRequestDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.domain.service.AccountService;
@@ -43,26 +43,26 @@ class AccountControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  private UUID defaulUuid = UUID.randomUUID();
+  private final UUID defaultUuid = UUID.randomUUID();
 
-  private AccountDto resulDto = AccountDtoBuilder.builder()
+  private final AccountDto resultDto = AccountDtoBuilder.builder()
       .emailAdress("none@your.bussiness.se")
-      .id(defaulUuid)
+      .id(defaultUuid)
       .personalIdentityNumber("770101-1234")
       .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
       .build();
 
   @Test
   void test_happy_path_save() throws Exception {
-    CreateAccountRequestDto dto = CreateAccountRequestDtoBuilder.builder()
+    CreateAccountRequestDto dto = CreateAccountRequestDto.builder()
         .emailAdress("none@your.bussiness.se")
         .personalIdentityNumber("770101-1234")
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("77").build())
+        .publicKey(publicKeyDtoWithDefaults("77"))
         .build();
 
     when(jwkValidationService.validateJwk(any())).thenReturn(true);
 
-    when(accountService.createAccount(any())).thenReturn(resulDto);
+    when(accountService.createAccount(any())).thenReturn(resultDto);
     mockMvc
         .perform(post("/account")
             .contentType(MediaType.APPLICATION_JSON)
@@ -72,15 +72,16 @@ class AccountControllerTest {
 
   @Test
   void test_invalid_jwk() throws Exception {
-    CreateAccountRequestDto dto = CreateAccountRequestDtoBuilder.builder()
-        .emailAdress("none@your.bussiness.se")
-        .personalIdentityNumber("770101-1234")
-        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("77").build())
-        .build();
+    se.digg.wallet.account.api.origin.model.CreateAccountRequestDto dto =
+        CreateAccountRequestDto.builder()
+            .emailAdress("none@your.bussiness.se")
+            .personalIdentityNumber("770101-1234")
+            .publicKey(publicKeyDtoWithDefaults("77"))
+            .build();
 
     when(jwkValidationService.validateJwk(any())).thenReturn(false);
 
-    when(accountService.createAccount(any())).thenReturn(resulDto);
+    when(accountService.createAccount(any())).thenReturn(resultDto);
     mockMvc
         .perform(post("/account")
             .contentType(MediaType.APPLICATION_JSON)
@@ -90,13 +91,25 @@ class AccountControllerTest {
 
   @Test
   void test_get_ok() throws Exception {
-    when(accountService.getAccountById(defaulUuid))
-        .thenReturn(Optional.of(resulDto));
+    when(accountService.getAccountById(defaultUuid))
+        .thenReturn(Optional.of(resultDto));
     mockMvc
         .perform(
-            get("/account/" + defaulUuid))
+            get("/account/" + defaultUuid))
         .andExpect(status().isOk())
         .andExpect(content()
-            .string(containsString(defaulUuid.toString())));
+            .string(containsString(defaultUuid.toString())));
+  }
+
+  private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
+    return PublicKeyDto.builder()
+        .kty("EC")
+        .crv("P-256")
+        .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
+        .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
+        .alg("alg")
+        .use("enc")
+        .kid(kid)
+        .build();
   }
 }

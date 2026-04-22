@@ -43,3 +43,17 @@ management:
       enabled: true
     diskspace:
       enabled: true
+
+# Swagger
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    use-root-path: true
+    disable-swagger-default-url: true
+    urls:
+      - url: /wallet-account-openapi-v0.yaml
+        name: Wallet Account API v0
+      - url: /wallet-account-openapi-origin.yaml
+        name: Wallet Account API origin (deprecated)
+    urls-primary-name: Wallet Account API v0

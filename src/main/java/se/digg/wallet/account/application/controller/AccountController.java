@@ -4,26 +4,22 @@
 
 package se.digg.wallet.account.application.controller;
 
+import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.domain.model.AccountDto;
+import se.digg.wallet.account.api.origin.AccountControllerApi;
+import se.digg.wallet.account.api.origin.model.AccountDto;
+import se.digg.wallet.account.api.origin.model.CreateAccountRequestDto;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
 
 @RestController
-@RequestMapping("/account")
-public class AccountController {
+public class AccountController implements AccountControllerApi {
 
   private final AccountService accountService;
-
   private final JwkValidationService jwkValidationService;
 
   public AccountController(AccountService accountService,
@@ -32,20 +28,68 @@ public class AccountController {
     this.jwkValidationService = jwkValidationService;
   }
 
-  @PostMapping
+  @Override
   public ResponseEntity<AccountDto> createAccount(
-      @RequestBody CreateAccountRequestDto createAccountRequestDto) {
-    if (!jwkValidationService.validateJwk(createAccountRequestDto.publicKey())) {
+      @Valid @RequestBody CreateAccountRequestDto createAccountRequestDto) {
+
+    var createAccountDto = toCreateAccountDto(createAccountRequestDto);
+    if (!jwkValidationService.validateJwk(createAccountDto.publicKey())) {
       return ResponseEntity.badRequest().build();
     }
+
+    var createdAccountDto = accountService.createAccount(createAccountDto);
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(accountService.createAccount(createAccountRequestDto));
+        .body(toAccountResponse(createdAccountDto));
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<AccountDto> getAccount(@PathVariable UUID id) {
-    return accountService.getAccountById(id).map(ResponseEntity::ok)
+  @Override
+  public ResponseEntity<AccountDto> getAccount(UUID id) {
+    var accountDto = accountService.getAccountById(id);
+    return accountDto.map(AccountController::toAccountResponse)
+        .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
+  }
+
+  private static se.digg.wallet.account.application.model.CreateAccountRequestDto toCreateAccountDto(
+      CreateAccountRequestDto createAccountRequestDto) {
+
+    var publicKey = createAccountRequestDto.getPublicKey();
+
+    return new se.digg.wallet.account.application.model.CreateAccountRequestDto(
+        createAccountRequestDto.getPersonalIdentityNumber(),
+        createAccountRequestDto.getEmailAdress(),
+        createAccountRequestDto.getTelephoneNumber(),
+        se.digg.wallet.account.application.model.PublicKeyDtoBuilder.builder()
+            .kty(publicKey.getKty())
+            .kid(publicKey.getKid())
+            .alg(publicKey.getAlg().orElse(null))
+            .use(publicKey.getUse().orElse(null))
+            .crv(publicKey.getCrv())
+            .x(publicKey.getX())
+            .y(publicKey.getY())
+            .build());
+  }
+
+  private static AccountDto toAccountResponse(
+      se.digg.wallet.account.domain.model.AccountDto accountDto) {
+
+    var publicKey = accountDto.publicKey();
+
+    return AccountDto.builder()
+        .id(accountDto.id())
+        .personalIdentityNumber(accountDto.personalIdentityNumber())
+        .emailAdress(accountDto.emailAdress())
+        .telephoneNumber(accountDto.telephoneNumber().orElse(null))
+        .publicKey(se.digg.wallet.account.api.origin.model.PublicKeyDto.builder()
+            .kid(publicKey.kid())
+            .alg(publicKey.alg())
+            .kty(publicKey.kty())
+            .use(publicKey.use())
+            .crv(publicKey.crv())
+            .x(publicKey.x())
+            .y(publicKey.y())
+            .build())
+        .build();
   }
 }

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
-import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
@@ -41,8 +40,7 @@ public class AccountService {
     return accountRepository.findById(id).map(accountEntityMapper::toAccountDto);
   }
 
-  public ExtendedAccountDto createWalletKeys(UUID accountId, List<PublicKeyDto> walletKeyDtoList) {
-    PublicKeyDto walletKeyDto = walletKeyDtoList.getFirst();
+  public PublicKeyDto createWalletKey(UUID accountId, PublicKeyDto walletKeyDto) {
 
     Map<String, Object> walletKey = new HashMap<>();
     walletKey.put("kty", walletKeyDto.kty());
@@ -55,7 +53,8 @@ public class AccountService {
 
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
     entity.setWalletKey(walletKey);
-    return accountEntityMapper.toExtendedAccountDto(accountRepository.save(entity));
+    var savedEntity = accountRepository.save(entity);
+    return toPublicKeyDto(savedEntity.getWalletKey());
   }
 
   public List<PublicKeyDto> getWalletKeys(UUID accountId) {
@@ -68,21 +67,16 @@ public class AccountService {
     return Optional.of(toPublicKeyDto(entity.getWalletKey()));
   }
 
-  public ExtendedAccountDto createSecurityEnvelopes(UUID accountId,
-      List<String> securityEnvelopes) {
+  public String createSecurityEnvelope(UUID accountId, String securityEnvelope) {
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    entity.setSecurityEnvelope(securityEnvelopes.getFirst());
-    return accountEntityMapper.toExtendedAccountDto(accountRepository.save(entity));
+    entity.setSecurityEnvelope(securityEnvelope);
+    var savedEntity = accountRepository.save(entity);
+    return savedEntity.getSecurityEnvelope();
   }
 
-  public List<String> getSecurityEnvelopes(UUID accountId) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return List.of(entity.getSecurityEnvelope());
-  }
-
-  public Optional<String> getSecurityEnvelope(UUID accountId, int enumType) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return Optional.of(entity.getSecurityEnvelope());
+  public Optional<String> getSecurityEnvelope(UUID accountId) {
+    var entity = accountRepository.findById(accountId);
+    return entity.map(AccountEntity::getSecurityEnvelope);
   }
 
   private AccountEntity verifyUniquenessAndStore(CreateAccountRequestDto accountRequestDto) {
