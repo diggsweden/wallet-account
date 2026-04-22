@@ -5,7 +5,7 @@
 package se.digg.wallet.account.infrastructure;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
@@ -18,10 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.TestUtils;
-import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
 import se.digg.wallet.account.domain.model.ExtendedAccountDto;
-import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.api.origin.model.AccountDto;
 import se.digg.wallet.account.api.origin.model.CreateAccountRequestDto;
 import se.digg.wallet.account.api.origin.model.PublicKeyDto;
@@ -92,7 +89,7 @@ class AccountControllertItTest {
     assertThat(response.getResponseBody())
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.getId()).isNotNull();
+          assertThat(account.id()).isNotNull();
         });
   }
 
@@ -110,19 +107,19 @@ class AccountControllertItTest {
         .telephoneNumber("070 123 123 13")
         .publicKey(publicKeyDtoWithDefaults("88"))
         .build();
-    EntityExchangeResult<ExtendedAccountDto> firstResponse =
+    EntityExchangeResult<AccountDto> firstResponse =
         restClient.post()
             .uri("/account")
             .body(firstRequestDto)
             .exchange()
-            .expectBody(ExtendedAccountDto.class)
+            .expectBody(AccountDto.class)
             .returnResult();
-    EntityExchangeResult<ExtendedAccountDto> secondResponse =
+    EntityExchangeResult<AccountDto> secondResponse =
         restClient.post()
             .uri("/account")
             .body(secondRequestDto)
             .exchange()
-            .expectBody(ExtendedAccountDto.class)
+            .expectBody(AccountDto.class)
             .returnResult();
     assertThat(firstResponse.getStatus().is2xxSuccessful()).isTrue();
     assertThat(secondResponse.getStatus().is2xxSuccessful()).isTrue();
@@ -150,13 +147,13 @@ class AccountControllertItTest {
 
   private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
     return PublicKeyDto.builder()
-      .kty("EC")
-      .crv("P-256")
-      .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
-      .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
-      .alg("alg")
-      .use("enc")
-      .kid(kid)
-      .build();
+        .kty("EC")
+        .crv("P-256")
+        .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
+        .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
+        .alg("alg")
+        .use("enc")
+        .kid(kid)
+        .build();
   }
 }

@@ -181,7 +181,7 @@ paths:
         - Account
       summary: Get account security envelopes
       description: Get the security envelopes associated to a given account.
-      operationId: getAccountSecurityEnvelope
+      operationId: getAccountSecurityEnvelopes
       parameters:
         - $ref: '#/components/parameters/AccountId'
         - name: type
@@ -394,7 +394,6 @@ components:
       description: 'Security envelope type enum constants.'
       enum:
         - SIGN
-        - OTHER
 
     SecurityEnvelopeRequest:
       properties:

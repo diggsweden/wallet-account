@@ -24,11 +24,11 @@ public class ApiInfoController implements ApiInfoApi {
   @Override
   public ResponseEntity<ApiInfoResponse> getApiInfo() {
     return ResponseEntity.ok().body(ApiInfoResponse.builder()
-      .name(NAME)
-      .status(STATUS)
-      .version(VERSION)
-      .releaseDate(RELEASE_DATE)
-      .links(LINKS)
-      .build());
+        .name(NAME)
+        .status(STATUS)
+        .version(VERSION)
+        .releaseDate(RELEASE_DATE)
+        .links(LINKS)
+        .build());
   }
 }

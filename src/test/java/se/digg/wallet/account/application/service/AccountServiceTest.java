@@ -48,15 +48,13 @@ class AccountServiceTest {
     when(accountEntityMapper.toAccountDto(any()))
         .thenReturn(TestUtils.accountDtoBuilderWithDefaults().build());
 
-    CreateAccountRequestDto accountRequestDto = CreateAccountRequestDtoBuilder.builder()
+    var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
         .emailAdress("dummy2@dummy.se")
         .personalIdentityNumber("770707-7777")
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("1").build())
         .build();
 
     assertThat(accountService.createAccount(accountRequestDto)).isNotNull();
-
-
   }
 
   @Test

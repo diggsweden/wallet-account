@@ -29,7 +29,8 @@ public class AccountController implements AccountControllerApi {
   }
 
   @Override
-  public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequestDto createAccountRequestDto) {
+  public ResponseEntity<AccountDto> createAccount(
+      @Valid @RequestBody CreateAccountRequestDto createAccountRequestDto) {
 
     var createAccountDto = toCreateAccountDto(createAccountRequestDto);
     if (!jwkValidationService.validateJwk(createAccountDto.publicKey())) {
@@ -38,54 +39,57 @@ public class AccountController implements AccountControllerApi {
 
     var createdAccountDto = accountService.createAccount(createAccountDto);
     return ResponseEntity
-      .status(HttpStatus.CREATED)
-      .body(toAccountResponse(createdAccountDto));
+        .status(HttpStatus.CREATED)
+        .body(toAccountResponse(createdAccountDto));
   }
 
   @Override
   public ResponseEntity<AccountDto> getAccount(UUID id) {
     var accountDto = accountService.getAccountById(id);
     return accountDto.map(AccountController::toAccountResponse)
-      .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build());
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
-  private static se.digg.wallet.account.application.model.CreateAccountRequestDto toCreateAccountDto(CreateAccountRequestDto createAccountRequestDto) {
+  private static se.digg.wallet.account.application.model.CreateAccountRequestDto toCreateAccountDto(
+      CreateAccountRequestDto createAccountRequestDto) {
 
     var publicKey = createAccountRequestDto.getPublicKey();
 
     return new se.digg.wallet.account.application.model.CreateAccountRequestDto(
-      createAccountRequestDto.getPersonalIdentityNumber(),
-      createAccountRequestDto.getEmailAdress(),
-      createAccountRequestDto.getTelephoneNumber(),
-      publicKey.map(pk -> new se.digg.wallet.account.application.model.PublicKeyDto(
-          pk.getKty(),
-          pk.getKid().orElse(null),
-          pk.getAlg().orElse(null),
-          pk.getUse().orElse(null),
-          pk.getCrv(),
-          pk.getX(),
-          pk.getY()))
-        .orElse(null));
+        createAccountRequestDto.getPersonalIdentityNumber(),
+        createAccountRequestDto.getEmailAdress(),
+        createAccountRequestDto.getTelephoneNumber(),
+        se.digg.wallet.account.application.model.PublicKeyDtoBuilder.builder()
+            .kty(publicKey.getKty())
+            .kid(publicKey.getKid())
+            .alg(publicKey.getAlg().orElse(null))
+            .use(publicKey.getUse().orElse(null))
+            .crv(publicKey.getCrv())
+            .x(publicKey.getX())
+            .y(publicKey.getY())
+            .build());
   }
 
-  private static AccountDto toAccountResponse(se.digg.wallet.account.domain.model.AccountDto accountDto) {
+  private static AccountDto toAccountResponse(
+      se.digg.wallet.account.domain.model.AccountDto accountDto) {
 
     var publicKey = accountDto.publicKey();
 
     return AccountDto.builder()
-      .id(accountDto.id())
-      .personalIdentityNumber(accountDto.personalIdentityNumber())
-      .emailAdress(accountDto.emailAdress())
-      .telephoneNumber(accountDto.telephoneNumber().orElse(null))
-      .publicKey(se.digg.wallet.account.api.origin.model.PublicKeyDto.builder()
-        .kty(publicKey.kty())
-        .kid(publicKey.kid())
-        .alg(publicKey.alg())
-        .use(publicKey.use())
-        .x(publicKey.x())
-        .y(publicKey.y())
-        .build())
-      .build();
+        .id(accountDto.id())
+        .personalIdentityNumber(accountDto.personalIdentityNumber())
+        .emailAdress(accountDto.emailAdress())
+        .telephoneNumber(accountDto.telephoneNumber().orElse(null))
+        .publicKey(se.digg.wallet.account.api.origin.model.PublicKeyDto.builder()
+            .kid(publicKey.kid())
+            .alg(publicKey.alg())
+            .kty(publicKey.kty())
+            .use(publicKey.use())
+            .crv(publicKey.crv())
+            .x(publicKey.x())
+            .y(publicKey.y())
+            .build())
+        .build();
   }
 }
