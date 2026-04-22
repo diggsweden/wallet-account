@@ -12,8 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static se.digg.wallet.account.TestUtils.publicKeyDtoBuilderWithDefaults;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -28,7 +26,6 @@ import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.KeyRequest;
 import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
-import se.digg.wallet.account.api.v0.model.SecurityEnvelopeType;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
@@ -351,23 +348,7 @@ public class AccountV0ControllerTest {
   void assertThatAddSecurityEnvelope_withNullContent_returnsBadRequest() throws Exception {
 
     var securityEnvelopeRequest = SecurityEnvelopeRequest.builder()
-        .type(SecurityEnvelopeType.SIGN)
         .content(null)
-        .build();
-
-    mockMvc
-        .perform(post("/v0/accounts/{0}/security-envelopes", UUID.randomUUID())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(securityEnvelopeRequest)))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void assertThatAddSecurityEnvelope_withNullType_returnsBadRequest() throws Exception {
-
-    var securityEnvelopeRequest = SecurityEnvelopeRequest.builder()
-        .type(null)
-        .content(randomId())
         .build();
 
     mockMvc
@@ -381,7 +362,6 @@ public class AccountV0ControllerTest {
   void assertThatAddSecurityEnvelope_withAcceptableRequest_returnsCreated() throws Exception {
 
     var securityEnvelopeRequest = SecurityEnvelopeRequest.builder()
-        .type(SecurityEnvelopeType.SIGN)
         .content(UUID.randomUUID().toString())
         .build();
 
