@@ -5,7 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.6] - 2026-03-09
+## [0.1.0] - 2026-04-22
+
+### Added
+
+- Add security envelope and wallet key to database (#37)
+- Add ecosystem integration test workflow
+
+### Changed
+
+- Feat/add key operations with api (#40)
+- Merge pull request #41 from diggsweden/chore/upgrade-java-25
+- Upgrade to java 25
+- Merge pull request #39 from diggsweden/chore/bump-reusable-integration-workflow
+- Bump reusable integration workflow
+- Merge pull request #38 from diggsweden/chore/bump-reusable-integration-workflow
+- Merge pull request #35 from diggsweden/feature/ecosystem-integration-test
+- Use gommitlint instead of conform
+- Update reusable-ci to v2.7.3
+
+### Fixed
+
+- Bump reusable integration workflow
+
+## [0.0.6] - 2026-03-10
 
 ### Added
 
@@ -29,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bump hadolint to v2.14.0
+
 
 ## [0.0.5] - 2026-01-19
 
@@ -100,6 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix license and megalinter
 
 
+[0.1.0]: https://github.com/diggsweden/wallet-account/compare/v0.0.6..v0.1.0
 [0.0.6]: https://github.com/diggsweden/wallet-account/compare/v0.0.5..v0.0.6
 [0.0.5]: https://github.com/diggsweden/wallet-account/compare/v0.0.4..v0.0.5
 [0.0.4]: https://github.com/diggsweden/wallet-account/compare/v0.0.3..v0.0.4
