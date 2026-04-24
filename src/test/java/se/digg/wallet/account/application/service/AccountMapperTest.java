@@ -34,7 +34,7 @@ class AccountMapperTest {
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.getId()).isNull();
-          assertThat(account.getEmailAdress()).isEqualTo(requestDto.emailAdress());
+          assertThat(account.getEmail()).isEqualTo(requestDto.emailAdress());
           assertThat(account.getDeviceKey()).isNotNull();
           assertThat(account.getDeviceKey().getX()).isEqualTo(requestDto.publicKey().x());
         });
@@ -55,7 +55,7 @@ class AccountMapperTest {
     assertThat(accountEntityMapper.toAccountEntity(requestDto))
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.getTelephoneNumber()).isNull();
+          assertThat(account.getPhone()).isNull();
           assertThat(account.getDeviceKey().getAlg()).isNull();
           assertThat(account.getDeviceKey().getUse()).isNull();
           assertThat(account.getDeviceKey().getKid()).isNull();
@@ -69,7 +69,7 @@ class AccountMapperTest {
         "none@your.business.se",
         "070 123 123 12",
         null,
-        null,
+        TestUtils.generateJwkEntity(null),
         TestUtils.generateJwkEntity("11"));
     entity.setId(UUID.randomUUID());
     ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
@@ -96,7 +96,7 @@ class AccountMapperTest {
         "none@your.business.se",
         null,
         null,
-        null,
+        TestUtils.generateJwkEntity(null),
         new PublicKeyEntity(
             "EC",
             null,

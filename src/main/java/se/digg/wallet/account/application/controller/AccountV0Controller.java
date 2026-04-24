@@ -19,6 +19,7 @@ import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
+import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
@@ -128,12 +129,12 @@ public class AccountV0Controller implements AccountApi {
     return ResponseEntity.ok(securityEnvelopesResponse);
   }
 
-  private static se.digg.wallet.account.application.model.CreateAccountRequestDto toCreateAccountDto(
+  private static CreateAccountRequestDto toCreateAccountDto(
       AccountRequest accountRequest) {
 
     var deviceKey = accountRequest.getDeviceKey();
 
-    return new se.digg.wallet.account.application.model.CreateAccountRequestDto(
+    return new CreateAccountRequestDto(
         accountRequest.getPersonalIdentityNumber(),
         accountRequest.getEmail(),
         accountRequest.getPhoneNumber(),

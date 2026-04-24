@@ -48,7 +48,7 @@ class AccountControllertItTest {
         "none@your.businnes.se",
         "070 123 12 12",
         null,
-        TestUtils.createJwk(),
+        TestUtils.generateJwkEntity(null),
         TestUtils.generateJwkEntity("1"));
     repository.save(accountEntity);
     EntityExchangeResult<AccountDto> response =
@@ -63,7 +63,7 @@ class AccountControllertItTest {
     assertThat(response.getResponseBody())
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.getEmailAdress()).isEqualTo(accountEntity.getEmailAdress());
+          assertThat(account.getEmailAdress()).isEqualTo(accountEntity.getEmail());
           assertThat(account.getPublicKey()).isNotNull();
         });
   }

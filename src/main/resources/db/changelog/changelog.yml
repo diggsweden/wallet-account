@@ -90,3 +90,24 @@ databaseChangeLog:
               - column:
                   name: wallet_key
                   type: jsonb
+  - changeSet:
+      id: 20260424-0
+      author: extern.michael.danielsson@digg.se
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: wallet_key_id
+                  type: UUID
+        - dropColumn:
+            tableName: accounts
+            columnName: wallet_key
+        - renameColumn:
+            tableName: accounts
+            oldColumnName: email_adress
+            newColumnName: email
+        - renameColumn:
+            tableName: accounts
+            oldColumnName: telephone_number
+            newColumnName: phone

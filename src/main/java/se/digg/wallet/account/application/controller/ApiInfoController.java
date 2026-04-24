@@ -7,10 +7,10 @@ package se.digg.wallet.account.application.controller;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import se.digg.wallet.account.api.v0.ApiInfoApi;
-import se.digg.wallet.account.api.v0.model.ApiInfoResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import se.digg.wallet.account.api.v0.ApiInfoApi;
+import se.digg.wallet.account.api.v0.model.ApiInfoResponse;
 
 @RestController
 public class ApiInfoController implements ApiInfoApi {

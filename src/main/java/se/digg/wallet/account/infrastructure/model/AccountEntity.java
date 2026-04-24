@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -29,21 +28,18 @@ public class AccountEntity {
   @Column
   private String personalIdentityNumber;
   @Column
-  private String emailAdress;
+  private String email;
   @Column
-  private String telephoneNumber;
+  private String phone;
 
-  // security envelope (implementeras med opaque)
   @JdbcTypeCode(SqlTypes.BLOB)
   @Column(columnDefinition = "blob")
   private String securityEnvelope;
 
-  // HSM:ens nyckel (walletKey) , den publika plånboksnyckeln
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(columnDefinition = "jsonb")
-  private Map<String, Object> walletKey;
+  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinColumn(name = "wallet_key_id", referencedColumnName = "id")
+  private PublicKeyEntity walletKey;
 
-  // Device:ns nyckel, enhetens publika nyckeln, deviceKey
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "device_key_id", referencedColumnName = "id")
   private PublicKeyEntity deviceKey;
@@ -51,12 +47,12 @@ public class AccountEntity {
 
   public AccountEntity() {}
 
-  public AccountEntity(String personalIdentityNumber, String emailAdress,
-      String telephoneNumber, String securityEnvelope, Map<String, Object> walletKey,
+  public AccountEntity(String personalIdentityNumber, String email,
+      String phone, String securityEnvelope, PublicKeyEntity walletKey,
       PublicKeyEntity deviceKey) {
     this.personalIdentityNumber = personalIdentityNumber;
-    this.emailAdress = emailAdress;
-    this.telephoneNumber = telephoneNumber;
+    this.email = email;
+    this.phone = phone;
     this.securityEnvelope = securityEnvelope;
     this.walletKey = walletKey;
     this.deviceKey = deviceKey;
@@ -78,20 +74,20 @@ public class AccountEntity {
     this.personalIdentityNumber = personalIdentityNumber;
   }
 
-  public String getEmailAdress() {
-    return emailAdress;
+  public String getEmail() {
+    return email;
   }
 
-  public void setEmailAdress(String emailAdress) {
-    this.emailAdress = emailAdress;
+  public void setEmail(String email) {
+    this.email = email;
   }
 
-  public String getTelephoneNumber() {
-    return telephoneNumber;
+  public String getPhone() {
+    return phone;
   }
 
-  public void setTelephoneNumber(String telephoneNumber) {
-    this.telephoneNumber = telephoneNumber;
+  public void setPhone(String phone) {
+    this.phone = phone;
   }
 
   public String getSecurityEnvelope() {
@@ -102,11 +98,11 @@ public class AccountEntity {
     this.securityEnvelope = securityEnvelope;
   }
 
-  public Map<String, Object> getWalletKey() {
+  public PublicKeyEntity getWalletKey() {
     return walletKey;
   }
 
-  public void setWalletKey(Map<String, Object> walletKey) {
+  public void setWalletKey(PublicKeyEntity walletKey) {
     this.walletKey = walletKey;
   }
 
@@ -120,7 +116,7 @@ public class AccountEntity {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, emailAdress, telephoneNumber, securityEnvelope, walletKey, deviceKey);
+    return Objects.hash(id, email, phone, securityEnvelope, walletKey, deviceKey);
   }
 
   @Override
@@ -138,8 +134,8 @@ public class AccountEntity {
 
     AccountEntity other = (AccountEntity) obj;
     return Objects.equals(id, other.id)
-        && Objects.equals(emailAdress, other.emailAdress)
-        && Objects.equals(telephoneNumber, other.telephoneNumber)
+        && Objects.equals(email, other.email)
+        && Objects.equals(phone, other.phone)
         && Objects.equals(securityEnvelope, other.securityEnvelope)
         && Objects.equals(walletKey, other.walletKey)
         && Objects.equals(other.deviceKey, deviceKey);
@@ -148,7 +144,7 @@ public class AccountEntity {
   @Override
   public String toString() {
     return "AccountEntity [id=" + id + ", personalIdentityNumber=" + personalIdentityNumber
-        + ", emailAdress=" + emailAdress + ", telephoneNumber=" + telephoneNumber
+        + ", email=" + email + ", phone=" + phone
         + ", securityEnvelope=" + securityEnvelope + ", walletKey=" + walletKey
         + ", deviceKey=" + deviceKey + "]";
   }
