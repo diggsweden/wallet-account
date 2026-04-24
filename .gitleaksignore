@@ -45,3 +45,4 @@ d3fb30de7115d7c986c0bec55e6d3adc1e80d605:src/test/java/se/digg/wallet/account/ap
 2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/test/java/se/digg/wallet/account/application/controller/AccountV0ControllerTest.java:digg-internal-hosts:38
 2d399d7d6a0ed92060eed5e10231cbf8cfcc4dc0:src/main/java/se/digg/wallet/account/domain/service/AccountService2.java:digg-internal-hosts:1
 2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/main/java/se/digg/wallet/account/domain/service/AccountService2.java:digg-internal-hosts:1
+07b9f7268b7ce7a4098996a6258c2162c50c0c66:src/main/resources/db/changelog/changelog.yml:digg-email-address:95
