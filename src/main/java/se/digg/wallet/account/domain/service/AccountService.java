@@ -4,9 +4,7 @@
 
 package se.digg.wallet.account.domain.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -17,6 +15,7 @@ import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 
 @Component
@@ -42,14 +41,14 @@ public class AccountService {
 
   public PublicKeyDto createWalletKey(UUID accountId, PublicKeyDto walletKeyDto) {
 
-    Map<String, Object> walletKey = new HashMap<>();
-    walletKey.put("kty", walletKeyDto.kty());
-    walletKey.put("kid", walletKeyDto.kid());
-    walletKey.put("alg", walletKeyDto.alg());
-    walletKey.put("use", walletKeyDto.use());
-    walletKey.put("crv", walletKeyDto.crv());
-    walletKey.put("x", walletKeyDto.x());
-    walletKey.put("y", walletKeyDto.y());
+    PublicKeyEntity walletKey = new PublicKeyEntity(
+        walletKeyDto.kty(),
+        walletKeyDto.kid(),
+        walletKeyDto.alg(),
+        walletKeyDto.use(),
+        walletKeyDto.crv(),
+        walletKeyDto.x(),
+        walletKeyDto.y());
 
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
     entity.setWalletKey(walletKey);
@@ -95,14 +94,14 @@ public class AccountService {
 
   }
 
-  private PublicKeyDto toPublicKeyDto(Map<String, Object> wk) {
+  private PublicKeyDto toPublicKeyDto(PublicKeyEntity wk) {
     return new PublicKeyDto(
-        wk.get("kty").toString(),
-        wk.get("kid").toString(),
-        wk.get("alg").toString(),
-        wk.get("use").toString(),
-        wk.get("crv").toString(),
-        wk.get("x").toString(),
-        wk.get("y").toString());
+        wk.getKty(),
+        wk.getKid(),
+        wk.getAlg(),
+        wk.getUse(),
+        wk.getCrv(),
+        wk.getX(),
+        wk.getY());
   }
 }

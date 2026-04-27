@@ -41,7 +41,7 @@ class AccountRepositoryTest {
             "none@business.se",
             "070-123 123 123",
             null,
-            TestUtils.createJwk(),
+            TestUtils.generateJwkEntity(null),
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     AccountEntity storedEntity = accountRepository.save(entity);
@@ -49,23 +49,16 @@ class AccountRepositoryTest {
     entityManager.clear();
 
     AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).get();
-    // TODO: remove system.out
-    System.out.println("storedEntity " + storedEntity.toString());
-    System.out.println("foundEntity " + foundEntity.toString());
+
     assertThat(foundEntity)
         .isNotNull()
-    // TODO: re-enable this test
-    // .isEqualTo(storedEntity)
-    ;
+        .isEqualTo(storedEntity);
+    assertThat(foundEntity.getWalletKey())
+        .isNotNull();
+    assertThat(foundEntity.getWalletKey().getId()).isNotNull();
     assertThat(foundEntity.getDeviceKey())
         .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
-
-
-    // TODO: remove system.out
-    System.out.println("result " + foundEntity.toString());
   }
-
-
 }
 

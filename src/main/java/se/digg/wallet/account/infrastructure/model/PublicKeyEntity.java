@@ -37,7 +37,10 @@ public class PublicKeyEntity {
   private String yvalue;
 
   @OneToOne(mappedBy = "deviceKey")
-  private AccountEntity accountEntity;
+  private AccountEntity accountEntityForDeviceKey;
+
+  @OneToOne(mappedBy = "walletKey")
+  private AccountEntity accountEntityForWalletKey;
 
   public PublicKeyEntity() {}
 
