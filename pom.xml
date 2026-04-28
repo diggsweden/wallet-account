@@ -175,6 +175,30 @@ SPDX-License-Identifier: EUPL-1.2
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
 
+      <!-- Java Code Coverage (JaCoCo) plugin -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>se/digg/wallet/account/api/**</exclude>
+            <exclude>**/*Builder.class</exclude>
+            <exclude>**/*Builder$*.class</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals><goal>prepare-agent</goal></goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals><goal>report</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- Formatter plugin -->
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
@@ -335,6 +359,29 @@ SPDX-License-Identifier: EUPL-1.2
               <sources>
                 <source>${project.basedir}/target/generated-sources/openapi/src/main/java</source>
               </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.openapitools.openapidiff</groupId>
+        <artifactId>openapi-diff-maven</artifactId>
+        <version>${openapi-diff-maven.version}</version>
+        <executions>
+          <execution>
+            <id>openapi-diff-apispec-v0</id>
+            <goals>
+              <goal>diff</goal>
+            </goals>
+            <configuration>
+              <oldSpec>https://raw.githubusercontent.com/diggsweden/wallet-account/refs/heads/main/src/main/resources/static/wallet-account-openapi-v0.yaml</oldSpec>
+              <newSpec>${project.basedir}/target/classes/static/wallet-account-openapi-v0.yaml</newSpec>
+              <failOnIncompatible>true</failOnIncompatible>
+              <failOnChanged>false</failOnChanged>
+              <consoleOutputFileName>${project.basedir}/target/openapi-diff-apispec-v0.txt</consoleOutputFileName>
+              <jsonOutputFileName>${project.basedir}/target/openapi-diff-apispec-v0.json</jsonOutputFileName>
+              <markdownOutputFileName>${project.basedir}/target/openapi-diff-apispec-v0.md</markdownOutputFileName>
             </configuration>
           </execution>
         </executions>
