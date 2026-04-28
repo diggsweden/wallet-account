@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.sql.Blob;
 import java.util.Objects;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -34,7 +35,7 @@ public class AccountEntity {
 
   @JdbcTypeCode(SqlTypes.BLOB)
   @Column(columnDefinition = "blob")
-  private String securityEnvelope;
+  private Blob securityEnvelope;
 
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "wallet_key_id", referencedColumnName = "id")
@@ -48,7 +49,7 @@ public class AccountEntity {
   public AccountEntity() {}
 
   public AccountEntity(String personalIdentityNumber, String email,
-      String phone, String securityEnvelope, PublicKeyEntity walletKey,
+      String phone, Blob securityEnvelope, PublicKeyEntity walletKey,
       PublicKeyEntity deviceKey) {
     this.personalIdentityNumber = personalIdentityNumber;
     this.email = email;
@@ -90,11 +91,11 @@ public class AccountEntity {
     this.phone = phone;
   }
 
-  public String getSecurityEnvelope() {
+  public Blob getSecurityEnvelope() {
     return securityEnvelope;
   }
 
-  public void setSecurityEnvelope(String securityEnvelope) {
+  public void setSecurityEnvelope(Blob securityEnvelope) {
     this.securityEnvelope = securityEnvelope;
   }
 

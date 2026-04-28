@@ -4,8 +4,10 @@
 
 package se.digg.wallet.account.infrastructure.mapper;
 
+import java.sql.SQLException;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import se.digg.wallet.account.application.exception.WalletAccountException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
@@ -36,31 +38,36 @@ public class AccountEntityMapper {
   }
 
   public ExtendedAccountDto toExtendedAccountDto(AccountEntity accountEntity) {
-    return ExtendedAccountDtoBuilder.builder()
-        .id(accountEntity.getId())
-        .emailAdress(accountEntity.getEmail())
-        .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
-        .telephoneNumber(Optional.ofNullable(accountEntity.getPhone()))
-        .securityEnvelope(accountEntity.getSecurityEnvelope())
-        .walletKey(PublicKeyDtoBuilder.builder()
-            .kty(accountEntity.getWalletKey().getKty())
-            .kid(accountEntity.getWalletKey().getKid())
-            .alg(accountEntity.getWalletKey().getAlg())
-            .use(accountEntity.getWalletKey().getUse())
-            .crv(accountEntity.getWalletKey().getCrv())
-            .x(accountEntity.getWalletKey().getX())
-            .y(accountEntity.getWalletKey().getY())
-            .build())
-        .deviceKey(PublicKeyDtoBuilder.builder()
-            .kty(accountEntity.getDeviceKey().getKty())
-            .kid(accountEntity.getDeviceKey().getKid())
-            .alg(accountEntity.getDeviceKey().getAlg())
-            .use(accountEntity.getDeviceKey().getUse())
-            .crv(accountEntity.getDeviceKey().getCrv())
-            .x(accountEntity.getDeviceKey().getX())
-            .y(accountEntity.getDeviceKey().getY())
-            .build())
-        .build();
+    try {
+      return ExtendedAccountDtoBuilder.builder()
+          .id(accountEntity.getId())
+          .emailAdress(accountEntity.getEmail())
+          .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
+          .telephoneNumber(Optional.ofNullable(accountEntity.getPhone()))
+          .securityEnvelope(BlobMapper.blobToString(accountEntity.getSecurityEnvelope()))
+          .walletKey(PublicKeyDtoBuilder.builder()
+              .kty(accountEntity.getWalletKey().getKty())
+              .kid(accountEntity.getWalletKey().getKid())
+              .alg(accountEntity.getWalletKey().getAlg())
+              .use(accountEntity.getWalletKey().getUse())
+              .crv(accountEntity.getWalletKey().getCrv())
+              .x(accountEntity.getWalletKey().getX())
+              .y(accountEntity.getWalletKey().getY())
+              .build())
+          .deviceKey(PublicKeyDtoBuilder.builder()
+              .kty(accountEntity.getDeviceKey().getKty())
+              .kid(accountEntity.getDeviceKey().getKid())
+              .alg(accountEntity.getDeviceKey().getAlg())
+              .use(accountEntity.getDeviceKey().getUse())
+              .crv(accountEntity.getDeviceKey().getCrv())
+              .x(accountEntity.getDeviceKey().getX())
+              .y(accountEntity.getDeviceKey().getY())
+              .build())
+          .build();
+    } catch (SQLException ex) {
+      // TODO: better exception handling
+      throw new WalletAccountException(ex.getMessage());
+    }
   }
 
   public AccountDto toAccountDto(AccountEntity accountEntity) {

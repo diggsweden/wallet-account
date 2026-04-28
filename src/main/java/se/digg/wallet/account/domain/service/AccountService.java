@@ -4,16 +4,19 @@
 
 package se.digg.wallet.account.domain.service;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import se.digg.wallet.account.application.exception.WalletAccountException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
+import se.digg.wallet.account.infrastructure.mapper.BlobMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
@@ -67,15 +70,26 @@ public class AccountService {
   }
 
   public String createSecurityEnvelope(UUID accountId, String securityEnvelope) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    entity.setSecurityEnvelope(securityEnvelope);
-    var savedEntity = accountRepository.save(entity);
-    return savedEntity.getSecurityEnvelope();
+    try {
+      AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
+      entity.setSecurityEnvelope(BlobMapper.stringToBlob(securityEnvelope));
+      var savedEntity = accountRepository.save(entity);
+      return BlobMapper.blobToString(savedEntity.getSecurityEnvelope());
+    } catch (SQLException ex) {
+      // TODO: better exception handling
+      throw new WalletAccountException(ex.getMessage());
+    }
   }
 
   public Optional<String> getSecurityEnvelope(UUID accountId) {
-    var entity = accountRepository.findById(accountId);
-    return entity.map(AccountEntity::getSecurityEnvelope);
+    try {
+      var entity = accountRepository.findById(accountId);
+      return Optional.ofNullable(BlobMapper.blobToString(
+          entity.map(AccountEntity::getSecurityEnvelope).get()));
+    } catch (SQLException ex) {
+      // TODO: better exception handling
+      throw new WalletAccountException(ex.getMessage());
+    }
   }
 
   private AccountEntity verifyUniquenessAndStore(CreateAccountRequestDto accountRequestDto) {
