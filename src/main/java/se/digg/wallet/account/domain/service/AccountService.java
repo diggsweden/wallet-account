@@ -66,7 +66,7 @@ public class AccountService {
 
   public Optional<PublicKeyDto> getWalletKey(UUID accountId) {
     AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return Optional.of(toPublicKeyDto(entity.getWalletKey()));
+    return Optional.ofNullable(toPublicKeyDto(entity.getWalletKey()));
   }
 
   public String createSecurityEnvelope(UUID accountId, String securityEnvelope) {
@@ -84,8 +84,8 @@ public class AccountService {
   public Optional<String> getSecurityEnvelope(UUID accountId) {
     try {
       var entity = accountRepository.findById(accountId);
-      return Optional.ofNullable(BlobMapper.blobToString(
-          entity.map(AccountEntity::getSecurityEnvelope).get()));
+      var securityEnvelopeBlob = entity.orElseThrow().getSecurityEnvelope();
+      return Optional.ofNullable(BlobMapper.blobToString(securityEnvelopeBlob));
     } catch (SQLException ex) {
       // TODO: better exception handling
       throw new WalletAccountException(ex.getMessage());
@@ -109,6 +109,9 @@ public class AccountService {
   }
 
   private PublicKeyDto toPublicKeyDto(PublicKeyEntity wk) {
+    if (wk == null) {
+      return null;
+    }
     return new PublicKeyDto(
         wk.getKty(),
         wk.getKid(),

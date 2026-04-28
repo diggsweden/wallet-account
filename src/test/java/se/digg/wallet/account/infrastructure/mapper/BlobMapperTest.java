@@ -42,7 +42,6 @@ public class BlobMapperTest {
     var blob = new SerialBlob(bytes);
 
     var actualOpaque = BlobMapper.blobToString(blob);
-    System.out.println(actualOpaque);
 
     assertEquals(expectedOpaque, actualOpaque);
   }
