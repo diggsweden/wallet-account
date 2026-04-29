@@ -4,8 +4,8 @@ Java service housing the accounts and account logic.
 
 ## Development
 
-To run application locally, the database service must be up and running. Before starting the application,
-start the dependant services using podman with the `docker-compose.yml` configuration:
+To start this application locally, some dependent service(s) must be up and running, such as the database service.
+Start the dependant services using podman with the `docker-compose.yml` configuration:
 
 ```text
 podman compose up -d
@@ -13,17 +13,18 @@ podman compose up -d
 
 ### Java Code Coverage Reports
 
-When running `mvn test` the JaCoCo will automatically measure how many lines of the code which are executed during
-automated tests and produce a code coverage report. This is configured as a Maven plugin `jacoco-maven-plugin` in pom.xml.
+The JaCoCo tool is configured in this project with the `jacoco-maven-plugin` in pom.xml. When running `mvn test`
+JaCoCo will automatically measure how many lines of the code which are executed during automated tests and produce
+a code coverage report.
 
-The JaCoCo is configured as a Maven plugin. It provides the JaCoCo runtime agent to the tests and allows basic report
-creation. Generated report is presented in several formats, such as HTML, CSV and XML located in `./target/site/jacoco/`.
-As a developer, the most suitable format is HTML. Just open the `index.html` in your web browser.
+The tool generates report output content in `./target/site/jacoco/`. For human reading, the most suitable format is
+HTML. To view the report, open the generated `./target/site/jacoco/index.html` in your web browser.
 
-*The tool will also create a coverage report in binary format in the target directory, `target/jacoco.exec`.
-Obviously we can’t interpret the output single-handedly, but other tools and plugins can, e.g. SonarQube.*
+*Additional output for machine reading is created in CSV and XML format. The tool will also create a coverage report in
+binary format `target/jacoco.exec`. Obviously we can’t interpret the output single-handedly, but other tools and plugins
+can, e.g. SonarQube.*
 
-Read more: [JaCoCo Maven plugin documentation](https://www.jacoco.org/jacoco/trunk/doc/maven.html)
+[JaCoCo Maven plugin documentation](https://www.jacoco.org/jacoco/trunk/doc/maven.html)
 
 ### Service API
 
