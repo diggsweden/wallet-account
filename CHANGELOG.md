@@ -5,7 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-04-22
+## [0.1.1] - 2026-04-30
+
+### Added
+
+- Add test tools
+
+### Changed
+
+- Bump gommitlint to 0.9.10, switch rumdl from ubi to aqua
+- Bump reusable-ci to v2.7.9
+- Merge pull request #43 from diggsweden/fix/use-main-version-of-reusable-integration
+
+### Fixed
+
+- Get blob within transaction (#48)
+- Test coverage improvement (#46)
+- Map string to blob (#45)
+- Handle walletKey and deviceKey similarly (#44)
+- Use main version of reusable integration script
+
+## [0.1.0] - 2026-04-23
 
 ### Added
 
@@ -27,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bump reusable integration workflow
+
 
 ## [0.0.6] - 2026-03-10
 
@@ -124,6 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix license and megalinter
 
 
+[0.1.1]: https://github.com/diggsweden/wallet-account/compare/v0.1.0..v0.1.1
 [0.1.0]: https://github.com/diggsweden/wallet-account/compare/v0.0.6..v0.1.0
 [0.0.6]: https://github.com/diggsweden/wallet-account/compare/v0.0.5..v0.0.6
 [0.0.5]: https://github.com/diggsweden/wallet-account/compare/v0.0.4..v0.0.5
