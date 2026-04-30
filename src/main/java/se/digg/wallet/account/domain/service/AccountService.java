@@ -4,6 +4,7 @@
 
 package se.digg.wallet.account.domain.service;
 
+import jakarta.transaction.Transactional;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -81,9 +82,10 @@ public class AccountService {
     }
   }
 
+  @Transactional
   public Optional<String> getSecurityEnvelope(UUID accountId) {
     try {
-      var entity = accountRepository.findById(accountId);
+      Optional<AccountEntity> entity = accountRepository.findById(accountId);
       var securityEnvelopeBlob = entity.orElseThrow().getSecurityEnvelope();
       return Optional.ofNullable(BlobMapper.blobToString(securityEnvelopeBlob));
     } catch (SQLException ex) {
@@ -105,7 +107,6 @@ public class AccountService {
         accountRepository.save(accountEntityMapper.toAccountEntity(accountRequestDto));
     logger.debug("stored account {}", storedEntity);
     return storedEntity;
-
   }
 
   private PublicKeyDto toPublicKeyDto(PublicKeyEntity wk) {
