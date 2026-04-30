@@ -118,13 +118,16 @@ public class AccountV0Controller implements AccountApi {
       return ResponseEntity.notFound().build();
     }
 
-    var securityEnvelope = accountService.getSecurityEnvelope(id);
-    var filteredResponse = securityEnvelope.stream()
-        .map(AccountV0Controller::toSecurityEnvelopeResponse)
-        .toList();
+    Optional<String> securityEnvelope = accountService.getSecurityEnvelope(id);
+    if (securityEnvelope.isEmpty()) {
+      return ResponseEntity.ok(SecurityEnvelopesResponse.builder()
+          .items(List.of())
+          .build());
+    }
 
+    var theOnlyResponse = toSecurityEnvelopeResponse(securityEnvelope.get());
     var securityEnvelopesResponse = SecurityEnvelopesResponse.builder()
-        .items(filteredResponse)
+        .items(List.of(theOnlyResponse))
         .build();
     return ResponseEntity.ok(securityEnvelopesResponse);
   }
