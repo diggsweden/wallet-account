@@ -7,11 +7,13 @@ package se.digg.wallet.account.infrastructure.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-import javax.sql.rowset.serial.SerialBlob;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.sql.SQLException;
 import java.util.Base64;
+import javax.sql.rowset.serial.SerialBlob;
 import org.junit.jupiter.api.Test;
 
 public class BlobMapperTest {
@@ -71,6 +73,17 @@ public class BlobMapperTest {
     var actualContent = new String(bytes, StandardCharsets.UTF_8);
 
     assertEquals(expectedContent, actualContent);
+  }
+
+  @Test
+  void blobToStringDoesNotAcceptBlobLongerThanIntegerMaxValue() throws Exception {
+    var expectedOpaque = RandomGenerator.randomOpaque();
+    byte[] bytes = expectedOpaque.getBytes(StandardCharsets.UTF_8);
+    var blob = new TestSerialBlob(bytes);
+
+    assertThrowsExactly(SQLException.class, () -> {
+      BlobMapper.blobToString(blob);
+    });
   }
 
   public static class RandomGenerator {

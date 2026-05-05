@@ -68,8 +68,8 @@ class AccountServiceTest {
     var createdAccountEntity = new AccountEntity();
 
     var expectedAccountDto = AccountDtoBuilder.builder()
-      .id(expectedAccountId)
-      .build();
+        .id(expectedAccountId)
+        .build();
 
     when(accountRepository.findByPersonalIdentityNumber(any())).thenReturn(Collections.emptyList());
     when(accountRepository.save(any())).thenReturn(createdAccountEntity);
@@ -93,11 +93,11 @@ class AccountServiceTest {
     var createdAccountEntity = new AccountEntity();
 
     var expectedAccountDto = AccountDtoBuilder.builder()
-      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-      .emailAdress(EMAIL)
-      .telephoneNumber(Optional.of(PHONE_NUMBER))
-      .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(kid).build())
-      .build();
+        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(EMAIL)
+        .telephoneNumber(Optional.of(PHONE_NUMBER))
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(kid).build())
+        .build();
 
     var existingAccountEntities = List.of(existingAccountEntity);
     when(accountRepository.findByPersonalIdentityNumber(any())).thenReturn(existingAccountEntities);
@@ -128,14 +128,15 @@ class AccountServiceTest {
     var existingAccountEntity = new AccountEntity();
 
     var expectedAccountDto = AccountDtoBuilder.builder()
-      .id(expectedAccountId)
-      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-      .emailAdress(EMAIL)
-      .telephoneNumber(Optional.of(PHONE_NUMBER))
-      .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
-      .build();
+        .id(expectedAccountId)
+        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(EMAIL)
+        .telephoneNumber(Optional.of(PHONE_NUMBER))
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
+        .build();
 
-    when(accountRepository.findById(eq(expectedAccountId))).thenReturn(Optional.of(existingAccountEntity));
+    when(accountRepository.findById(eq(expectedAccountId)))
+        .thenReturn(Optional.of(existingAccountEntity));
     when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
 
     var actualAccount = accountService.getAccountById(expectedAccountId);
@@ -148,8 +149,8 @@ class AccountServiceTest {
 
     when(accountRepository.findById(any())).thenReturn(Optional.empty());
 
-    assertThrows(NoSuchElementException.class, () ->
-      accountService.createWalletKey(UUID.randomUUID(), PublicKeyDtoBuilder.builder().build()));
+    assertThrows(NoSuchElementException.class, () -> accountService
+        .createWalletKey(UUID.randomUUID(), PublicKeyDtoBuilder.builder().build()));
   }
 
   @Test
@@ -160,13 +161,12 @@ class AccountServiceTest {
 
     var accountId = UUID.randomUUID();
     var existingAccountEntity = new AccountEntity(
-      PERSONAL_IDENTITY_NUMBER,
-      EMAIL,
-      PHONE_NUMBER,
-      null,
-      null,
-      new PublicKeyEntity()
-    );
+        PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE_NUMBER,
+        null,
+        null,
+        new PublicKeyEntity());
     existingAccountEntity.setId(accountId);
 
     when(accountRepository.findById(eq(accountId))).thenReturn(Optional.of(existingAccountEntity));
@@ -186,13 +186,12 @@ class AccountServiceTest {
 
     var accountId = UUID.randomUUID();
     var existingAccountEntity = new AccountEntity(
-      PERSONAL_IDENTITY_NUMBER,
-      EMAIL,
-      PHONE_NUMBER,
-      null,
-      new PublicKeyEntity(),
-      new PublicKeyEntity()
-    );
+        PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE_NUMBER,
+        null,
+        new PublicKeyEntity(),
+        new PublicKeyEntity());
     existingAccountEntity.setId(accountId);
 
     when(accountRepository.findById(eq(accountId))).thenReturn(Optional.of(existingAccountEntity));
@@ -205,11 +204,40 @@ class AccountServiceTest {
   }
 
   @Test
+  void assertThatGetWalletKeys_existingAccountWithWalletKey_shouldReturnExpectedWalletKeys() {
+
+    var expectedKeyId = randomId();
+    var existingAccountEntity = new AccountEntity();
+    var existingWalletKey = new PublicKeyEntity(
+        null,
+        expectedKeyId,
+        null,
+        null,
+        null,
+        null,
+        null);
+    existingAccountEntity.setWalletKey(existingWalletKey);
+
+    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+
+    var actualWalletKeyList = accountService.getWalletKeys(UUID.randomUUID());
+    assertThat(actualWalletKeyList).isNotEmpty();
+    assertThat(actualWalletKeyList.size()).isEqualTo(1);
+
+    var actualWalletKey = actualWalletKeyList.getFirst();
+    assertThat(actualWalletKey).isNotNull();
+
+    var actualKeyId = actualWalletKey.kid();
+    assertThat(actualKeyId).isEqualTo(expectedKeyId);
+  }
+
+  @Test
   void assertThatGetWalletKey_nonExistingAccount_throwsNoSuchElementException() {
 
     when(accountRepository.findById(any())).thenReturn(Optional.empty());
 
-    assertThrows(NoSuchElementException.class, () -> accountService.getWalletKey(UUID.randomUUID()));
+    assertThrows(NoSuchElementException.class,
+        () -> accountService.getWalletKey(UUID.randomUUID()));
   }
 
   @Test
@@ -217,13 +245,12 @@ class AccountServiceTest {
 
     var expectedKeyId = randomId();
     var existingAccountEntity = new AccountEntity(
-      PERSONAL_IDENTITY_NUMBER,
-      EMAIL,
-      PHONE_NUMBER,
-      null,
-      null,
-      new PublicKeyEntity()
-    );
+        PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE_NUMBER,
+        null,
+        null,
+        new PublicKeyEntity());
     when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
 
     var existingWalletKey = accountService.getWalletKey(UUID.randomUUID());
@@ -236,14 +263,13 @@ class AccountServiceTest {
     var expectedKeyId = randomId();
     var existingAccountEntity = new AccountEntity();
     var existingWalletKey = new PublicKeyEntity(
-      null,
-      expectedKeyId,
-      null,
-      null,
-      null,
-      null,
-      null
-    );
+        null,
+        expectedKeyId,
+        null,
+        null,
+        null,
+        null,
+        null);
     existingAccountEntity.setWalletKey(existingWalletKey);
 
     when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
@@ -260,8 +286,8 @@ class AccountServiceTest {
 
     when(accountRepository.findById(any())).thenReturn(Optional.empty());
 
-    assertThrows(NoSuchElementException.class, () ->
-      accountService.createSecurityEnvelope(UUID.randomUUID(), randomId()));
+    assertThrows(NoSuchElementException.class,
+        () -> accountService.createSecurityEnvelope(UUID.randomUUID(), randomId()));
   }
 
   @Test
@@ -279,7 +305,8 @@ class AccountServiceTest {
   }
 
   @Test
-  void assertThatCreateSecurityEnvelope_replaceExistingContent_shouldReturnReplacedContent() throws Exception {
+  void assertThatCreateSecurityEnvelope_replaceExistingContent_shouldReturnReplacedContent()
+      throws Exception {
 
     var expectedContent = randomId();
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
@@ -301,7 +328,8 @@ class AccountServiceTest {
 
     when(accountRepository.findById(any())).thenReturn(Optional.empty());
 
-    assertThrows(NoSuchElementException.class, () -> accountService.getSecurityEnvelope(UUID.randomUUID()));
+    assertThrows(NoSuchElementException.class,
+        () -> accountService.getSecurityEnvelope(UUID.randomUUID()));
   }
 
   @Test
@@ -316,7 +344,8 @@ class AccountServiceTest {
   }
 
   @Test
-  void assertThatGetSecurityEnvelope_existingAccountWithSecurityEnvelope_shouldReturnExpectedContent() throws Exception {
+  void assertThatGetSecurityEnvelope_existingAccountWithSecurityEnvelope_shouldReturnExpectedContent()
+      throws Exception {
 
     var expectedContent = randomId();
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
@@ -338,13 +367,13 @@ class AccountServiceTest {
 
   private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
     return PublicKeyDtoBuilder.builder()
-      .kty("EC")
-      .crv("P-256")
-      .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
-      .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
-      .alg("alg")
-      .use("enc")
-      .kid(kid)
-      .build();
+        .kty("EC")
+        .crv("P-256")
+        .x("MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4")
+        .y("4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM")
+        .alg("alg")
+        .use("enc")
+        .kid(kid)
+        .build();
   }
 }
