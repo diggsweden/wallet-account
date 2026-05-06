@@ -41,15 +41,21 @@ class AccountRepositoryTest {
   void testSaveAndRetrieveAccount() throws SQLException {
     final String securityEnvelope = "this is just a String";
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(securityEnvelope);
-
+    final String personalIdentityNumber = "770101-1234";
+    final String email = "none@business.se";
+    final String phone = "070-123 123 123";
 
     AccountEntity entity =
-        new AccountEntity("770101-1234",
-            "none@business.se",
-            "070-123 123 123",
+        new AccountEntity(null,
+            null,
+            null,
             securityEnvelopeBlob,
             TestUtils.generateJwkEntity(null),
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+
+    entity.setPersonalIdentityNumber(personalIdentityNumber);
+    entity.setPhone(phone);
+    entity.setEmail(email);
 
     AccountEntity storedEntity = accountRepository.save(entity);
     entityManager.flush();
@@ -70,5 +76,9 @@ class AccountRepositoryTest {
     assertThat(foundEntity.getDeviceKey())
         .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
+
+    assertThat(foundEntity.getPersonalIdentityNumber()).isEqualTo(personalIdentityNumber);
+    assertThat(foundEntity.getEmail()).isEqualTo(email);
+    assertThat(foundEntity.getPhone()).isEqualTo(phone);
   }
 }
