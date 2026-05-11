@@ -37,13 +37,14 @@ class AccountRepositoryTest {
   @Autowired
   TestEntityManager entityManager;
 
+  final String SECURITY_ENVELOPE = "this is just a String";
+  final String PERSONAL_IDENTITY_NUMBER = "770101-1234";
+  final String EMAIL = "none@business.se";
+  final String PHONE = "070-123 123 123";
+
   @Test
   void testSaveAndRetrieveAccount() throws SQLException {
-    final String securityEnvelope = "this is just a String";
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(securityEnvelope);
-    final String personalIdentityNumber = "770101-1234";
-    final String email = "none@business.se";
-    final String phone = "070-123 123 123";
+    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     AccountEntity entity =
         new AccountEntity(null,
@@ -53,15 +54,15 @@ class AccountRepositoryTest {
             TestUtils.generateJwkEntity(null),
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
-    entity.setPersonalIdentityNumber(personalIdentityNumber);
-    entity.setPhone(phone);
-    entity.setEmail(email);
+    entity.setPersonalIdentityNumber(PERSONAL_IDENTITY_NUMBER);
+    entity.setPhone(PHONE);
+    entity.setEmail(EMAIL);
 
     AccountEntity storedEntity = accountRepository.save(entity);
     entityManager.flush();
     entityManager.clear();
 
-    AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).get();
+    AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
 
     assertThat(foundEntity)
         .isNotNull();
@@ -69,7 +70,7 @@ class AccountRepositoryTest {
     assertThat(foundEntity.getSecurityEnvelope())
         .isNotNull();
     assertThat(
-        BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(securityEnvelope));
+        BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
     assertThat(foundEntity.getWalletKey())
         .isNotNull();
     assertThat(foundEntity.getWalletKey().getId()).isNotNull();
@@ -77,8 +78,33 @@ class AccountRepositoryTest {
         .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
 
-    assertThat(foundEntity.getPersonalIdentityNumber()).isEqualTo(personalIdentityNumber);
-    assertThat(foundEntity.getEmail()).isEqualTo(email);
-    assertThat(foundEntity.getPhone()).isEqualTo(phone);
+    assertThat(foundEntity.getPersonalIdentityNumber()).isEqualTo(PERSONAL_IDENTITY_NUMBER);
+    assertThat(foundEntity.getEmail()).isEqualTo(EMAIL);
+    assertThat(foundEntity.getPhone()).isEqualTo(PHONE);
+  }
+
+  @Test
+  void saveAndRetrieveAccountShouldHandleNullPersonalIdentityNumber() throws SQLException {
+    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+
+    AccountEntity entity =
+        new AccountEntity(null,
+            EMAIL,
+            PHONE,
+            securityEnvelopeBlob,
+            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+
+    AccountEntity storedEntity = accountRepository.save(entity);
+    entityManager.flush();
+    entityManager.clear();
+
+    AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
+
+    assertThat(foundEntity)
+        .isNotNull();
+    // .isEqualTo(storedEntity);
+
+    assertThat(foundEntity.getPersonalIdentityNumber()).isNull();
   }
 }
