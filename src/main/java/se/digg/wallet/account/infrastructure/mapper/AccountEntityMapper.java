@@ -22,8 +22,8 @@ public class AccountEntityMapper {
 
 
   public AccountEntity toAccountEntity(CreateAccountRequestDto accountRequestDto) {
-    return new AccountEntity(accountRequestDto.personalIdentityNumber(),
-        accountRequestDto.emailAdress(),
+    return new AccountEntity(accountRequestDto.personalIdentityNumber().orElse(null),
+        accountRequestDto.emailAdress().orElse(null),
         accountRequestDto.telephoneNumber().orElse(null),
         null,
         null,

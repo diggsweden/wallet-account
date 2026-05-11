@@ -42,7 +42,7 @@ public class AccountEntityMapperTest {
   void assertThatToAccountEntity_emptyPublicKey_throwsException() {
 
     var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
-      .build();
+        .build();
 
     assertThrows(Exception.class, () -> mapper.toAccountEntity(accountRequestDto));
   }
@@ -51,8 +51,8 @@ public class AccountEntityMapperTest {
   void assertThatToAccountEntity_emptyPersonalValues_shouldNotThrow() {
 
     var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
-      .publicKey(PublicKeyDtoBuilder.builder().build())
-      .build();
+        .publicKey(PublicKeyDtoBuilder.builder().build())
+        .build();
 
     assertDoesNotThrow(() -> mapper.toAccountEntity(accountRequestDto));
   }
@@ -65,11 +65,11 @@ public class AccountEntityMapperTest {
     var expectedPhoneNumber = "0700000000";
 
     var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
-      .personalIdentityNumber(expectedPersonalIdentityNumber)
-      .emailAdress(expectedEmail)
-      .telephoneNumber(Optional.of(expectedPhoneNumber))
-      .publicKey(PublicKeyDtoBuilder.builder().build())
-      .build();
+        .personalIdentityNumber(Optional.of(expectedPersonalIdentityNumber))
+        .emailAdress(Optional.of(expectedEmail))
+        .telephoneNumber(Optional.of(expectedPhoneNumber))
+        .publicKey(PublicKeyDtoBuilder.builder().build())
+        .build();
 
     var accountEntity = mapper.toAccountEntity(accountRequestDto);
 
@@ -84,8 +84,8 @@ public class AccountEntityMapperTest {
     var expectedKeyId = randomId();
 
     var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
-      .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(expectedKeyId).build())
-      .build();
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(expectedKeyId).build())
+        .build();
 
     var accountEntity = mapper.toAccountEntity(accountRequestDto);
 
@@ -133,12 +133,12 @@ public class AccountEntityMapperTest {
     var expectedPhoneNumber = "0700000000";
 
     var accountEntity = new AccountEntity(
-      expectedPersonalIdentityNumber,
-      expectedEmail,
-      expectedPhoneNumber,
-      null,
-      new PublicKeyEntity(),
-      new PublicKeyEntity());
+        expectedPersonalIdentityNumber,
+        expectedEmail,
+        expectedPhoneNumber,
+        null,
+        new PublicKeyEntity(),
+        new PublicKeyEntity());
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
 
@@ -152,12 +152,12 @@ public class AccountEntityMapperTest {
   void assertThatToExtendedAccountEntity_nullDeviceKey_throwsException() {
 
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      null,
-      new PublicKeyEntity(),
-      null);
+        null,
+        null,
+        null,
+        null,
+        new PublicKeyEntity(),
+        null);
 
     assertThrows(Exception.class, () -> mapper.toExtendedAccountDto(accountEntity));
   }
@@ -166,12 +166,12 @@ public class AccountEntityMapperTest {
   void assertThatToExtendedAccountEntity_nullWalletKey_throwsException() {
 
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      null,
-      null,
-      new PublicKeyEntity());
+        null,
+        null,
+        null,
+        null,
+        null,
+        new PublicKeyEntity());
 
 
     assertThrows(Exception.class, () -> mapper.toExtendedAccountDto(accountEntity));
@@ -182,21 +182,20 @@ public class AccountEntityMapperTest {
 
     var expectedKeyId = randomId();
     var publicKeyEntity = new PublicKeyEntity(
-      randomId(),
-      expectedKeyId,
-      randomId(),
-      randomId(),
-      randomId(),
-      randomId(),
-      randomId()
-    );
+        randomId(),
+        expectedKeyId,
+        randomId(),
+        randomId(),
+        randomId(),
+        randomId(),
+        randomId());
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      null,
-      new PublicKeyEntity(),
-      publicKeyEntity);
+        null,
+        null,
+        null,
+        null,
+        new PublicKeyEntity(),
+        publicKeyEntity);
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
     var actualKey = extendedAccountDto.deviceKey();
@@ -217,21 +216,20 @@ public class AccountEntityMapperTest {
 
     var expectedKeyId = randomId();
     var publicKeyEntity = new PublicKeyEntity(
-      randomId(),
-      expectedKeyId,
-      randomId(),
-      randomId(),
-      randomId(),
-      randomId(),
-      randomId()
-    );
+        randomId(),
+        expectedKeyId,
+        randomId(),
+        randomId(),
+        randomId(),
+        randomId(),
+        randomId());
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      null,
-      publicKeyEntity,
-      new PublicKeyEntity());
+        null,
+        null,
+        null,
+        null,
+        publicKeyEntity,
+        new PublicKeyEntity());
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
     var actualKey = extendedAccountDto.walletKey();
@@ -248,19 +246,20 @@ public class AccountEntityMapperTest {
   }
 
   @Test
-  void assertThatToExtendedAccountEntity_securityEnvelopeContent_containsMappedEqualContent() throws Exception {
+  void assertThatToExtendedAccountEntity_securityEnvelopeContent_containsMappedEqualContent()
+      throws Exception {
 
     var expectedContent = randomId();
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
     var blob = new SerialBlob(bytes);
 
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      blob,
-      new PublicKeyEntity(),
-      new PublicKeyEntity());
+        null,
+        null,
+        null,
+        blob,
+        new PublicKeyEntity(),
+        new PublicKeyEntity());
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
     var actualContent = extendedAccountDto.securityEnvelope();
@@ -288,13 +287,12 @@ public class AccountEntityMapperTest {
   void assertThatToAccountDto_emptyPersonalValues_shouldNotThrow() {
 
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      null,
-      new PublicKeyEntity(),
-      new PublicKeyEntity()
-    );
+        null,
+        null,
+        null,
+        null,
+        new PublicKeyEntity(),
+        new PublicKeyEntity());
 
     assertDoesNotThrow(() -> mapper.toAccountDto(accountEntity));
   }
@@ -307,13 +305,12 @@ public class AccountEntityMapperTest {
     var expectedPhoneNumber = "0700000000";
 
     var accountEntity = new AccountEntity(
-      expectedPersonalIdentityNumber,
-      expectedEmail,
-      expectedPhoneNumber,
-      null,
-      new PublicKeyEntity(),
-      new PublicKeyEntity()
-    );
+        expectedPersonalIdentityNumber,
+        expectedEmail,
+        expectedPhoneNumber,
+        null,
+        new PublicKeyEntity(),
+        new PublicKeyEntity());
 
     var mappedEntity = mapper.toAccountDto(accountEntity);
 
@@ -328,22 +325,20 @@ public class AccountEntityMapperTest {
 
     var expectedKeyId = randomId();
     var publicKeyEntity = new PublicKeyEntity(
-      randomId(),
-      expectedKeyId,
-      randomId(),
-      randomId(),
-      randomId(),
-      randomId(),
-      randomId()
-    );
+        randomId(),
+        expectedKeyId,
+        randomId(),
+        randomId(),
+        randomId(),
+        randomId(),
+        randomId());
     var accountEntity = new AccountEntity(
-      null,
-      null,
-      null,
-      null,
-      new PublicKeyEntity(),
-      publicKeyEntity
-    );
+        null,
+        null,
+        null,
+        null,
+        new PublicKeyEntity(),
+        publicKeyEntity);
 
     var mappedEntity = mapper.toAccountDto(accountEntity);
 
