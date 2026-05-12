@@ -49,6 +49,8 @@ SPDX-License-Identifier: EUPL-1.2
     <openapi-generator-maven-plugin.version>7.21.0</openapi-generator-maven-plugin.version>
     <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
     <openapi-diff-maven.version>2.1.7</openapi-diff-maven.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+    <sonar-maven-plugin.version>5.0.0.4389</sonar-maven-plugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -179,6 +181,7 @@ SPDX-License-Identifier: EUPL-1.2
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
         <configuration>
           <excludes>
             <exclude>se/digg/wallet/account/api/**</exclude>
@@ -197,6 +200,13 @@ SPDX-License-Identifier: EUPL-1.2
             <goals><goal>report</goal></goals>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- SonarQube plugin -->
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>${sonar-maven-plugin.version}</version>
       </plugin>
 
       <!-- Formatter plugin -->
