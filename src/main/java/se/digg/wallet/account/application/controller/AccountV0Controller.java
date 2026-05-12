@@ -159,8 +159,8 @@ public class AccountV0Controller implements AccountApi {
 
     return AccountResponse.builder()
         .id(accountDto.id())
-        .personalIdentityNumber(accountDto.personalIdentityNumber())
-        .email(accountDto.emailAdress())
+        .personalIdentityNumber(accountDto.personalIdentityNumber().orElse(null))
+        .email(accountDto.emailAdress().orElse(null))
         .phoneNumber(accountDto.telephoneNumber().orElse(null))
         .deviceKey(KeyResponse.builder()
             .kty(publicKey.kty())

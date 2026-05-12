@@ -41,8 +41,8 @@ public class AccountEntityMapper {
     try {
       return ExtendedAccountDtoBuilder.builder()
           .id(accountEntity.getId())
-          .emailAdress(accountEntity.getEmail())
-          .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
+          .emailAdress(Optional.ofNullable(accountEntity.getEmail()))
+          .personalIdentityNumber(Optional.ofNullable(accountEntity.getPersonalIdentityNumber()))
           .telephoneNumber(Optional.ofNullable(accountEntity.getPhone()))
           .securityEnvelope(BlobMapper.blobToString(accountEntity.getSecurityEnvelope()))
           .walletKey(PublicKeyDtoBuilder.builder()
@@ -73,8 +73,8 @@ public class AccountEntityMapper {
   public AccountDto toAccountDto(AccountEntity accountEntity) {
     return AccountDtoBuilder.builder()
         .id(accountEntity.getId())
-        .emailAdress(accountEntity.getEmail())
-        .personalIdentityNumber(accountEntity.getPersonalIdentityNumber())
+        .emailAdress(Optional.ofNullable(accountEntity.getEmail()))
+        .personalIdentityNumber(Optional.ofNullable(accountEntity.getPersonalIdentityNumber()))
         .telephoneNumber(Optional.ofNullable(accountEntity.getPhone()))
         .publicKey(PublicKeyDtoBuilder.builder()
             .kty(accountEntity.getDeviceKey().getKty())

@@ -79,8 +79,8 @@ public class AccountController implements AccountControllerApi {
 
     return AccountDto.builder()
         .id(accountDto.id())
-        .personalIdentityNumber(accountDto.personalIdentityNumber())
-        .emailAdress(accountDto.emailAdress())
+        .personalIdentityNumber(accountDto.personalIdentityNumber().orElse(null))
+        .emailAdress(accountDto.emailAdress().orElse(null))
         .telephoneNumber(accountDto.telephoneNumber().orElse(null))
         .publicKey(se.digg.wallet.account.api.origin.model.PublicKeyDto.builder()
             .kid(publicKey.kid())

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
@@ -87,8 +88,8 @@ public class TestUtils {
 
   public static AccountDtoBuilder accountDtoBuilderWithDefaults() {
     return AccountDtoBuilder.builder()
-        .emailAdress("dummy@dummy.se")
-        .personalIdentityNumber("720202-0234")
+        .emailAdress(Optional.of("dummy@dummy.se"))
+        .personalIdentityNumber(Optional.of("720202-0234"))
         .publicKey(publicKeyDtoBuilderWithDefaults("99").build());
   }
 }

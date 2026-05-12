@@ -142,8 +142,9 @@ public class AccountEntityMapperTest {
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
 
-    assertEquals(expectedPersonalIdentityNumber, extendedAccountDto.personalIdentityNumber());
-    assertEquals(expectedEmail, extendedAccountDto.emailAdress());
+    assertEquals(expectedPersonalIdentityNumber,
+        extendedAccountDto.personalIdentityNumber().orElseThrow());
+    assertEquals(expectedEmail, extendedAccountDto.emailAdress().orElseThrow());
     assertThat(extendedAccountDto.telephoneNumber()).isPresent();
     assertEquals(expectedPhoneNumber, extendedAccountDto.telephoneNumber().get());
   }
@@ -314,8 +315,9 @@ public class AccountEntityMapperTest {
 
     var mappedEntity = mapper.toAccountDto(accountEntity);
 
-    assertEquals(expectedPersonalIdentityNumber, mappedEntity.personalIdentityNumber());
-    assertEquals(expectedEmail, mappedEntity.emailAdress());
+    assertEquals(expectedPersonalIdentityNumber,
+        mappedEntity.personalIdentityNumber().orElseThrow());
+    assertEquals(expectedEmail, mappedEntity.emailAdress().orElseThrow());
     assertThat(mappedEntity.telephoneNumber()).isPresent();
     assertEquals(expectedPhoneNumber, mappedEntity.telephoneNumber().get());
   }

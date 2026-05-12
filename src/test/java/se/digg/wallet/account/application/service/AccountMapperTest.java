@@ -77,8 +77,8 @@ class AccountMapperTest {
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.id()).isNotNull();
-          assertThat(account.emailAdress()).isEqualTo("none@your.business.se");
-          assertThat(account.personalIdentityNumber()).isEqualTo("770101-1234");
+          assertThat(account.emailAdress().orElseThrow()).isEqualTo("none@your.business.se");
+          assertThat(account.personalIdentityNumber().orElseThrow()).isEqualTo("770101-1234");
           assertThat(account.telephoneNumber()).isPresent();
           assertThat(account.telephoneNumber().get()).contains("070 123 123 12");
           assertThat(account.deviceKey()).isNotNull();

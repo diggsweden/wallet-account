@@ -37,10 +37,10 @@ class AccountRepositoryTest {
   @Autowired
   TestEntityManager entityManager;
 
-  final String SECURITY_ENVELOPE = "this is just a String";
-  final String PERSONAL_IDENTITY_NUMBER = "770101-1234";
-  final String EMAIL = "none@business.se";
-  final String PHONE = "070-123 123 123";
+  private final String SECURITY_ENVELOPE = "this is just a String";
+  private final String PERSONAL_IDENTITY_NUMBER = "770101-1234";
+  private final String EMAIL = "none@business.se";
+  private final String PHONE = "070-123 123 123";
 
   @Test
   void testSaveAndRetrieveAccount() throws SQLException {

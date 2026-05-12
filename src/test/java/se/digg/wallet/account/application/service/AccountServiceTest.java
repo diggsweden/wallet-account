@@ -93,8 +93,8 @@ class AccountServiceTest {
     var createdAccountEntity = new AccountEntity();
 
     var expectedAccountDto = AccountDtoBuilder.builder()
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-        .emailAdress(EMAIL)
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
+        .emailAdress(Optional.of(EMAIL))
         .telephoneNumber(Optional.of(PHONE_NUMBER))
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(kid).build())
         .build();
@@ -129,8 +129,8 @@ class AccountServiceTest {
 
     var expectedAccountDto = AccountDtoBuilder.builder()
         .id(expectedAccountId)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-        .emailAdress(EMAIL)
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
+        .emailAdress(Optional.of(EMAIL))
         .telephoneNumber(Optional.of(PHONE_NUMBER))
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
