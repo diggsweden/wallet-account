@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 # Stage 1: Build stage
-FROM docker.io/library/eclipse-temurin:25-jdk-alpine@sha256:0c4c6300cc86efdf6454702336a0d60352e227f3a862e8ae9861f393f8f1ede9 AS builder
+FROM docker.io/library/eclipse-temurin:25-jdk-alpine@sha256:30d9f87d702c2c1c601ed0d31e0c88ea1ea474ee7676cda7b7a59e759181c4dd AS builder
 
 LABEL maintainer="Digg - Agency for Digital Government"
 LABEL description="Build stage for Wallet Account"
