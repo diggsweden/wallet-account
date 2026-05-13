@@ -5,6 +5,7 @@
 package se.digg.wallet.account.application.controller;
 
 import jakarta.validation.Valid;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,8 +58,8 @@ public class AccountController implements AccountControllerApi {
     var publicKey = createAccountRequestDto.getPublicKey();
 
     return new se.digg.wallet.account.application.model.CreateAccountRequestDto(
-        createAccountRequestDto.getPersonalIdentityNumber(),
-        createAccountRequestDto.getEmailAdress(),
+        Optional.of(createAccountRequestDto.getPersonalIdentityNumber()),
+        Optional.of(createAccountRequestDto.getEmailAdress()),
         createAccountRequestDto.getTelephoneNumber(),
         se.digg.wallet.account.application.model.PublicKeyDtoBuilder.builder()
             .kty(publicKey.getKty())
@@ -78,8 +79,8 @@ public class AccountController implements AccountControllerApi {
 
     return AccountDto.builder()
         .id(accountDto.id())
-        .personalIdentityNumber(accountDto.personalIdentityNumber())
-        .emailAdress(accountDto.emailAdress())
+        .personalIdentityNumber(accountDto.personalIdentityNumber().orElse(null))
+        .emailAdress(accountDto.emailAdress().orElse(null))
         .telephoneNumber(accountDto.telephoneNumber().orElse(null))
         .publicKey(se.digg.wallet.account.api.origin.model.PublicKeyDto.builder()
             .kid(publicKey.kid())

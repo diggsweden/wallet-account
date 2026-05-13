@@ -46,9 +46,9 @@ class AccountControllerTest {
   private final UUID defaultUuid = UUID.randomUUID();
 
   private final AccountDto resultDto = AccountDtoBuilder.builder()
-      .emailAdress("none@your.bussiness.se")
+      .emailAdress(Optional.of("none@your.bussiness.se"))
       .id(defaultUuid)
-      .personalIdentityNumber("770101-1234")
+      .personalIdentityNumber(Optional.of("770101-1234"))
       .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("91").build())
       .build();
 

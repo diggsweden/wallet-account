@@ -95,8 +95,12 @@ public class AccountService {
   }
 
   private AccountEntity verifyUniquenessAndStore(CreateAccountRequestDto accountRequestDto) {
+
+    // TODO: re-write this method, personalIdentityNumber is no longer mandatory
+
     List<AccountEntity> entities =
-        accountRepository.findByPersonalIdentityNumber(accountRequestDto.personalIdentityNumber());
+        accountRepository
+            .findByPersonalIdentityNumber(accountRequestDto.personalIdentityNumber().orElse(null));
     logger.debug("Incoming accountRequest: {}, found accounts {}", accountRequestDto, entities);
     if (!entities.isEmpty()) {
       logger.warn("Deleting duplicates (NON PRODUCTION CODE!!!): {}, {}", entities.size(),

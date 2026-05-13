@@ -111,3 +111,10 @@ databaseChangeLog:
             tableName: accounts
             oldColumnName: telephone_number
             newColumnName: phone
+  - changeSet:
+      id: 20260511-0
+      author: extern.michael.danielsson@digg.se
+      changes:
+        - dropNotNullConstraint:
+            tableName: accounts
+            columnName: personal_identity_number

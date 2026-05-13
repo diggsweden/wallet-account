@@ -12,8 +12,8 @@ import se.digg.wallet.account.application.model.PublicKeyDto;
 @RecordBuilder
 public record AccountDto(
     UUID id,
-    String personalIdentityNumber,
-    String emailAdress,
+    Optional<String> personalIdentityNumber,
+    Optional<String> emailAdress,
     Optional<String> telephoneNumber,
     PublicKeyDto publicKey) {
 }

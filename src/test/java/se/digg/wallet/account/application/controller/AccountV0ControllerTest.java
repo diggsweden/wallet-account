@@ -56,9 +56,9 @@ public class AccountV0ControllerTest {
 
 
   private final AccountDto resultDto = AccountDtoBuilder.builder()
-      .emailAdress(EMAIL)
+      .emailAdress(Optional.of(EMAIL))
       .id(UUID.randomUUID())
-      .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+      .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
       .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
       .build();
 
@@ -179,8 +179,8 @@ public class AccountV0ControllerTest {
         .build();
     var createdAccount = AccountDtoBuilder.builder()
         .id(UUID.randomUUID())
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 
@@ -226,8 +226,8 @@ public class AccountV0ControllerTest {
     var expectedAccountId = UUID.randomUUID();
     var existingAccount = AccountDtoBuilder.builder()
         .id(expectedAccountId)
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 
@@ -262,8 +262,8 @@ public class AccountV0ControllerTest {
 
     var existingAccount = AccountDtoBuilder.builder()
         .id(UUID.randomUUID())
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
     var createdWalletKey = publicKeyDtoBuilderWithDefaults(randomId()).build();
@@ -297,8 +297,8 @@ public class AccountV0ControllerTest {
 
     var existingAccount = AccountDtoBuilder.builder()
         .id(UUID.randomUUID())
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 
@@ -321,8 +321,8 @@ public class AccountV0ControllerTest {
 
     var existingAccount = AccountDtoBuilder.builder()
         .id(UUID.randomUUID())
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
     var expectedKid = randomId();
@@ -389,8 +389,8 @@ public class AccountV0ControllerTest {
 
     var existingAccount = AccountDtoBuilder.builder()
         .id(UUID.randomUUID())
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 
@@ -415,8 +415,8 @@ public class AccountV0ControllerTest {
     var expectedContent = randomId();
     var existingAccount = AccountDtoBuilder.builder()
         .id(UUID.randomUUID())
-        .emailAdress(EMAIL)
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
         .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 

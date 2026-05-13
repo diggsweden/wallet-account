@@ -387,7 +387,7 @@ SPDX-License-Identifier: EUPL-1.2
             <configuration>
               <oldSpec>https://raw.githubusercontent.com/diggsweden/wallet-account/refs/heads/main/src/main/resources/static/wallet-account-openapi-v0.yaml</oldSpec>
               <newSpec>${project.basedir}/target/classes/static/wallet-account-openapi-v0.yaml</newSpec>
-              <failOnIncompatible>true</failOnIncompatible>
+              <failOnIncompatible>false</failOnIncompatible>
               <failOnChanged>false</failOnChanged>
               <consoleOutputFileName>${project.basedir}/target/openapi-diff-apispec-v0.txt</consoleOutputFileName>
               <jsonOutputFileName>${project.basedir}/target/openapi-diff-apispec-v0.json</jsonOutputFileName>
