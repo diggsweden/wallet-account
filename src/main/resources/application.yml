@@ -44,6 +44,22 @@ management:
     diskspace:
       enabled: true
 
+properties:
+  logging-filter:
+    enabled: true
+    max-payload-length: 10000
+    exclude-path:
+      exact-match: >
+        /, /wallet-account/
+      contains: >
+        /actuator, /swagger, /v3/api-docs, .html, .png, .gif, .js, .yaml
+    sensitive-data-mask:
+      mask-value: "***MASKED***"
+      # enter values in lower case
+      headers: >
+        authorization, x-api-key, api-key, apikey, x-auth-token, cookie, set-cookie, x-csrf-token
+      body-json-fields: >
+        password, secret, token, accessToken, access_token, refreshToken, refresh_token, apiKey, api_key
 # Swagger
 springdoc:
   api-docs:
