@@ -14,9 +14,12 @@ import static se.digg.wallet.account.TestUtils.publicKeyDtoBuilderWithDefaults;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,14 +30,16 @@ import se.digg.wallet.account.api.v0.model.KeyRequest;
 import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
+import se.digg.wallet.account.application.config.ObjectMapperConfig;
+import se.digg.wallet.account.application.filter.SensitiveDataMasker;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
-import tools.jackson.databind.ObjectMapper;
 
+@Import(ObjectMapperConfig.class)
 @WebMvcTest(AccountV0Controller.class)
 public class AccountV0ControllerTest {
 
@@ -47,13 +52,15 @@ public class AccountV0ControllerTest {
   @MockitoBean
   private JwkValidationService jwkValidationService;
 
+  @MockitoBean
+  private SensitiveDataMasker dataMasker;
+
   @Autowired
   private ObjectMapper objectMapper;
 
   private final static String PERSONAL_IDENTITY_NUMBER = "2010101010";
   private final static String EMAIL = "test.testsson@test.xx";
   private final static String EMPTY = "";
-
 
   private final AccountDto resultDto = AccountDtoBuilder.builder()
       .emailAdress(Optional.of(EMAIL))
