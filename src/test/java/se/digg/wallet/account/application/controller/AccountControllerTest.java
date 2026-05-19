@@ -16,29 +16,36 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.api.origin.model.PublicKeyDto;
 import se.digg.wallet.account.api.origin.model.CreateAccountRequestDto;
+import se.digg.wallet.account.application.config.ObjectMapperConfig;
+import se.digg.wallet.account.application.filter.SensitiveDataMasker;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
 import tools.jackson.databind.ObjectMapper;
 
+@Import(ObjectMapperConfig.class)
 @WebMvcTest(AccountController.class)
 class AccountControllerTest {
 
   @Autowired
-  MockMvc mockMvc;
+  private MockMvc mockMvc;
 
   @MockitoBean
-  AccountService accountService;
+  private AccountService accountService;
 
   @MockitoBean
-  JwkValidationService jwkValidationService;
+  private JwkValidationService jwkValidationService;
+
+  @MockitoBean
+  private SensitiveDataMasker dataMasker;
 
   @Autowired
   private ObjectMapper objectMapper;
