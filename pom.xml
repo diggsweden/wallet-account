@@ -50,7 +50,7 @@ SPDX-License-Identifier: EUPL-1.2
     <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
     <openapi-diff-maven.version>2.1.7</openapi-diff-maven.version>
     <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
-    <sonar-maven-plugin.version>5.0.0.4389</sonar-maven-plugin.version>
+
   </properties>
   <dependencies>
     <dependency>
@@ -214,12 +214,7 @@ SPDX-License-Identifier: EUPL-1.2
         </executions>
       </plugin>
 
-      <!-- SonarQube plugin -->
-      <plugin>
-        <groupId>org.sonarsource.scanner.maven</groupId>
-        <artifactId>sonar-maven-plugin</artifactId>
-        <version>${sonar-maven-plugin.version}</version>
-      </plugin>
+
 
       <!-- Formatter plugin -->
       <plugin>
