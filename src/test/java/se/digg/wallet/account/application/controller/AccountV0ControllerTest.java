@@ -26,6 +26,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
+import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
+import se.digg.wallet.account.api.v0.model.HsmClientIdResponse;
 import se.digg.wallet.account.api.v0.model.KeyRequest;
 import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
@@ -442,6 +444,121 @@ public class AccountV0ControllerTest {
     var actualSecurityEnvelope = actualItems.getFirst();
     var actualContent = actualSecurityEnvelope.getContent();
     assertThat(actualContent).isEqualTo(expectedContent);
+  }
+
+  @Test
+  void assertThatAddHsmClientId_usingNonExistingAccount_returnsNotFound() throws Exception {
+
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.empty());
+
+    var hsmClientIdRequest = HsmClientIdRequest.builder()
+        .clientId(randomId())
+        .build();
+
+    mockMvc
+        .perform(post("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(hsmClientIdRequest)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void assertThatAddHsmClientId_withNullClientId_returnsBadRequest() throws Exception {
+
+    var hsmClientIdRequest = HsmClientIdRequest.builder()
+        .clientId(null)
+        .build();
+
+    mockMvc
+        .perform(post("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(hsmClientIdRequest)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void assertThatAddHsmClientId_withAcceptableRequest_returnsCreated() throws Exception {
+
+    var expectedClientId = randomId();
+    var existingAccount = AccountDtoBuilder.builder()
+        .id(UUID.randomUUID())
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
+        .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+        .build();
+
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
+    when(accountService.createHsmClientId(any(), any())).thenReturn(expectedClientId);
+
+    var hsmClientIdRequest = HsmClientIdRequest.builder()
+        .clientId(expectedClientId)
+        .build();
+
+    var result = mockMvc
+        .perform(post("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(hsmClientIdRequest)))
+        .andExpect(status().isCreated())
+        .andReturn();
+    var hsmClientIdResponse = objectMapper
+        .readValue(result.getResponse().getContentAsString(), HsmClientIdResponse.class);
+
+    assertThat(hsmClientIdResponse.getClientId()).isEqualTo(expectedClientId);
+  }
+
+  @Test
+  void assertThatGetHsmClientId_usingNonExistingAccount_returnsNotFound() throws Exception {
+
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(get("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void assertThatGetHsmClientId_existingAccountWithoutHsmClientId_returnsNotFound()
+      throws Exception {
+
+    var existingAccount = AccountDtoBuilder.builder()
+        .id(UUID.randomUUID())
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
+        .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+        .build();
+
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
+    when(accountService.getHsmClientId(any(UUID.class))).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(get("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void assertThatGetHsmClientId_existingAccountWithHsmClientId_returnsExpectedClientId()
+      throws Exception {
+
+    var expectedClientId = randomId();
+    var existingAccount = AccountDtoBuilder.builder()
+        .id(UUID.randomUUID())
+        .emailAdress(Optional.of(EMAIL))
+        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
+        .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
+        .build();
+
+    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
+    when(accountService.getHsmClientId(any(UUID.class)))
+        .thenReturn(Optional.of(expectedClientId));
+
+    var result = mockMvc
+        .perform(get("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID()))
+        .andExpect(status().isOk())
+        .andReturn();
+    var hsmClientIdResponse = objectMapper
+        .readValue(result.getResponse().getContentAsString(), HsmClientIdResponse.class);
+
+    assertThat(hsmClientIdResponse.getClientId()).isEqualTo(expectedClientId);
   }
 
   private static String randomId() {

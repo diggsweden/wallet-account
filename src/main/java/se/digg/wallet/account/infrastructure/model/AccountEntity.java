@@ -33,6 +33,9 @@ public class AccountEntity {
   @Column
   private String phone;
 
+  @Column
+  private String hsmClientId;
+
   @JdbcTypeCode(SqlTypes.BLOB)
   @Column(columnDefinition = "blob")
   private Blob securityEnvelope;
@@ -91,6 +94,14 @@ public class AccountEntity {
     this.phone = phone;
   }
 
+  public String getHsmClientId() {
+    return hsmClientId;
+  }
+
+  public void setHsmClientId(String hsmClientId) {
+    this.hsmClientId = hsmClientId;
+  }
+
   public Blob getSecurityEnvelope() {
     return securityEnvelope;
   }
@@ -117,7 +128,7 @@ public class AccountEntity {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, email, phone, securityEnvelope, walletKey, deviceKey);
+    return Objects.hash(id, email, phone, hsmClientId, securityEnvelope, walletKey, deviceKey);
   }
 
   @Override
@@ -137,6 +148,7 @@ public class AccountEntity {
     return Objects.equals(id, other.id)
         && Objects.equals(email, other.email)
         && Objects.equals(phone, other.phone)
+        && Objects.equals(hsmClientId, other.hsmClientId)
         && Objects.equals(securityEnvelope, other.securityEnvelope)
         && Objects.equals(walletKey, other.walletKey)
         && Objects.equals(other.deviceKey, deviceKey);
@@ -146,6 +158,7 @@ public class AccountEntity {
   public String toString() {
     return "AccountEntity [id=" + id + ", personalIdentityNumber=" + personalIdentityNumber
         + ", email=" + email + ", phone=" + phone
+        + ", hsmClientId=" + hsmClientId
         + ", securityEnvelope=" + securityEnvelope + ", walletKey=" + walletKey
         + ", deviceKey=" + deviceKey + "]";
   }

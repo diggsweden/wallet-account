@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import se.digg.wallet.account.api.v0.AccountApi;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
+import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
+import se.digg.wallet.account.api.v0.model.HsmClientIdResponse;
 import se.digg.wallet.account.api.v0.model.KeyRequest;
 import se.digg.wallet.account.api.v0.model.KeyResponse;
 import se.digg.wallet.account.api.v0.model.KeysResponse;
@@ -132,6 +134,36 @@ public class AccountV0Controller implements AccountApi {
     return ResponseEntity.ok(securityEnvelopesResponse);
   }
 
+  @Override
+  public ResponseEntity<HsmClientIdResponse> addAccountHsmClientId(UUID id,
+      HsmClientIdRequest hsmClientIdRequest) {
+
+    var accountDto = accountService.getAccountById(id);
+    if (accountDto.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    var savedHsmClientId = accountService.createHsmClientId(id, hsmClientIdRequest.getClientId());
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(toHsmClientIdResponse(savedHsmClientId));
+  }
+
+  @Override
+  public ResponseEntity<HsmClientIdResponse> getAccountHsmClientId(UUID id) {
+
+    var accountDto = accountService.getAccountById(id);
+    if (accountDto.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    return accountService.getHsmClientId(id)
+        .map(AccountV0Controller::toHsmClientIdResponse)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
   private static CreateAccountRequestDto toCreateAccountDto(
       AccountRequest accountRequest) {
 
@@ -199,6 +231,12 @@ public class AccountV0Controller implements AccountApi {
   private static SecurityEnvelopeResponse toSecurityEnvelopeResponse(String content) {
     return SecurityEnvelopeResponse.builder()
         .content(content)
+        .build();
+  }
+
+  private static HsmClientIdResponse toHsmClientIdResponse(String clientId) {
+    return HsmClientIdResponse.builder()
+        .clientId(clientId)
         .build();
   }
 }
