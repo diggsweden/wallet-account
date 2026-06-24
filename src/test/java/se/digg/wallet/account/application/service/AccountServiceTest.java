@@ -362,12 +362,12 @@ class AccountServiceTest {
   }
 
   @Test
-  void assertThatCreateHsmClientId_nonExistingAccount_throwsNoSuchElementException() {
+  void assertThatCreateHsmClientId_nonExistingAccount_shouldReturnEmpty() {
 
     when(accountRepository.findById(any())).thenReturn(Optional.empty());
 
-    assertThrows(NoSuchElementException.class,
-        () -> accountService.createHsmClientId(UUID.randomUUID(), randomId()));
+    var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), randomId());
+    assertThat(actualClientId).isEmpty();
   }
 
   @Test
@@ -381,7 +381,7 @@ class AccountServiceTest {
 
     var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
 
-    assertThat(actualClientId).isEqualTo(expectedClientId);
+    assertThat(actualClientId).contains(expectedClientId);
   }
 
   @Test
@@ -396,16 +396,16 @@ class AccountServiceTest {
 
     var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
 
-    assertThat(actualClientId).isEqualTo(expectedClientId);
+    assertThat(actualClientId).contains(expectedClientId);
   }
 
   @Test
-  void assertThatGetHsmClientId_nonExistingAccount_throwsNoSuchElementException() {
+  void assertThatGetHsmClientId_nonExistingAccount_shouldReturnEmpty() {
 
     when(accountRepository.findById(any())).thenReturn(Optional.empty());
 
-    assertThrows(NoSuchElementException.class,
-        () -> accountService.getHsmClientId(UUID.randomUUID()));
+    var actualClientId = accountService.getHsmClientId(UUID.randomUUID());
+    assertThat(actualClientId).isEmpty();
   }
 
   @Test

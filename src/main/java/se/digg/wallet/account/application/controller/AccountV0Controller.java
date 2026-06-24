@@ -138,25 +138,14 @@ public class AccountV0Controller implements AccountApi {
   public ResponseEntity<HsmClientIdResponse> addAccountHsmClientId(UUID id,
       HsmClientIdRequest hsmClientIdRequest) {
 
-    var accountDto = accountService.getAccountById(id);
-    if (accountDto.isEmpty()) {
-      return ResponseEntity.notFound().build();
-    }
-
-    var savedHsmClientId = accountService.createHsmClientId(id, hsmClientIdRequest.getClientId());
-
-    return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(toHsmClientIdResponse(savedHsmClientId));
+    return accountService.createHsmClientId(id, hsmClientIdRequest.getClientId())
+        .map(AccountV0Controller::toHsmClientIdResponse)
+        .map(r -> ResponseEntity.status(HttpStatus.CREATED).<HsmClientIdResponse>body(r))
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @Override
   public ResponseEntity<HsmClientIdResponse> getAccountHsmClientId(UUID id) {
-
-    var accountDto = accountService.getAccountById(id);
-    if (accountDto.isEmpty()) {
-      return ResponseEntity.notFound().build();
-    }
 
     return accountService.getHsmClientId(id)
         .map(AccountV0Controller::toHsmClientIdResponse)

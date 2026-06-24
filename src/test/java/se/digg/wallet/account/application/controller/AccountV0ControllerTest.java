@@ -449,7 +449,7 @@ public class AccountV0ControllerTest {
   @Test
   void assertThatAddHsmClientId_usingNonExistingAccount_returnsNotFound() throws Exception {
 
-    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.empty());
+    when(accountService.createHsmClientId(any(UUID.class), any())).thenReturn(Optional.empty());
 
     var hsmClientIdRequest = HsmClientIdRequest.builder()
         .clientId(randomId())
@@ -480,15 +480,8 @@ public class AccountV0ControllerTest {
   void assertThatAddHsmClientId_withAcceptableRequest_returnsCreated() throws Exception {
 
     var expectedClientId = randomId();
-    var existingAccount = AccountDtoBuilder.builder()
-        .id(UUID.randomUUID())
-        .emailAdress(Optional.of(EMAIL))
-        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
-        .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
-        .build();
 
-    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
-    when(accountService.createHsmClientId(any(), any())).thenReturn(expectedClientId);
+    when(accountService.createHsmClientId(any(), any())).thenReturn(Optional.of(expectedClientId));
 
     var hsmClientIdRequest = HsmClientIdRequest.builder()
         .clientId(expectedClientId)
@@ -509,7 +502,7 @@ public class AccountV0ControllerTest {
   @Test
   void assertThatGetHsmClientId_usingNonExistingAccount_returnsNotFound() throws Exception {
 
-    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.empty());
+    when(accountService.getHsmClientId(any(UUID.class))).thenReturn(Optional.empty());
 
     mockMvc
         .perform(get("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID()))
@@ -520,14 +513,6 @@ public class AccountV0ControllerTest {
   void assertThatGetHsmClientId_existingAccountWithoutHsmClientId_returnsNotFound()
       throws Exception {
 
-    var existingAccount = AccountDtoBuilder.builder()
-        .id(UUID.randomUUID())
-        .emailAdress(Optional.of(EMAIL))
-        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
-        .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
-        .build();
-
-    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
     when(accountService.getHsmClientId(any(UUID.class))).thenReturn(Optional.empty());
 
     mockMvc
@@ -540,14 +525,7 @@ public class AccountV0ControllerTest {
       throws Exception {
 
     var expectedClientId = randomId();
-    var existingAccount = AccountDtoBuilder.builder()
-        .id(UUID.randomUUID())
-        .emailAdress(Optional.of(EMAIL))
-        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
-        .publicKey(publicKeyDtoBuilderWithDefaults(randomId()).build())
-        .build();
 
-    when(accountService.getAccountById(any(UUID.class))).thenReturn(Optional.of(existingAccount));
     when(accountService.getHsmClientId(any(UUID.class)))
         .thenReturn(Optional.of(expectedClientId));
 
