@@ -167,6 +167,7 @@ public class AccountV0Controller implements AccountApi {
             .kid(publicKey.kid())
             .alg(publicKey.alg())
             .use(publicKey.use())
+            .crv(publicKey.crv())
             .x(publicKey.x())
             .y(publicKey.y())
             .build())
