@@ -196,6 +196,51 @@ paths:
         'default':
           $ref: '#/components/responses/default'
 
+  /v0/accounts/{id}/hsm-client-id:
+    post:
+      tags:
+        - Account
+      summary: Set the HSM client id for an account
+      description: Stores the HSM client identifier for the account.
+      operationId: addAccountHsmClientId
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HsmClientIdRequest'
+        required: true
+      responses:
+        '201':
+          description: HSM client id stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HsmClientIdResponse'
+        'default':
+          $ref: '#/components/responses/default'
+
+    get:
+      tags:
+        - Account
+      summary: Get the HSM client id for an account
+      description: Get the HSM client identifier stored for a given account.
+      operationId: getAccountHsmClientId
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: The HSM client id being returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HsmClientIdResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        'default':
+          $ref: '#/components/responses/default'
+
 components:
   parameters:
     AccountId:
@@ -439,3 +484,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SecurityEnvelopeResponse'
+
+    HsmClientIdRequest:
+      type: object
+      properties:
+        clientId:
+          type: string
+          minLength: 1
+          description: HSM client identifier, minted at device-state registration.
+          example: 'b9f6edba-b69d-4e56-be22-dae25a45ff91'
+      required:
+        - clientId
+
+    HsmClientIdResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/HsmClientIdRequest'

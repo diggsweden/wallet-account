@@ -70,6 +70,18 @@ public class AccountService {
     return Optional.ofNullable(toPublicKeyDto(entity.getWalletKey()));
   }
 
+  public String createHsmClientId(UUID accountId, String hsmClientId) {
+    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
+    entity.setHsmClientId(hsmClientId);
+    var savedEntity = accountRepository.save(entity);
+    return savedEntity.getHsmClientId();
+  }
+
+  public Optional<String> getHsmClientId(UUID accountId) {
+    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
+    return Optional.ofNullable(entity.getHsmClientId());
+  }
+
   public String createSecurityEnvelope(UUID accountId, String securityEnvelope) {
     try {
       AccountEntity entity = accountRepository.findById(accountId).orElseThrow();

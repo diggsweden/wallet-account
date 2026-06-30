@@ -361,6 +361,78 @@ class AccountServiceTest {
     assertThat(actualContent.get()).isEqualTo(expectedContent);
   }
 
+  @Test
+  void assertThatCreateHsmClientId_nonExistingAccount_throwsNoSuchElementException() {
+
+    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class,
+        () -> accountService.createHsmClientId(UUID.randomUUID(), randomId()));
+  }
+
+  @Test
+  void assertThatCreateHsmClientId_addNewClientId_shouldReturnCreatedClientId() {
+
+    var expectedClientId = randomId();
+    var existingAccountEntity = new AccountEntity();
+
+    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
+
+    var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
+
+    assertThat(actualClientId).isEqualTo(expectedClientId);
+  }
+
+  @Test
+  void assertThatCreateHsmClientId_replaceExistingClientId_shouldReturnReplacedClientId() {
+
+    var expectedClientId = randomId();
+    var existingAccountEntity = new AccountEntity();
+    existingAccountEntity.setHsmClientId(randomId());
+
+    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
+
+    var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
+
+    assertThat(actualClientId).isEqualTo(expectedClientId);
+  }
+
+  @Test
+  void assertThatGetHsmClientId_nonExistingAccount_throwsNoSuchElementException() {
+
+    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class,
+        () -> accountService.getHsmClientId(UUID.randomUUID()));
+  }
+
+  @Test
+  void assertThatGetHsmClientId_existingAccountWithoutHsmClientId_shouldReturnEmpty() {
+
+    var existingAccountEntity = new AccountEntity();
+
+    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+
+    var actualClientId = accountService.getHsmClientId(UUID.randomUUID());
+    assertThat(actualClientId).isEmpty();
+  }
+
+  @Test
+  void assertThatGetHsmClientId_existingAccountWithHsmClientId_shouldReturnExpectedClientId() {
+
+    var expectedClientId = randomId();
+    var existingAccountEntity = new AccountEntity();
+    existingAccountEntity.setHsmClientId(expectedClientId);
+
+    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+
+    var actualClientId = accountService.getHsmClientId(UUID.randomUUID());
+    assertThat(actualClientId).isPresent();
+    assertThat(actualClientId.get()).isEqualTo(expectedClientId);
+  }
+
   private static String randomId() {
     return UUID.randomUUID().toString();
   }

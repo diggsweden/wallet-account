@@ -118,3 +118,13 @@ databaseChangeLog:
         - dropNotNullConstraint:
             tableName: accounts
             columnName: personal_identity_number
+  - changeSet:
+      id: 20260623-0
+      author: Asser Hakala
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: hsm_client_id
+                  type: VARCHAR(255)
