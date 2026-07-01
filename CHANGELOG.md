@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-06-30
+
+### Added
+
+- Add HSM client id endpoints for accounts
+- Add missing crv (#62)
+- Add codeowners (#58)
+
+### Changed
+
+- Merge pull request #59 from diggsweden/feat/hsm-client-id
+- Bump rest-api-linter to v2.0.0 (#61)
+- Merge pull request #57 from diggsweden/chore/remove-sonarqube
+- Problem response (#56)
+
+### Removed
+
+- Remove sonarqube integration
+
 ## [0.1.3] - 2026-05-19
 
 ### Added
@@ -18,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix commit sha (#54)
+
 
 ## [0.1.2] - 2026-05-13
 
@@ -178,6 +198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix license and megalinter
 
 
+[0.1.4]: https://github.com/diggsweden/wallet-account/compare/v0.1.3..v0.1.4
 [0.1.3]: https://github.com/diggsweden/wallet-account/compare/v0.1.2..v0.1.3
 [0.1.2]: https://github.com/diggsweden/wallet-account/compare/v0.1.1..v0.1.2
 [0.1.1]: https://github.com/diggsweden/wallet-account/compare/v0.1.0..v0.1.1
