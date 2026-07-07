@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
   title: OpenAPI definition
-  version: 0.0.1
+  version: 0.0.2
   description: |
     Wallet Account API tillhandahåller serveroperationer för hantering av plånbokskonton till den svenska
     statliga digitala identitetsplånboken. Detta API används endast internt.
@@ -119,6 +119,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeyResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
         'default':
           $ref: '#/components/responses/default'
 
@@ -173,6 +175,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SecurityEnvelopeResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
         'default':
           $ref: '#/components/responses/default'
 
@@ -218,6 +222,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HsmClientIdResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
         'default':
           $ref: '#/components/responses/default'
 
@@ -311,6 +317,9 @@ components:
             this property might be null, empty or not present.
           items:
             $ref: "#/components/schemas/ProblemParameterResponse"
+      required:
+        - status
+        - title
 
     ProblemParameterResponse:
       type: object
@@ -340,7 +349,7 @@ components:
         releaseDate:
           type: string
           format: date
-          example: '2026-03-18'
+          example: '2026-07-07'
         status:
           description: 'API lifecycle status keyword, such as alpha, beta, active, deprecated, retired or decommissioned.'
           type: string
@@ -366,6 +375,7 @@ components:
         email:
           type: string
           format: email
+          pattern: (?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])
           minLength: 1
           maxLength: 100
           description: Optional. Account owner's e-mail address.

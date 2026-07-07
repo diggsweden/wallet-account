@@ -105,6 +105,11 @@ public class AccountV0Controller implements AccountApi {
   public ResponseEntity<SecurityEnvelopeResponse> addAccountSecurityEnvelope(UUID id,
       SecurityEnvelopeRequest securityEnvelopeRequest) {
 
+    var accountDto = accountService.getAccountById(id);
+    if (accountDto.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
     var content = securityEnvelopeRequest.getContent();
     var savedSecurityEnvelope = accountService.createSecurityEnvelope(id, content);
     var securityEnvelopesResponse = toSecurityEnvelopeResponse(savedSecurityEnvelope);

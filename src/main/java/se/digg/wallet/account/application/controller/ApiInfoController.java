@@ -17,7 +17,7 @@ public class ApiInfoController implements ApiInfoApi {
 
   private static final String NAME = "Wallet Account API";
   private static final String STATUS = "alpha";
-  private static final String VERSION = "0.0.1";
+  private static final String VERSION = "0.0.2";
   private static final LocalDate RELEASE_DATE = LocalDate.of(2026, 4, 20);
   private static final List<String> LINKS = Collections.emptyList();
 
