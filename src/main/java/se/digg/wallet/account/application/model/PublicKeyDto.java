@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 @RecordBuilder
 public record PublicKeyDto(
     @NotBlank(message = "kty cannot be blank") String kty,
-    String kid,
+    @NotBlank(message = "kid cannot be blank") String kid,
     String alg,
     String use,
     @NotBlank(message = "crv cannot be blank") String crv,

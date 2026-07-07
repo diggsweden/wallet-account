@@ -11,6 +11,6 @@ import se.digg.wallet.account.infrastructure.model.AccountEntity;
 
 
 public interface AccountRepository extends CrudRepository<AccountEntity, UUID> {
-  List<AccountEntity> findByPersonalIdentityNumber(String personalIdentityNumber);
+  List<AccountEntity> findByDeviceKeyKid(String kid);
 
 }

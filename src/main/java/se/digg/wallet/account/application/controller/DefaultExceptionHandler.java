@@ -7,6 +7,7 @@ package se.digg.wallet.account.application.controller;
 import static se.digg.wallet.account.application.controller.ProblemType.INTERNAL;
 import static se.digg.wallet.account.application.controller.ProblemType.REQUEST_ARGUMENT_NOT_VALID;
 import static se.digg.wallet.account.application.controller.ProblemType.REQUEST_VALIDATION_FAILURE;
+import static se.digg.wallet.account.application.controller.ProblemType.RESOURCE_ALREADY_EXISTS;
 import static se.digg.wallet.account.application.filter.LoggingFilter.MDC_TRANSACTION_ID;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +36,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
+import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
 
 @RestControllerAdvice
 public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
@@ -145,6 +147,25 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
             .map(FieldError::getDefaultMessage).toList());
     logDebug("Input validation failure", method, path, errors);
     return createResponseEntity(problemType.getHttpStatus(), problemResponse.build());
+  }
+
+  /*
+   * Handle AccountAlreadyExistsException. Occurs when account creation conflicts with an already
+   * existing account, e.g. the same device key kid is already in use.
+   */
+  @ExceptionHandler(AccountAlreadyExistsException.class)
+  public ResponseEntity<Object> handleAccountAlreadyExists(AccountAlreadyExistsException e) {
+
+    var problemType = RESOURCE_ALREADY_EXISTS;
+    var method = httpServletRequest.getMethod();
+    var path = httpServletRequest.getServletPath();
+    var problemResponse = buildProblemResponse(problemType)
+        .detail(e.getLocalizedMessage())
+        .instance(path)
+        .build();
+
+    logDebug("Account already exists", method, path, null);
+    return createResponseEntity(problemType.getHttpStatus(), problemResponse);
   }
 
   /*
