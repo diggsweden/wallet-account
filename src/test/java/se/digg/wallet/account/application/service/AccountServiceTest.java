@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.digg.wallet.account.TestUtils;
+import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
@@ -62,16 +63,17 @@ class AccountServiceTest {
 
     var expectedAccountId = UUID.randomUUID();
 
-    var accountRequest = CreateAccountRequestDtoBuilder.builder().build();
+    var accountRequest = CreateAccountRequestDtoBuilder.builder()
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
+        .build();
 
-    PublicKeyEntity deviceKey = new PublicKeyEntity();
     var createdAccountEntity = new AccountEntity();
 
     var expectedAccountDto = AccountDtoBuilder.builder()
         .id(expectedAccountId)
         .build();
 
-    when(accountRepository.findByPersonalIdentityNumber(any())).thenReturn(Collections.emptyList());
+    when(accountRepository.findByDeviceKeyKid(any())).thenReturn(Collections.emptyList());
     when(accountRepository.save(any())).thenReturn(createdAccountEntity);
     when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
 
@@ -82,32 +84,22 @@ class AccountServiceTest {
   }
 
   @Test
-  void assertThatCreateAccount_usingExistingPersonalIdNbr_shouldDeleteExistingAccount() {
+  void assertThatCreateAccount_usingExistingDeviceKeyKid_throwsAndDoesNotStore() {
 
     var kid = randomId();
 
-    var accountRequest = CreateAccountRequestDtoBuilder.builder().build();
-
-    PublicKeyEntity deviceKey = new PublicKeyEntity();
-    var existingAccountEntity = new AccountEntity();
-    var createdAccountEntity = new AccountEntity();
-
-    var expectedAccountDto = AccountDtoBuilder.builder()
-        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
-        .emailAdress(Optional.of(EMAIL))
-        .telephoneNumber(Optional.of(PHONE_NUMBER))
+    var accountRequest = CreateAccountRequestDtoBuilder.builder()
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(kid).build())
         .build();
 
-    var existingAccountEntities = List.of(existingAccountEntity);
-    when(accountRepository.findByPersonalIdentityNumber(any())).thenReturn(existingAccountEntities);
-    when(accountRepository.save(any())).thenReturn(createdAccountEntity);
-    when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
+    var existingAccountEntities = List.of(new AccountEntity());
+    when(accountRepository.findByDeviceKeyKid(eq(kid))).thenReturn(existingAccountEntities);
 
-    var createdAccountDto = accountService.createAccount(accountRequest);
+    assertThrows(AccountAlreadyExistsException.class,
+        () -> accountService.createAccount(accountRequest));
 
-    assertThat(createdAccountDto).isNotNull();
-    verify(accountRepository, times(1)).deleteAll(eq(existingAccountEntities));
+    verify(accountRepository, never()).save(any());
+    verify(accountRepository, never()).deleteAll(any());
   }
 
   @Test

@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
 import se.digg.wallet.account.application.exception.WalletAccountException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
@@ -36,7 +37,7 @@ public class AccountService {
 
   public AccountDto createAccount(CreateAccountRequestDto accountRequestDto) {
     return accountEntityMapper.toAccountDto(
-        verifyUniquenessAndStore(accountRequestDto));
+        storeAccountWithUniqueDeviceKey(accountRequestDto));
   }
 
   public Optional<AccountDto> getAccountById(UUID id) {
@@ -106,19 +107,17 @@ public class AccountService {
     }
   }
 
-  private AccountEntity verifyUniquenessAndStore(CreateAccountRequestDto accountRequestDto) {
+  private AccountEntity storeAccountWithUniqueDeviceKey(CreateAccountRequestDto accountRequestDto) {
 
-    // TODO: re-write this method, personalIdentityNumber is no longer mandatory
+    String kid = accountRequestDto.publicKey().kid();
 
-    List<AccountEntity> entities =
-        accountRepository
-            .findByPersonalIdentityNumber(accountRequestDto.personalIdentityNumber().orElse(null));
-    logger.debug("Incoming accountRequest: {}, found accounts {}", accountRequestDto, entities);
+    List<AccountEntity> entities = accountRepository.findByDeviceKeyKid(kid);
     if (!entities.isEmpty()) {
-      logger.warn("Deleting duplicates (NON PRODUCTION CODE!!!): {}, {}", entities.size(),
-          entities);
-      accountRepository.deleteAll(entities);
+      logger.warn("An account already exists for device key kid {}: {}", kid, entities);
+      throw new AccountAlreadyExistsException(
+          "An account already exists for the provided device key.");
     }
+
     AccountEntity storedEntity =
         accountRepository.save(accountEntityMapper.toAccountEntity(accountRequestDto));
     logger.debug("stored account {}", storedEntity);

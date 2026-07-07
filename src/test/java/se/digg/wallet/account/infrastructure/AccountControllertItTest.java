@@ -95,17 +95,18 @@ class AccountControllertItTest {
 
   @Test
   void testSaveDuplicateAccounts() {
+    PublicKeyDto uniquePublicKey = publicKeyDtoWithDefaults("test");
     CreateAccountRequestDto firstRequestDto = CreateAccountRequestDto.builder()
         .emailAdress("none@your.businnes.se")
         .personalIdentityNumber("770101-1235")
         .telephoneNumber("070 123 123 12")
-        .publicKey(publicKeyDtoWithDefaults("99"))
+        .publicKey(uniquePublicKey)
         .build();
     CreateAccountRequestDto secondRequestDto = CreateAccountRequestDto.builder()
         .emailAdress("none@your.businnes.com")
-        .personalIdentityNumber("770101-1235")
+        .personalIdentityNumber("770101-1236")
         .telephoneNumber("070 123 123 13")
-        .publicKey(publicKeyDtoWithDefaults("88"))
+        .publicKey(uniquePublicKey)
         .build();
     EntityExchangeResult<AccountDto> firstResponse =
         restClient.post()
@@ -122,27 +123,17 @@ class AccountControllertItTest {
             .expectBody(AccountDto.class)
             .returnResult();
     assertThat(firstResponse.getStatus().is2xxSuccessful()).isTrue();
-    assertThat(secondResponse.getStatus().is2xxSuccessful()).isTrue();
+    assertThat(secondResponse.getStatus().isSameCodeAs(HttpStatus.CONFLICT)).isTrue();
     assertThat(firstResponse.getResponseBody()).isNotNull();
-    assertThat(secondResponse.getResponseBody()).isNotNull();
-    assertThat(firstResponse.getResponseBody().getId())
-        .isNotEqualTo(secondResponse.getResponseBody().getId());
 
+    // The original account is untouched and still retrievable after the rejected duplicate.
     EntityExchangeResult<ExtendedAccountDto> response =
         restClient.get()
             .uri("/account/" + firstResponse.getResponseBody().getId())
             .exchange()
             .expectBody(ExtendedAccountDto.class)
             .returnResult();
-    assertThat(response.getStatus().isSameCodeAs(HttpStatus.NOT_FOUND)).isTrue();
-
-    EntityExchangeResult<ExtendedAccountDto> response2 =
-        restClient.get()
-            .uri("/account/" + secondResponse.getResponseBody().getId())
-            .exchange()
-            .expectBody(ExtendedAccountDto.class)
-            .returnResult();
-    assertThat(response2.getStatus().is2xxSuccessful()).isTrue();
+    assertThat(response.getStatus().is2xxSuccessful()).isTrue();
   }
 
   private static PublicKeyDto publicKeyDtoWithDefaults(String kid) {
