@@ -28,9 +28,13 @@ ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/ap
 2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/main/java/se/digg/wallet/account/application/controller/AccountV0Controller.java:digg-internal-hosts:25
 514fcba4fd8a9b1e7deb32094e11f096ce962465:src/test/java/se/digg/wallet/account/application/controller/AccountApiTest.java:digg-internal-hosts:27
 95b7e73c90a1bbb70d038c78f7d443dd4b4e8dd3:src/test/java/se/digg/wallet/account/application/controller/AccountApiComponentTest.java:digg-internal-hosts:31
+9b89b62e0699495a218672f97e2b1d3bcf9a8bf0:src/test/java/se/digg/wallet/account/application/controller/AccountApiComponentTest.java:digg-internal-hosts:31
 95b7e73c90a1bbb70d038c78f7d443dd4b4e8dd3:src/test/java/se/digg/wallet/account/application/controller/AccountApiHsmClientIdComponentTest.java:digg-internal-hosts:30
+9b89b62e0699495a218672f97e2b1d3bcf9a8bf0:src/test/java/se/digg/wallet/account/application/controller/AccountApiHsmClientIdComponentTest.java:digg-internal-hosts:30
 95b7e73c90a1bbb70d038c78f7d443dd4b4e8dd3:src/test/java/se/digg/wallet/account/application/controller/AccountApiSecurityEnvelopeComponentTest.java:digg-internal-hosts:29
+9b89b62e0699495a218672f97e2b1d3bcf9a8bf0:src/test/java/se/digg/wallet/account/application/controller/AccountApiSecurityEnvelopeComponentTest.java:digg-internal-hosts:29
 95b7e73c90a1bbb70d038c78f7d443dd4b4e8dd3:src/test/java/se/digg/wallet/account/application/controller/AccountApiWalletKeyComponentTest.java:digg-internal-hosts:30
+9b89b62e0699495a218672f97e2b1d3bcf9a8bf0:src/test/java/se/digg/wallet/account/application/controller/AccountApiWalletKeyComponentTest.java:digg-internal-hosts:30
 ae4001a2566a8d797d02d2451410e9a4a054a12d:src/test/java/se/digg/wallet/account/application/service/JwkValidationTest.java:digg-internal-hosts:14
 ae4001a2566a8d797d02d2451410e9a4a054a12d:src/test/java/se/digg/wallet/account/application/service/JwkValidationTest.java:digg-internal-hosts:5
 ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/application/service/AccountMapperTest.java:digg-internal-hosts:5
