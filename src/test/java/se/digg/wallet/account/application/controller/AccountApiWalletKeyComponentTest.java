@@ -238,7 +238,7 @@ public class AccountApiWalletKeyComponentTest {
   }
 
   @Test
-  void servesWalletKeysFilterByKeyId() {
+  void servesWalletKeyById() {
 
     final UUID accountId = UUID.randomUUID();
     final String keyId = UUID.randomUUID().toString();

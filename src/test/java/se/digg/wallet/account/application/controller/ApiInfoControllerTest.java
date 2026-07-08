@@ -39,7 +39,7 @@ public class ApiInfoControllerTest {
   }
 
   @Test
-  void apiInfoExposeInfoValues() {
+  void servesApiInfo() {
 
     var apiInfoResponse = client.get()
         .uri("/api-info")

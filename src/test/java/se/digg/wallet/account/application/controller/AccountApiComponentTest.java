@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 public class AccountApiComponentTest {
 
   private static final String PERSONAL_IDENTITY_NUMBER = "2010101010";
-  private static final String EMAIL = "test.testsson@test.xx";
+  private static final String EMAIL = "test.testsson@test.test";
   private static final String PHONE_NUMBER = "0700000000";
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
 
@@ -97,7 +97,7 @@ public class AccountApiComponentTest {
       "deviceKey.x",
       "deviceKey.y"
   })
-  void createAccountWithoutRequiredDeviceKeyReturnsDeviceKeyProblem(String invalidProperty) {
+  void informsClientOfDeviceKeyParameterProblem(String invalidProperty) {
 
     var problemResponse = client.post()
         .uri("/v0/accounts")
