@@ -128,11 +128,12 @@ public class AccountApiWalletKeyComponentTest {
 
     when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
 
-    var problemResponse = client.post()
+    client.post()
         .uri("/v0/accounts/{0}/wallet-keys", accountId)
         .body(invalidKey)
         .exchange()
-        .expectStatus();
+        .expectStatus()
+        .isBadRequest();
   }
 
   @Test
