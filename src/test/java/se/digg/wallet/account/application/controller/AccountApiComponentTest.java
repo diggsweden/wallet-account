@@ -240,6 +240,54 @@ public class AccountApiComponentTest {
     assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "a@a.se",
+      "test@domain.com",
+      "test.testsson@domain.xx",
+      "test@domain.sub.eu",
+      "a-very-long-firstname.and.another-long-lasting-lastname@sub-department.the-domain.net",
+      "123@sub2.sub1.domain.com",
+      "First.Last@Mixed.Se",
+      "ONLY.CAPITAL.LETTERS@THE.DOMAIN.COM",
+      "100@100.se"
+  })
+  void acceptsCreateAccountRequestsWithValidEmail(String email) {
+
+    final UUID accountId = UUID.randomUUID();
+    final KeyRequest deviceKeyRequest = defaultKeyRequest().build();
+    final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
+
+    var accountDto = new AccountDto(
+        accountId,
+        Optional.empty(),
+        Optional.of(email),
+        Optional.empty(),
+        deviceKeyDto);
+    when(accountService.createAccount(any())).thenReturn(accountDto);
+
+    var accountResponse = client.post()
+        .uri("/v0/accounts")
+        .body(AccountRequest.builder()
+            .personalIdentityNumber(null)
+            .email(email)
+            .phoneNumber(null)
+            .deviceKey(deviceKeyRequest)
+            .build())
+        .exchange()
+        .expectStatus()
+        .isCreated()
+        .expectBody(AccountResponse.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertThat(accountResponse).isNotNull();
+    assertThat(accountResponse.getId()).isNotNull().isEqualTo(accountId);
+    assertThat(accountResponse.getPersonalIdentityNumber()).isEmpty();
+    assertThat(accountResponse.getEmail()).isNotEmpty().get().isEqualTo(email);
+    assertThat(accountResponse.getPhoneNumber()).isEmpty();
+  }
+
   @Test
   void createAccountWithOptionalsReturnsSavedValues() {
 
