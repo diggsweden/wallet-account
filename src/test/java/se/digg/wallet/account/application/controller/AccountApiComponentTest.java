@@ -46,7 +46,7 @@ public class AccountApiComponentTest {
 
   private static final String PERSONAL_IDENTITY_NUMBER = "2010101010";
   private static final String EMAIL = "test.testsson@test.xx";
-  private static final String PHONE_NUMBER = "0709876543";
+  private static final String PHONE_NUMBER = "0700000000";
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
 
   private RestTestClient client;
