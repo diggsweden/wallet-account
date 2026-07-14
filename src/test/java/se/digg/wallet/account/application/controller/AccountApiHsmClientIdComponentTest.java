@@ -4,12 +4,17 @@
 
 package se.digg.wallet.account.application.controller;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.annotation.Nullable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
@@ -22,9 +27,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
 import se.digg.wallet.account.api.v0.model.HsmClientIdResponse;
 import se.digg.wallet.account.api.v0.model.KeyRequest;
-import se.digg.wallet.account.api.v0.model.KeyResponse;
+import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
-import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.service.AccountService;
@@ -44,6 +48,10 @@ import static org.mockito.Mockito.when;
 public class AccountApiHsmClientIdComponentTest {
 
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
+  private static final String HSM_CLIENT_ID = "05839bd0-e05a-41eb-9e8f-46a32f540442";
+  private static final UUID ACCOUNT_ID = UUID.fromString("61128b3c-ef55-4410-8dff-d8e8bf0cb9a7");
+  private static final String KEY_ID = "26862913-ecd0-4d4d-a3d0-9271665d577e";
+  private static final String TRANSACTION_ID = "a7240655-a568-41c8-8059-7b18859d5d88";
 
   private RestTestClient client;
 
@@ -57,6 +65,12 @@ public class AccountApiHsmClientIdComponentTest {
   @BeforeEach
   void setUp(WebApplicationContext context) {
     client = RestTestClient.bindToApplicationContext(context).build();
+    MDC.put("transactionId", TRANSACTION_ID);
+  }
+
+  @AfterEach
+  void cleanUp() {
+    MDC.clear();
   }
 
   @Test
@@ -65,9 +79,9 @@ public class AccountApiHsmClientIdComponentTest {
     when(accountService.getAccountById(any())).thenReturn(Optional.empty());
 
     client.post()
-        .uri("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID())
+        .uri("/v0/accounts/{0}/hsm-client-id", ACCOUNT_ID)
         .body(HsmClientIdRequest.builder()
-            .clientId(UUID.randomUUID().toString())
+            .clientId(HSM_CLIENT_ID)
             .build())
         .exchange()
         .expectStatus()
@@ -79,7 +93,7 @@ public class AccountApiHsmClientIdComponentTest {
   void addingEmptyHsmClientIdReturnsHsmClientIdProblem(String emptyClientId) {
 
     var problemResponse = client.post()
-        .uri("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID())
+        .uri("/v0/accounts/{0}/hsm-client-id", ACCOUNT_ID)
         .body(HsmClientIdRequest.builder()
             .clientId(emptyClientId)
             .build())
@@ -90,38 +104,28 @@ public class AccountApiHsmClientIdComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertThat(problemResponse).isNotNull();
-    assertThat(problemResponse.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-    assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isNotEmpty();
-    assertThat(problemResponse.getType()).isNotEmpty();
-    assertThat(problemResponse.getType().get()).isEqualTo(VALIDATION_FAILURE);
-    assertThat(problemResponse.getInvalidParameters()).isNotEmpty();
-    assertThat(problemResponse.getInvalidParameters().getFirst().getProperty())
-        .contains("clientId");
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, VALIDATION_FAILURE, "clientId");
   }
 
   @Test
   void addsHsmClientIdToAccount() {
 
-    final UUID accountId = UUID.randomUUID();
     final KeyRequest walletKeyRequest = defaultKeyRequest().build();
-    final String clientId = UUID.randomUUID().toString();
 
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
-    when(accountService.createHsmClientId(any(), any())).thenReturn(clientId);
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
+    when(accountService.createHsmClientId(any(), any())).thenReturn(HSM_CLIENT_ID);
 
     var hsmClientIdResponse = client.post()
-        .uri("/v0/accounts/{0}/hsm-client-id", accountId)
+        .uri("/v0/accounts/{0}/hsm-client-id", ACCOUNT_ID)
         .body(HsmClientIdRequest.builder()
-            .clientId(clientId)
+            .clientId(HSM_CLIENT_ID)
             .build())
         .exchange()
         .expectStatus()
@@ -131,7 +135,7 @@ public class AccountApiHsmClientIdComponentTest {
         .getResponseBody();
 
     assertThat(hsmClientIdResponse).isNotNull();
-    assertThat(hsmClientIdResponse.getClientId()).isNotEmpty().isEqualTo(clientId);
+    assertThat(hsmClientIdResponse.getClientId()).isNotEmpty().isEqualTo(HSM_CLIENT_ID);
   }
 
   @Test
@@ -140,7 +144,7 @@ public class AccountApiHsmClientIdComponentTest {
     when(accountService.getAccountById(any())).thenReturn(Optional.empty());
 
     client.get()
-        .uri("/v0/accounts/{0}/hsm-client-id", UUID.randomUUID())
+        .uri("/v0/accounts/{0}/hsm-client-id", ACCOUNT_ID)
         .exchange()
         .expectStatus()
         .isNotFound();
@@ -149,20 +153,18 @@ public class AccountApiHsmClientIdComponentTest {
   @Test
   void fetchingNonExistingHsmClientIdReturnsNotFound() {
 
-    final UUID accountId = UUID.randomUUID();
-
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
     when(accountService.getHsmClientId(any())).thenReturn(Optional.empty());
 
     client.get()
-        .uri("/v0/accounts/{0}/hsm-client-id", accountId)
+        .uri("/v0/accounts/{0}/hsm-client-id", ACCOUNT_ID)
         .exchange()
         .expectStatus()
         .isNotFound();
@@ -171,21 +173,18 @@ public class AccountApiHsmClientIdComponentTest {
   @Test
   void servesHsmClientId() {
 
-    final UUID accountId = UUID.randomUUID();
-    final String clientId = UUID.randomUUID().toString();
-
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
-    when(accountService.getHsmClientId(any())).thenReturn(Optional.of(clientId));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
+    when(accountService.getHsmClientId(any())).thenReturn(Optional.of(HSM_CLIENT_ID));
 
     var hsmClientIdResponse = client.get()
-        .uri("/v0/accounts/{0}/hsm-client-id", accountId)
+        .uri("/v0/accounts/{0}/hsm-client-id", ACCOUNT_ID)
         .exchange()
         .expectStatus()
         .isOk()
@@ -194,12 +193,12 @@ public class AccountApiHsmClientIdComponentTest {
         .getResponseBody();
 
     assertThat(hsmClientIdResponse).isNotNull();
-    assertThat(hsmClientIdResponse.getClientId()).isNotEmpty().isEqualTo(clientId);
+    assertThat(hsmClientIdResponse.getClientId()).isNotEmpty().isEqualTo(HSM_CLIENT_ID);
   }
 
   private static KeyRequest.Builder defaultKeyRequest() {
     return KeyRequest.builder()
-        .kid(UUID.randomUUID().toString())
+        .kid(KEY_ID)
         .kty("EC")
         .crv("P-256")
         .x("1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc")
@@ -217,13 +216,30 @@ public class AccountApiHsmClientIdComponentTest {
         keyRequest.getY());
   }
 
-  private static KeyResponse toKeyResponse(KeyRequest keyRequest) {
-    return KeyResponse.builder()
-        .kty(keyRequest.getKty())
-        .kid(keyRequest.getKid())
-        .crv(keyRequest.getCrv())
-        .x(keyRequest.getX())
-        .y(keyRequest.getY())
-        .build();
+  private static void assertProblemDetails(ProblemResponse problemResponse,
+      HttpStatus expectedHttpStatus,
+      @Nullable String expectedType,
+      @Nullable String expectedInvalidParameterProperty) {
+
+    assertThat(problemResponse).isNotNull();
+    assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
+    assertThat(problemResponse.getTitle()).isNotEmpty();
+    assertThat(problemResponse.getDetail()).isPresent();
+    assertThat(problemResponse.getInstance()).isNotEmpty();
+    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
+    if (expectedType != null) {
+      assertThat(problemResponse.getType()).get().isEqualTo(expectedType);
+    }
+
+    if (expectedInvalidParameterProperty != null) {
+      assertThat(problemResponse.getInvalidParameters()).isNotEmpty();
+      assertThat(expectedInvalidParameterProperty).isIn(problemResponse.getInvalidParameters()
+          .stream()
+          .map(ProblemParameterResponse::getProperty)
+          .map(value -> value.orElse(null))
+          .filter(Objects::nonNull)
+          .toList());
+    }
   }
 }
