@@ -71,6 +71,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountResponse'
+        '409':
+          description: Duplicate account. The unique account identifier already exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
         'default':
           $ref: '#/components/responses/default'
 
