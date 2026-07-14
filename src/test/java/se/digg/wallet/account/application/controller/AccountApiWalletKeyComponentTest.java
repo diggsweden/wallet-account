@@ -7,10 +7,14 @@ package se.digg.wallet.account.application.controller;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.annotation.Nullable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
@@ -44,6 +48,9 @@ import static org.mockito.Mockito.when;
 public class AccountApiWalletKeyComponentTest {
 
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
+  private static final UUID ACCOUNT_ID = UUID.fromString("61128b3c-ef55-4410-8dff-d8e8bf0cb9a7");
+  private static final String KEY_ID = "26862913-ecd0-4d4d-a3d0-9271665d577e";
+  private static final String TRANSACTION_ID = "a7240655-a568-41c8-8059-7b18859d5d88";
 
   private RestTestClient client;
 
@@ -57,6 +64,12 @@ public class AccountApiWalletKeyComponentTest {
   @BeforeEach
   void setUp(WebApplicationContext context) {
     client = RestTestClient.bindToApplicationContext(context).build();
+    MDC.put("transactionId", TRANSACTION_ID);
+  }
+
+  @AfterEach
+  void cleanUp() {
+    MDC.clear();
   }
 
   @Test
@@ -65,7 +78,7 @@ public class AccountApiWalletKeyComponentTest {
     when(accountService.getAccountById(any())).thenReturn(Optional.empty());
 
     client.post()
-        .uri("/v0/accounts/{0}/wallet-keys", UUID.randomUUID())
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .body(defaultKeyRequest().build())
         .exchange()
         .expectStatus()
@@ -83,7 +96,7 @@ public class AccountApiWalletKeyComponentTest {
   void addWalletKeyWithoutRequiredPropertyReturnsPropertyProblem(String invalidProperty) {
 
     var problemResponse = client.post()
-        .uri("/v0/accounts/{0}/wallet-keys", UUID.randomUUID())
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .body(KeyRequest.builder().build())
         .exchange()
         .expectStatus()
@@ -92,27 +105,15 @@ public class AccountApiWalletKeyComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertThat(problemResponse).isNotNull();
-    assertThat(problemResponse.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-    assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isNotEmpty();
-    assertThat(problemResponse.getType()).isNotEmpty();
-    assertThat(problemResponse.getType().get()).isEqualTo(VALIDATION_FAILURE);
-    assertThat(problemResponse.getInvalidParameters()).isNotEmpty();
-    assertThat(invalidProperty).isIn(problemResponse.getInvalidParameters().stream()
-        .map(ProblemParameterResponse::getProperty)
-        .map(value -> value.orElse(null))
-        .filter(Objects::nonNull)
-        .toList());
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, VALIDATION_FAILURE,
+        invalidProperty);
   }
 
   @Test
   void addingInvalidWalletKeyReturnsBadRequest() {
 
-    final UUID accountId = UUID.randomUUID();
-
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
@@ -126,10 +127,10 @@ public class AccountApiWalletKeyComponentTest {
         .y("5")
         .build();
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
 
     client.post()
-        .uri("/v0/accounts/{0}/wallet-keys", accountId)
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .body(invalidKey)
         .exchange()
         .expectStatus()
@@ -139,22 +140,21 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void addsWalletKeyToAccount() {
 
-    final UUID accountId = UUID.randomUUID();
     final KeyRequest walletKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
 
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
     when(accountService.createWalletKey(any(), any())).thenReturn(walletKeyDto);
 
     var keyResponse = client.post()
-        .uri("/v0/accounts/{0}/wallet-keys", accountId)
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .body(walletKeyRequest)
         .exchange()
         .expectStatus()
@@ -172,7 +172,7 @@ public class AccountApiWalletKeyComponentTest {
     when(accountService.getAccountById(any())).thenReturn(Optional.empty());
 
     client.get()
-        .uri("/v0/accounts/{0}/wallet-keys", UUID.randomUUID())
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .exchange()
         .expectStatus()
         .isNotFound();
@@ -181,20 +181,18 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void fetchingNonExistingWalletKeyReturnsEmptyList() {
 
-    final UUID accountId = UUID.randomUUID();
-
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
     when(accountService.getWalletKey(any())).thenReturn(Optional.empty());
 
     var keysResponse = client.get()
-        .uri("/v0/accounts/{0}/wallet-keys", accountId)
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .exchange()
         .expectStatus()
         .isOk()
@@ -209,22 +207,21 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void servesWalletKeys() {
 
-    final UUID accountId = UUID.randomUUID();
     final KeyRequest walletKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
 
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
     when(accountService.getWalletKey(any())).thenReturn(Optional.of(walletKeyDto));
 
     var keysResponse = client.get()
-        .uri("/v0/accounts/{0}/wallet-keys", accountId)
+        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .exchange()
         .expectStatus()
         .isOk()
@@ -240,25 +237,23 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void servesWalletKeyById() {
 
-    final UUID accountId = UUID.randomUUID();
-    final String keyId = UUID.randomUUID().toString();
     final KeyRequest walletKeyRequest = defaultKeyRequest()
-        .kid(keyId)
+        .kid(KEY_ID)
         .build();
     final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
 
     var accountDto = new AccountDto(
-        accountId,
+        ACCOUNT_ID,
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
+    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
     when(accountService.getWalletKey(any())).thenReturn(Optional.of(walletKeyDto));
 
     var keysResponse = client.get()
-        .uri("/v0/accounts/{0}/wallet-keys?kid={1}", accountId, keyId)
+        .uri("/v0/accounts/{0}/wallet-keys?kid={1}", ACCOUNT_ID, KEY_ID)
         .exchange()
         .expectStatus()
         .isOk()
@@ -273,7 +268,7 @@ public class AccountApiWalletKeyComponentTest {
 
   private static KeyRequest.Builder defaultKeyRequest() {
     return KeyRequest.builder()
-        .kid(UUID.randomUUID().toString())
+        .kid(KEY_ID)
         .kty("EC")
         .crv("P-256")
         .x("1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc")
@@ -299,5 +294,32 @@ public class AccountApiWalletKeyComponentTest {
         .x(keyRequest.getX())
         .y(keyRequest.getY())
         .build();
+  }
+
+  private static void assertProblemDetails(ProblemResponse problemResponse,
+      HttpStatus expectedHttpStatus,
+      @Nullable String expectedType,
+      @Nullable String expectedInvalidParameterProperty) {
+
+    assertThat(problemResponse).isNotNull();
+    assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
+    assertThat(problemResponse.getTitle()).isNotEmpty();
+    assertThat(problemResponse.getDetail()).isPresent();
+    assertThat(problemResponse.getInstance()).isNotEmpty();
+    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
+    if (expectedType != null) {
+      assertThat(problemResponse.getType()).get().isEqualTo(expectedType);
+    }
+
+    if (expectedInvalidParameterProperty != null) {
+      assertThat(problemResponse.getInvalidParameters()).isNotEmpty();
+      assertThat(expectedInvalidParameterProperty).isIn(problemResponse.getInvalidParameters()
+          .stream()
+          .map(ProblemParameterResponse::getProperty)
+          .map(value -> value.orElse(null))
+          .filter(Objects::nonNull)
+          .toList());
+    }
   }
 }
