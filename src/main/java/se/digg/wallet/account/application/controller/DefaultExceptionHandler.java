@@ -58,11 +58,10 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException e,
       WebRequest request) {
 
-    var problemType = REQUEST_ARGUMENT_NOT_VALID;
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
 
-    var problemResponse = buildProblemResponse(problemType)
+    var problemResponse = buildProblemResponse(REQUEST_ARGUMENT_NOT_VALID)
         .detail(e.getLocalizedMessage())
         .instance(path);
 
@@ -90,7 +89,7 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
             violation.getPropertyPath().toString(),
             violation.getMessage())).toList());
     logDebug("Request argument not valid", path, method, violations);
-    return createResponseEntity(problemType.getHttpStatus(), problemResponse.build());
+    return createResponseEntity(problemResponse.build());
   }
 
   /*
@@ -103,11 +102,10 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
       MethodArgumentNotValidException e, HttpHeaders headers, HttpStatusCode status,
       WebRequest request) {
 
-    var problemType = REQUEST_VALIDATION_FAILURE;
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
 
-    var problemResponse = buildProblemResponse(problemType)
+    var problemResponse = buildProblemResponse(REQUEST_VALIDATION_FAILURE)
         .detail("Request body field value(s) does not validate.")
         .instance(path);
 
@@ -146,7 +144,7 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
         "fieldErrors", e.getBindingResult().getFieldErrors().stream()
             .map(FieldError::getDefaultMessage).toList());
     logDebug("Input validation failure", method, path, errors);
-    return createResponseEntity(problemType.getHttpStatus(), problemResponse.build());
+    return createResponseEntity(problemResponse.build());
   }
 
   /*
@@ -154,18 +152,18 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
    * existing account, e.g. the same device key kid is already in use.
    */
   @ExceptionHandler(AccountAlreadyExistsException.class)
-  public ResponseEntity<Object> handleAccountAlreadyExists(AccountAlreadyExistsException e) {
+  public ResponseEntity<Object> handleAccountAlreadyExistsException(
+      AccountAlreadyExistsException e) {
 
-    var problemType = RESOURCE_ALREADY_EXISTS;
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
-    var problemResponse = buildProblemResponse(problemType)
+    var problemResponse = buildProblemResponse(RESOURCE_ALREADY_EXISTS)
         .detail(e.getLocalizedMessage())
         .instance(path)
         .build();
 
-    logDebug("Account already exists", method, path, null);
-    return createResponseEntity(problemType.getHttpStatus(), problemResponse);
+    logWarn("Account already exists", method, path, null);
+    return createResponseEntity(problemResponse);
   }
 
   /*
@@ -174,16 +172,15 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(RestClientException.class)
   public ResponseEntity<Object> handleRestClientException(RestClientException e) {
 
-    var problemType = INTERNAL;
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
-    var problemResponse = buildProblemResponse(problemType)
+    var problemResponse = buildProblemResponse(INTERNAL)
         .detail("Remote service failure")
         .instance(path)
         .build();
 
     logError("Remote service failure", method, path, e);
-    return createResponseEntity(problemType.getHttpStatus(), problemResponse);
+    return createResponseEntity(problemResponse);
   }
 
   /*
@@ -192,16 +189,15 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(Throwable.class)
   public ResponseEntity<Object> handleAnyException(Throwable e) {
 
-    var problemType = INTERNAL;
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
-    var problemResponse = buildProblemResponse(problemType)
+    var problemResponse = buildProblemResponse(INTERNAL)
         .detail(e.getLocalizedMessage())
         .instance(path)
         .build();
 
     logError("Unexpected exception", method, path, e);
-    return createResponseEntity(problemType.getHttpStatus(), problemResponse);
+    return createResponseEntity(problemResponse);
   }
 
   /*
@@ -227,22 +223,20 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
 
       problemDetailResponse
           .title(title)
-          .detail("unknown")
-          .build();
+          .detail("unknown");
     }
 
-    return createResponseEntity(statusCode, problemDetailResponse.build());
+    return createResponseEntity(problemDetailResponse.build());
   }
 
-  private ResponseEntity<Object> createResponseEntity(HttpStatusCode statusCode,
-      ProblemResponse problemResponse) {
+  private ResponseEntity<Object> createResponseEntity(ProblemResponse problemResponse) {
 
     try {
       problemResponse.setTransactionId(Optional.of(MDC.get(MDC_TRANSACTION_ID)));
     } catch (Exception e) {
-      LOGGER.trace("The MDC property {} is not present", MDC_TRANSACTION_ID);
+      LOGGER.info("The MDC property {} is not present", MDC_TRANSACTION_ID);
     }
-    return ResponseEntity.status(statusCode).body(problemResponse);
+    return ResponseEntity.status(problemResponse.getStatus()).body(problemResponse);
   }
 
   private ProblemResponse.Builder buildProblemResponse(ProblemType problemType) {
