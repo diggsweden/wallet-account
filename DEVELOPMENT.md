@@ -319,3 +319,18 @@ alter table accounts drop column opaque_envelope;
 ```shell
 \d accounts;
 ```
+
+## Rollback the database using mvn plugin
+
+The liquibase-maven-plugin uses its own configuration. It's in the pom.xml and not in Spring Boot's application.yml.
+Please make sure the <url>jdbc:postgresql://... is correct when running rollback/update commands.
+
+### Rollback the latest changeSet
+```shell
+mvn liquibase:rollback -Dliquibase.rollbackCount=1
+```
+
+### Update to the latest, not-yet-applied changeSet
+```shell
+mvn liquibase:update
+```
