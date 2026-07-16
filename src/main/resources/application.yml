@@ -70,6 +70,4 @@ springdoc:
     urls:
       - url: /wallet-account-openapi-v0.yaml
         name: Wallet Account API v0
-      - url: /wallet-account-openapi-origin.yaml
-        name: Wallet Account API origin (deprecated)
     urls-primary-name: Wallet Account API v0
