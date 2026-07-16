@@ -12,6 +12,7 @@ a3b04b896fa1efacc863c2796c8e0551163a35a7:src/main/resources/db/changelog/changel
 e691012dcd2295dcac8bc08a50151099b6de22f0:src/main/resources/db/changelog/changelog.yml:digg-email-address:95
 aaa01ecdcb86ffb800e771e597c76afe32272cc7:src/main/resources/db/changelog/changelog.yml:digg-email-address:116
 cb10f3eb7e05aa4b3cb091bb1d4ae0af3276efdf:src/main/resources/db/changelog/changelog.yml:digg-email-address:116
+36036998cfdc00f82c4dc264075f447669730629:src/main/resources/db/changelog/changelog.yml:digg-email-address:133
 6970cbb6493acb96081feaaf886c81b731e74182:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:14
 ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:18
 ae4001a2566a8d797d02d2451410e9a4a054a12d:src/main/java/se/digg/wallet/account/application/controller/AccountController.java:digg-internal-hosts:19
