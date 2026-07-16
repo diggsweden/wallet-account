@@ -308,31 +308,6 @@ SPDX-License-Identifier: EUPL-1.2
         <version>${openapi-generator-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>wallet-account-openapi-origin</id>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-            <configuration>
-              <inputSpec>
-                ${project.basedir}/src/main/resources/static/wallet-account-openapi-origin.yaml
-              </inputSpec>
-              <generatorName>spring</generatorName>
-              <apiPackage>se.digg.wallet.account.api.origin</apiPackage>
-              <modelPackage>se.digg.wallet.account.api.origin.model</modelPackage>
-              <generateSupportingFiles>false</generateSupportingFiles>
-              <generateApiTests>true</generateApiTests>
-              <configOptions>
-                <useSpringBoot4>true</useSpringBoot4>
-                <interfaceOnly>true</interfaceOnly>
-                <useTags>true</useTags>
-                <skipDefaultInterface>true</skipDefaultInterface>
-                <generateBuilders>true</generateBuilders>
-                <useOptional>true</useOptional>
-                <includeHttpRequestContext>false</includeHttpRequestContext>
-              </configOptions>
-            </configuration>
-          </execution>
-          <execution>
             <id>wallet-account-openapi-v0</id>
             <goals>
               <goal>generate</goal>
