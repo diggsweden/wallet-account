@@ -6,11 +6,16 @@
 package se.digg.wallet.account.infrastructure.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
@@ -106,5 +111,39 @@ class AccountRepositoryTest {
     // .isEqualTo(storedEntity);
 
     assertThat(foundEntity.getPersonalIdentityNumber()).isNull();
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = PERSONAL_IDENTITY_NUMBER)
+  @NullAndEmptySource
+  void personalIdentityNumberUniqueConstraintWasRemoved(String pin) throws SQLException {
+    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+
+    // 1. Insert the first entity
+    AccountEntity entity = new AccountEntity(pin,
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+
+    accountRepository.save(entity);
+    entityManager.flush();
+    entityManager.clear();
+
+    // 2. Try inserting a second entity with the exact same personal identity number
+    AccountEntity entity2 = new AccountEntity(pin,
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+
+    // 3. Assert that the database does not throw a ConstraintViolationException
+    assertDoesNotThrow(() -> {
+      accountRepository.save(entity2);
+      entityManager.flush();
+      entityManager.clear();
+    });
   }
 }
