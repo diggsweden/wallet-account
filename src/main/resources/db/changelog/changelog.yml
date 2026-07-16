@@ -128,3 +128,25 @@ databaseChangeLog:
               - column:
                   name: hsm_client_id
                   type: VARCHAR(255)
+  - changeSet:
+      id: 20260715-0
+      author: extern.michael.danielsson@digg.se
+      labels: index-device-kid
+      changes:
+        - dropUniqueConstraint:
+            tableName: accounts
+            constraintName: accounts_personal_identity_number_key
+        - createIndex:
+            tableName: accounts
+            columns:
+              - column:
+                  name: device_key_id
+            indexName: idx_device_key_id
+      rollback:
+        - addUniqueConstraint:
+            tableName: accounts
+            columnNames: personal_identity_number
+            constraintName: accounts_personal_identity_number_key
+        - dropIndex:
+            tableName: accounts
+            indexName: idx_device_key_id
