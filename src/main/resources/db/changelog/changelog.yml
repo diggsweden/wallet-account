@@ -131,22 +131,29 @@ databaseChangeLog:
   - changeSet:
       id: 20260715-0
       author: extern.michael.danielsson@digg.se
-      labels: index-device-kid
+      labels: index-kid
       changes:
         - dropUniqueConstraint:
             tableName: accounts
             constraintName: accounts_personal_identity_number_key
         - createIndex:
-            tableName: accounts
+            tableName: public_key
             columns:
               - column:
-                  name: device_key_id
-            indexName: idx_device_key_id
+                  name: kid
+            indexName: idx_public_key_kid
+        - addUniqueConstraint:
+            tableName: public_key
+            columnNames: kid
+            constraintName: public_key_kid_key
       rollback:
         - addUniqueConstraint:
             tableName: accounts
             columnNames: personal_identity_number
             constraintName: accounts_personal_identity_number_key
         - dropIndex:
-            tableName: accounts
-            indexName: idx_device_key_id
+            tableName: public_key
+            indexName: idx_public_key_kid
+        - dropUniqueConstraint:
+            tableName: public_key
+            constraintName: public_key_kid_key
