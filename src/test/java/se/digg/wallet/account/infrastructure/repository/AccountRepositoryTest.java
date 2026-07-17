@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -48,6 +49,9 @@ class AccountRepositoryTest {
   @Autowired
   TestEntityManager entityManager;
 
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
   private final String SECURITY_ENVELOPE = "this is just a String";
   private final String PERSONAL_IDENTITY_NUMBER = "770101-1234";
   private final String EMAIL = "none@business.se";
@@ -58,12 +62,12 @@ class AccountRepositoryTest {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     AccountEntity entity =
-            new AccountEntity(null,
-                    null,
-                    null,
-                    securityEnvelopeBlob,
-                    TestUtils.generateJwkEntity(null),
-                    TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+        new AccountEntity(null,
+            null,
+            null,
+            securityEnvelopeBlob,
+            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     entity.setPersonalIdentityNumber(PERSONAL_IDENTITY_NUMBER);
     entity.setPhone(PHONE);
@@ -76,17 +80,17 @@ class AccountRepositoryTest {
     AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
 
     assertThat(foundEntity)
-            .isNotNull();
+        .isNotNull();
     // .isEqualTo(storedEntity);
     assertThat(foundEntity.getSecurityEnvelope())
-            .isNotNull();
+        .isNotNull();
     assertThat(
-            BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
+        BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
     assertThat(foundEntity.getWalletKey())
-            .isNotNull();
+        .isNotNull();
     assertThat(foundEntity.getWalletKey().getId()).isNotNull();
     assertThat(foundEntity.getDeviceKey())
-            .isNotNull();
+        .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
 
     assertThat(foundEntity.getPersonalIdentityNumber()).isEqualTo(PERSONAL_IDENTITY_NUMBER);
@@ -99,12 +103,12 @@ class AccountRepositoryTest {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     AccountEntity entity =
-            new AccountEntity(null,
-                    EMAIL,
-                    PHONE,
-                    securityEnvelopeBlob,
-                    TestUtils.generateJwkEntity(null),
-                    TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+        new AccountEntity(null,
+            EMAIL,
+            PHONE,
+            securityEnvelopeBlob,
+            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     AccountEntity storedEntity = accountRepository.save(entity);
     entityManager.flush();
@@ -113,7 +117,7 @@ class AccountRepositoryTest {
     AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
 
     assertThat(foundEntity)
-            .isNotNull();
+        .isNotNull();
     // .isEqualTo(storedEntity);
 
     assertThat(foundEntity.getPersonalIdentityNumber()).isNull();
@@ -127,11 +131,11 @@ class AccountRepositoryTest {
 
     // 1. Insert the first entity
     AccountEntity entity = new AccountEntity(pin,
-            EMAIL,
-            PHONE,
-            securityEnvelopeBlob,
-            TestUtils.generateJwkEntity(null),
-            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     accountRepository.save(entity);
     entityManager.flush();
@@ -139,11 +143,11 @@ class AccountRepositoryTest {
 
     // 2. Try inserting a second entity with the exact same personal identity number
     AccountEntity entity2 = new AccountEntity(pin,
-            EMAIL,
-            PHONE,
-            securityEnvelopeBlob,
-            TestUtils.generateJwkEntity(null),
-            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     // 3. Assert that the database does not throw a ConstraintViolationException
     assertDoesNotThrow(() -> {
@@ -154,12 +158,11 @@ class AccountRepositoryTest {
   }
 
   @Test
-  void verifyIndexExistsOnTable() throws Exception {
-
+  void databaseIndexExists() throws Exception {
     try (Connection conn = DriverManager.getConnection(
-            postgres.getJdbcUrl(),
-            postgres.getUsername(),
-            postgres.getPassword())) {
+        postgres.getJdbcUrl(),
+        postgres.getUsername(),
+        postgres.getPassword())) {
 
       DatabaseMetaData metaData = conn.getMetaData();
 
@@ -174,5 +177,19 @@ class AccountRepositoryTest {
         assertThat(indexNames.contains("idx_device_key_id")).isTrue();
       }
     }
+  }
+
+  @Test
+  void databaseQueryUsesIndexScan() {
+    UUID TEST_KEY_ID = UUID.randomUUID();
+    String explainQuery =
+        "EXPLAIN SELECT * FROM accounts WHERE device_key_id = '" + TEST_KEY_ID + "'";
+
+    List<String> planLines = jdbcTemplate.queryForList(explainQuery, String.class);
+    String executionPlan = String.join("\n", planLines).toLowerCase();
+
+    // Assert that the plan contains an Index Scan/Seek instead of a Seq Scan/Full Table Scan
+    assertThat(executionPlan.contains("index scan") && executionPlan.contains("idx_device_key_id"))
+        .isTrue();
   }
 }
