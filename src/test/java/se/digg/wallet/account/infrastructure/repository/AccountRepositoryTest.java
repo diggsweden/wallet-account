@@ -7,6 +7,7 @@ package se.digg.wallet.account.infrastructure.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.Blob;
 import java.sql.Connection;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -53,6 +55,7 @@ class AccountRepositoryTest {
   private JdbcTemplate jdbcTemplate;
 
   private final String SECURITY_ENVELOPE = "this is just a String";
+  private final String KID = "019f6ff8-2cc5-7152-b579-4db56902bb1e";
   private final String PERSONAL_IDENTITY_NUMBER = "770101-1234";
   private final String EMAIL = "none@business.se";
   private final String PHONE = "070-123 123 123";
@@ -157,6 +160,41 @@ class AccountRepositoryTest {
     });
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = KID)
+  @NullAndEmptySource
+  void deviceKeyIdUniqueConstraint(String kid) throws SQLException {
+    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+
+    // 1. Insert the first entity
+    AccountEntity entity = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+        TestUtils.generateJwkEntity(KID));
+
+    accountRepository.save(entity);
+    entityManager.flush();
+    entityManager.clear();
+
+    // 2. Try inserting a second entity with the exact same device key id
+    AccountEntity entity2 = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+        TestUtils.generateJwkEntity(KID));
+
+    // 3. Assert that the database throws a ConstraintViolationException
+    assertThrows(ConstraintViolationException.class, () -> {
+      accountRepository.save(entity2);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+
   @Test
   void databaseIndexExists() throws Exception {
     try (Connection conn = DriverManager.getConnection(
@@ -166,7 +204,7 @@ class AccountRepositoryTest {
 
       DatabaseMetaData metaData = conn.getMetaData();
 
-      try (ResultSet rs = metaData.getIndexInfo(null, null, "accounts", false, false)) {
+      try (ResultSet rs = metaData.getIndexInfo(null, null, "public_key", false, false)) {
         List<String> indexNames = new ArrayList<>();
         while (rs.next()) {
           String indexName = rs.getString("INDEX_NAME");
@@ -174,7 +212,7 @@ class AccountRepositoryTest {
             indexNames.add(indexName.toLowerCase());
           }
         }
-        assertThat(indexNames.contains("idx_device_key_id")).isTrue();
+        assertThat(indexNames.contains("idx_public_key_kid")).isTrue();
       }
     }
   }
@@ -183,13 +221,16 @@ class AccountRepositoryTest {
   void databaseQueryUsesIndexScan() {
     UUID TEST_KEY_ID = UUID.randomUUID();
     String explainQuery =
-        "EXPLAIN SELECT * FROM accounts WHERE device_key_id = '" + TEST_KEY_ID + "'";
+        "EXPLAIN SELECT * FROM public_key WHERE kid = '" + TEST_KEY_ID + "'";
 
     List<String> planLines = jdbcTemplate.queryForList(explainQuery, String.class);
     String executionPlan = String.join("\n", planLines).toLowerCase();
+    System.out.println("executionPlan: " + executionPlan);
 
     // Assert that the plan contains an Index Scan/Seek instead of a Seq Scan/Full Table Scan
-    assertThat(executionPlan.contains("index scan") && executionPlan.contains("idx_device_key_id"))
+    assertThat(executionPlan.contains("index scan") &&
+        (executionPlan.contains("idx_public_key_kid")
+            || executionPlan.contains("public_key_kid_key")))
         .isTrue();
   }
 }
