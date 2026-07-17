@@ -9,7 +9,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -52,12 +58,12 @@ class AccountRepositoryTest {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     AccountEntity entity =
-        new AccountEntity(null,
-            null,
-            null,
-            securityEnvelopeBlob,
-            TestUtils.generateJwkEntity(null),
-            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+            new AccountEntity(null,
+                    null,
+                    null,
+                    securityEnvelopeBlob,
+                    TestUtils.generateJwkEntity(null),
+                    TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     entity.setPersonalIdentityNumber(PERSONAL_IDENTITY_NUMBER);
     entity.setPhone(PHONE);
@@ -70,17 +76,17 @@ class AccountRepositoryTest {
     AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
 
     assertThat(foundEntity)
-        .isNotNull();
+            .isNotNull();
     // .isEqualTo(storedEntity);
     assertThat(foundEntity.getSecurityEnvelope())
-        .isNotNull();
+            .isNotNull();
     assertThat(
-        BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
+            BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
     assertThat(foundEntity.getWalletKey())
-        .isNotNull();
+            .isNotNull();
     assertThat(foundEntity.getWalletKey().getId()).isNotNull();
     assertThat(foundEntity.getDeviceKey())
-        .isNotNull();
+            .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
 
     assertThat(foundEntity.getPersonalIdentityNumber()).isEqualTo(PERSONAL_IDENTITY_NUMBER);
@@ -93,12 +99,12 @@ class AccountRepositoryTest {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     AccountEntity entity =
-        new AccountEntity(null,
-            EMAIL,
-            PHONE,
-            securityEnvelopeBlob,
-            TestUtils.generateJwkEntity(null),
-            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+            new AccountEntity(null,
+                    EMAIL,
+                    PHONE,
+                    securityEnvelopeBlob,
+                    TestUtils.generateJwkEntity(null),
+                    TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     AccountEntity storedEntity = accountRepository.save(entity);
     entityManager.flush();
@@ -107,7 +113,7 @@ class AccountRepositoryTest {
     AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
 
     assertThat(foundEntity)
-        .isNotNull();
+            .isNotNull();
     // .isEqualTo(storedEntity);
 
     assertThat(foundEntity.getPersonalIdentityNumber()).isNull();
@@ -121,11 +127,11 @@ class AccountRepositoryTest {
 
     // 1. Insert the first entity
     AccountEntity entity = new AccountEntity(pin,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(null),
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+            EMAIL,
+            PHONE,
+            securityEnvelopeBlob,
+            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     accountRepository.save(entity);
     entityManager.flush();
@@ -133,11 +139,11 @@ class AccountRepositoryTest {
 
     // 2. Try inserting a second entity with the exact same personal identity number
     AccountEntity entity2 = new AccountEntity(pin,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(null),
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+            EMAIL,
+            PHONE,
+            securityEnvelopeBlob,
+            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     // 3. Assert that the database does not throw a ConstraintViolationException
     assertDoesNotThrow(() -> {
@@ -145,5 +151,28 @@ class AccountRepositoryTest {
       entityManager.flush();
       entityManager.clear();
     });
+  }
+
+  @Test
+  void verifyIndexExistsOnTable() throws Exception {
+
+    try (Connection conn = DriverManager.getConnection(
+            postgres.getJdbcUrl(),
+            postgres.getUsername(),
+            postgres.getPassword())) {
+
+      DatabaseMetaData metaData = conn.getMetaData();
+
+      try (ResultSet rs = metaData.getIndexInfo(null, null, "accounts", false, false)) {
+        List<String> indexNames = new ArrayList<>();
+        while (rs.next()) {
+          String indexName = rs.getString("INDEX_NAME");
+          if (indexName != null) {
+            indexNames.add(indexName.toLowerCase());
+          }
+        }
+        assertThat(indexNames.contains("idx_device_key_id")).isTrue();
+      }
+    }
   }
 }
