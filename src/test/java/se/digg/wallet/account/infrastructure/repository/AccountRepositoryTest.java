@@ -69,7 +69,7 @@ class AccountRepositoryTest {
             null,
             null,
             securityEnvelopeBlob,
-            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity("12345"),
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     entity.setPersonalIdentityNumber(PERSONAL_IDENTITY_NUMBER);
@@ -110,7 +110,7 @@ class AccountRepositoryTest {
             EMAIL,
             PHONE,
             securityEnvelopeBlob,
-            TestUtils.generateJwkEntity(null),
+            TestUtils.generateJwkEntity("12345"),
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     AccountEntity storedEntity = accountRepository.save(entity);
@@ -137,7 +137,7 @@ class AccountRepositoryTest {
         EMAIL,
         PHONE,
         securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity("12345"),
         TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     accountRepository.save(entity);
@@ -149,7 +149,7 @@ class AccountRepositoryTest {
         EMAIL,
         PHONE,
         securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity("56789"),
         TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     // 3. Assert that the database does not throw a ConstraintViolationException
@@ -162,7 +162,6 @@ class AccountRepositoryTest {
 
   @ParameterizedTest
   @ValueSource(strings = KID)
-  @NullAndEmptySource
   void deviceKeyIdUniqueConstraint(String kid) throws SQLException {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
@@ -172,7 +171,7 @@ class AccountRepositoryTest {
         PHONE,
         securityEnvelopeBlob,
         TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
-        TestUtils.generateJwkEntity(KID));
+        TestUtils.generateJwkEntity(kid));
 
     accountRepository.save(entity);
     entityManager.flush();
@@ -184,7 +183,7 @@ class AccountRepositoryTest {
         PHONE,
         securityEnvelopeBlob,
         TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
-        TestUtils.generateJwkEntity(KID));
+        TestUtils.generateJwkEntity(kid));
 
     // 3. Assert that the database throws a ConstraintViolationException
     assertThrows(ConstraintViolationException.class, () -> {
@@ -194,6 +193,44 @@ class AccountRepositoryTest {
     });
   }
 
+  @ParameterizedTest
+  @NullAndEmptySource
+  void deviceKeyIdNotNullOrMinLengthConstraint(String kid) throws SQLException {
+    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+
+    AccountEntity entity = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+        TestUtils.generateJwkEntity(kid));
+
+    assertThrows(ConstraintViolationException.class, () -> {
+      accountRepository.save(entity);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"1", "123", KID})
+  void deviceKeyIdMinLengthConstraint(String kid) throws SQLException {
+    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+
+    AccountEntity entity = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
+        EMAIL,
+        PHONE,
+        securityEnvelopeBlob,
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+        TestUtils.generateJwkEntity(kid));
+
+    // Assert that the database does not throw a ConstraintViolationException
+    assertDoesNotThrow(() -> {
+      accountRepository.save(entity);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
 
   @Test
   void databaseIndexExists() throws Exception {
