@@ -225,7 +225,6 @@ class AccountRepositoryTest {
 
     List<String> planLines = jdbcTemplate.queryForList(explainQuery, String.class);
     String executionPlan = String.join("\n", planLines).toLowerCase();
-    System.out.println("executionPlan: " + executionPlan);
 
     // Assert that the plan contains an Index Scan/Seek instead of a Seq Scan/Full Table Scan
     assertThat(executionPlan.contains("index scan") &&
