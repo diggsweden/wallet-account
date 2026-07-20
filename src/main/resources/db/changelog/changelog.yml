@@ -146,6 +146,11 @@ databaseChangeLog:
             tableName: public_key
             columnNames: kid
             constraintName: public_key_kid_key
+        - addNotNullConstraint:
+            tableName: public_key
+            columnName: kid
+        - sql:
+            sql: ALTER TABLE public_key ADD CONSTRAINT chk_kid_min_length CHECK (LENGTH(kid) >= 1);
       rollback:
         - addUniqueConstraint:
             tableName: accounts
@@ -157,3 +162,8 @@ databaseChangeLog:
         - dropUniqueConstraint:
             tableName: public_key
             constraintName: public_key_kid_key
+        - dropNotNullConstraint:
+            tableName: public_key
+            columnName: kid
+        - sql:
+            sql: ALTER TABLE public_key DROP CONSTRAINT chk_kid_min_length;

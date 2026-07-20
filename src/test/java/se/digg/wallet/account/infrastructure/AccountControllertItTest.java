@@ -48,7 +48,7 @@ class AccountControllertItTest {
         "none@your.businnes.se",
         "070 123 12 12",
         null,
-        TestUtils.generateJwkEntity(null),
+        TestUtils.generateJwkEntity("12345"),
         TestUtils.generateJwkEntity("1"));
     repository.save(accountEntity);
     EntityExchangeResult<AccountDto> response =
