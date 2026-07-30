@@ -95,8 +95,8 @@ public class DefaultExceptionHandlerTest {
     assertThat(problemResponse).isNotNull();
     assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
     assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isPresent();
-    assertThat(problemResponse.getInstance()).isPresent();
-    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getDetail()).isNotEmpty();
+    assertThat(problemResponse.getInstance()).isNotNull();
+    assertThat(problemResponse.getType()).isNotEmpty();
   }
 }

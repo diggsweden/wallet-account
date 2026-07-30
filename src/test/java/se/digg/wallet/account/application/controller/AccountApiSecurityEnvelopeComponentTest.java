@@ -7,7 +7,6 @@ package se.digg.wallet.account.application.controller;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
 import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +23,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import se.digg.wallet.account.api.v0.model.KeyRequest;
+import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
@@ -109,7 +108,6 @@ public class AccountApiSecurityEnvelopeComponentTest {
   void addsSecurityEnvelopeToAccount() {
 
     final UUID accountId = UUID.randomUUID();
-    final KeyRequest walletKeyRequest = defaultKeyRequest().build();
     final String content = UUID.randomUUID().toString();
 
     var accountDto = new AccountDto(
@@ -182,7 +180,6 @@ public class AccountApiSecurityEnvelopeComponentTest {
   void servesSecurityEnvelopes() {
 
     final UUID accountId = UUID.randomUUID();
-    final KeyRequest walletKeyRequest = defaultKeyRequest().build();
     final String content = UUID.randomUUID().toString();
 
     var accountDto = new AccountDto(
@@ -209,8 +206,8 @@ public class AccountApiSecurityEnvelopeComponentTest {
     assertThat(securityEnvelopesResponse.getItems().getFirst().getContent()).isEqualTo(content);
   }
 
-  private static KeyRequest.Builder defaultKeyRequest() {
-    return KeyRequest.builder()
+  private static EcJwkRequest.Builder defaultKeyRequest() {
+    return EcJwkRequest.builder()
         .kid(UUID.randomUUID().toString())
         .kty("EC")
         .crv("P-256")
@@ -218,7 +215,7 @@ public class AccountApiSecurityEnvelopeComponentTest {
         .y("5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40");
   }
 
-  private static PublicKeyDto toPublicKeyDto(KeyRequest keyRequest) {
+  private static PublicKeyDto toPublicKeyDto(EcJwkRequest keyRequest) {
     return new PublicKeyDto(
         keyRequest.getKty(),
         keyRequest.getKid(),
@@ -237,12 +234,12 @@ public class AccountApiSecurityEnvelopeComponentTest {
     assertThat(problemResponse).isNotNull();
     assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
     assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isPresent();
-    assertThat(problemResponse.getInstance()).isNotEmpty();
-    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getDetail()).isNotEmpty();
+    assertThat(problemResponse.getInstance()).isNotNull();
+    assertThat(problemResponse.getType()).isNotEmpty();
     assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
     if (expectedType != null) {
-      assertThat(problemResponse.getType()).get().isEqualTo(expectedType);
+      assertThat(problemResponse.getType()).isEqualTo(expectedType);
     }
 
     if (expectedInvalidParameterProperty != null) {

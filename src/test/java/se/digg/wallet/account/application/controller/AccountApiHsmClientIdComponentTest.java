@@ -7,7 +7,6 @@ package se.digg.wallet.account.application.controller;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
 import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +25,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
 import se.digg.wallet.account.api.v0.model.HsmClientIdResponse;
-import se.digg.wallet.account.api.v0.model.KeyRequest;
+import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.model.PublicKeyDto;
@@ -109,8 +108,6 @@ public class AccountApiHsmClientIdComponentTest {
 
   @Test
   void addsHsmClientIdToAccount() {
-
-    final KeyRequest walletKeyRequest = defaultKeyRequest().build();
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
@@ -196,8 +193,8 @@ public class AccountApiHsmClientIdComponentTest {
     assertThat(hsmClientIdResponse.getClientId()).isNotEmpty().isEqualTo(HSM_CLIENT_ID);
   }
 
-  private static KeyRequest.Builder defaultKeyRequest() {
-    return KeyRequest.builder()
+  private static EcJwkRequest.Builder defaultKeyRequest() {
+    return EcJwkRequest.builder()
         .kid(KEY_ID)
         .kty("EC")
         .crv("P-256")
@@ -205,7 +202,7 @@ public class AccountApiHsmClientIdComponentTest {
         .y("5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40");
   }
 
-  private static PublicKeyDto toPublicKeyDto(KeyRequest keyRequest) {
+  private static PublicKeyDto toPublicKeyDto(EcJwkRequest keyRequest) {
     return new PublicKeyDto(
         keyRequest.getKty(),
         keyRequest.getKid(),
@@ -224,12 +221,12 @@ public class AccountApiHsmClientIdComponentTest {
     assertThat(problemResponse).isNotNull();
     assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
     assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isPresent();
-    assertThat(problemResponse.getInstance()).isNotEmpty();
-    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getDetail()).isNotEmpty();
+    assertThat(problemResponse.getInstance()).isNotNull();
+    assertThat(problemResponse.getType()).isNotEmpty();
     assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
     if (expectedType != null) {
-      assertThat(problemResponse.getType()).get().isEqualTo(expectedType);
+      assertThat(problemResponse.getType()).isEqualTo(expectedType);
     }
 
     if (expectedInvalidParameterProperty != null) {
