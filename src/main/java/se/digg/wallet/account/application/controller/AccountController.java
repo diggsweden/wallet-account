@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 import se.digg.wallet.account.api.v0.AccountApi;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
+import se.digg.wallet.account.api.v0.model.EcJwkItemsResponse;
+import se.digg.wallet.account.api.v0.model.EcJwkRequest;
+import se.digg.wallet.account.api.v0.model.EcJwkResponse;
 import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
 import se.digg.wallet.account.api.v0.model.HsmClientIdResponse;
-import se.digg.wallet.account.api.v0.model.KeyRequest;
-import se.digg.wallet.account.api.v0.model.KeyResponse;
-import se.digg.wallet.account.api.v0.model.KeysResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
@@ -27,12 +27,12 @@ import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.domain.service.JwkValidationService;
 
 @RestController
-public class AccountV0Controller implements AccountApi {
+public class AccountController implements AccountApi {
 
   private final AccountService accountService;
   private final JwkValidationService jwkValidationService;
 
-  public AccountV0Controller(AccountService accountService,
+  public AccountController(AccountService accountService,
       JwkValidationService jwkValidationService) {
     this.accountService = accountService;
     this.jwkValidationService = jwkValidationService;
@@ -58,13 +58,13 @@ public class AccountV0Controller implements AccountApi {
 
     var accountDto = accountService.getAccountById(id);
 
-    return accountDto.map(AccountV0Controller::toAccountResponse)
+    return accountDto.map(AccountController::toAccountResponse)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
   @Override
-  public ResponseEntity<KeyResponse> addAccountWalletKey(UUID id, KeyRequest keyRequest) {
+  public ResponseEntity<EcJwkResponse> addAccountWalletKey(UUID id, EcJwkRequest keyRequest) {
 
     var accountDto = accountService.getAccountById(id);
     if (accountDto.isEmpty()) {
@@ -85,7 +85,7 @@ public class AccountV0Controller implements AccountApi {
   }
 
   @Override
-  public ResponseEntity<KeysResponse> getAccountWalletKey(UUID id, Optional<String> kid) {
+  public ResponseEntity<EcJwkItemsResponse> getAccountWalletKey(UUID id, Optional<String> kid) {
 
     var accountDto = accountService.getAccountById(id);
     if (accountDto.isEmpty()) {
@@ -95,10 +95,10 @@ public class AccountV0Controller implements AccountApi {
     var publicKeyDto = accountService.getWalletKey(id);
     return publicKeyDto
         .filter(key -> kid.map(s -> s.equals(key.kid())).orElse(true))
-        .map(AccountV0Controller::toKeyResponse)
-        .map(key -> KeysResponse.builder().items(List.of(key)).build())
+        .map(AccountController::toKeyResponse)
+        .map(key -> EcJwkItemsResponse.builder().items(List.of(key)).build())
         .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.ok(KeysResponse.builder().build()));
+        .orElse(ResponseEntity.ok(EcJwkItemsResponse.builder().build()));
   }
 
   @Override
@@ -164,7 +164,7 @@ public class AccountV0Controller implements AccountApi {
     }
 
     return accountService.getHsmClientId(id)
-        .map(AccountV0Controller::toHsmClientIdResponse)
+        .map(AccountController::toHsmClientIdResponse)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
@@ -199,19 +199,11 @@ public class AccountV0Controller implements AccountApi {
         .personalIdentityNumber(accountDto.personalIdentityNumber().orElse(null))
         .email(accountDto.emailAdress().orElse(null))
         .phoneNumber(accountDto.telephoneNumber().orElse(null))
-        .deviceKey(KeyResponse.builder()
-            .kty(publicKey.kty())
-            .kid(publicKey.kid())
-            .alg(publicKey.alg())
-            .use(publicKey.use())
-            .crv(publicKey.crv())
-            .x(publicKey.x())
-            .y(publicKey.y())
-            .build())
+        .deviceKey(toKeyResponse(publicKey))
         .build();
   }
 
-  private static PublicKeyDto toPublicKeyDto(KeyRequest keyRequest) {
+  private static PublicKeyDto toPublicKeyDto(EcJwkRequest keyRequest) {
     return new PublicKeyDto(
         keyRequest.getKty(),
         keyRequest.getKid(),
@@ -222,8 +214,8 @@ public class AccountV0Controller implements AccountApi {
         keyRequest.getY());
   }
 
-  private static KeyResponse toKeyResponse(PublicKeyDto publicKeyDto) {
-    return KeyResponse.builder()
+  private static EcJwkResponse toKeyResponse(PublicKeyDto publicKeyDto) {
+    return EcJwkResponse.builder()
         .kty(publicKeyDto.kty())
         .kid(publicKeyDto.kid())
         .alg(publicKeyDto.alg())

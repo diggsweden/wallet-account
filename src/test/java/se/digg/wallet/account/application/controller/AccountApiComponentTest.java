@@ -25,8 +25,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
-import se.digg.wallet.account.api.v0.model.KeyRequest;
-import se.digg.wallet.account.api.v0.model.KeyResponse;
+import se.digg.wallet.account.api.v0.model.EcJwkRequest;
+import se.digg.wallet.account.api.v0.model.EcJwkResponse;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
@@ -108,7 +108,7 @@ public class AccountApiComponentTest {
     var problemResponse = client.post()
         .uri("/v0/accounts")
         .body(AccountRequest.builder()
-            .deviceKey(KeyRequest.builder().build())
+            .deviceKey(EcJwkRequest.builder().build())
             .build())
         .exchange()
         .expectStatus()
@@ -124,7 +124,7 @@ public class AccountApiComponentTest {
   @Test
   void createAccountWithInvalidWalletKeyReturnsBadRequest() {
 
-    var invalidKey = KeyRequest.builder()
+    var invalidKey = EcJwkRequest.builder()
         .kid("1")
         .kty("2")
         .crv("3")
@@ -216,7 +216,7 @@ public class AccountApiComponentTest {
   @Test
   void createAccountWithoutOptionalsReturnsSavedValues() {
 
-    final KeyRequest deviceKeyRequest = defaultKeyRequest().build();
+    final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
 
     var accountDto = new AccountDto(
@@ -259,7 +259,7 @@ public class AccountApiComponentTest {
   })
   void acceptsCreateAccountRequestsWithValidEmail(String email) {
 
-    final KeyRequest deviceKeyRequest = defaultKeyRequest().build();
+    final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
 
     var accountDto = new AccountDto(
@@ -295,7 +295,7 @@ public class AccountApiComponentTest {
   @Test
   void createAccountWithOptionalsReturnsSavedValues() {
 
-    final KeyRequest deviceKeyRequest = defaultKeyRequest().build();
+    final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
 
     var accountDto = new AccountDto(
@@ -345,7 +345,7 @@ public class AccountApiComponentTest {
         .getResponseBody();
 
     assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST);
-    assertThat(problemResponse.getDetail()).isNotEmpty().hasValueSatisfying(detail -> {
+    assertThat(problemResponse.getDetail()).isNotEmpty().satisfies(detail -> {
       assertThat(detail).contains("'id'");
       assertThat(detail).contains("'%s'".formatted(badFormattedAccountId));
     });
@@ -366,7 +366,7 @@ public class AccountApiComponentTest {
   @Test
   void servesAccountData() {
 
-    final KeyRequest deviceKeyRequest = defaultKeyRequest().build();
+    final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
 
     var accountDto = new AccountDto(
@@ -395,8 +395,8 @@ public class AccountApiComponentTest {
     assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
   }
 
-  private static KeyRequest.Builder defaultKeyRequest() {
-    return KeyRequest.builder()
+  private static EcJwkRequest.Builder defaultKeyRequest() {
+    return EcJwkRequest.builder()
         .kid(KEY_ID)
         .kty("EC")
         .crv("P-256")
@@ -404,7 +404,7 @@ public class AccountApiComponentTest {
         .y("5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40");
   }
 
-  private static PublicKeyDto toPublicKeyDto(KeyRequest keyRequest) {
+  private static PublicKeyDto toPublicKeyDto(EcJwkRequest keyRequest) {
     return new PublicKeyDto(
         keyRequest.getKty(),
         keyRequest.getKid(),
@@ -415,8 +415,8 @@ public class AccountApiComponentTest {
         keyRequest.getY());
   }
 
-  private static KeyResponse toKeyResponse(KeyRequest keyRequest) {
-    return KeyResponse.builder()
+  private static EcJwkResponse toKeyResponse(EcJwkRequest keyRequest) {
+    return EcJwkResponse.builder()
         .kty(keyRequest.getKty())
         .kid(keyRequest.getKid())
         .crv(keyRequest.getCrv())
@@ -446,12 +446,12 @@ public class AccountApiComponentTest {
     assertThat(problemResponse).isNotNull();
     assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
     assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isPresent();
-    assertThat(problemResponse.getInstance()).isNotEmpty();
-    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getDetail()).isNotEmpty();
+    assertThat(problemResponse.getInstance()).isNotNull();
+    assertThat(problemResponse.getType()).isNotEmpty();
     assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
     if (expectedType != null) {
-      assertThat(problemResponse.getType()).get().isEqualTo(expectedType);
+      assertThat(problemResponse.getType()).isEqualTo(expectedType);
     }
 
     if (expectedInvalidParameterProperty != null) {

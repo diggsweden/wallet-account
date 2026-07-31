@@ -25,7 +25,7 @@ import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
-import se.digg.wallet.account.api.v0.model.KeyRequest;
+import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
@@ -178,8 +178,8 @@ class AccountControllertItTest {
     assertThat(fetchedAccountResponse.getDeviceKey().getKid()).isNotNull().isEqualTo(keyId);
   }
 
-  private static KeyRequest deviceKeyWithDefaults(String kid) {
-    return KeyRequest.builder()
+  private static EcJwkRequest deviceKeyWithDefaults(String kid) {
+    return EcJwkRequest.builder()
         .kid(kid)
         .kty("EC")
         .crv("P-256")

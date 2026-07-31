@@ -7,7 +7,6 @@ package se.digg.wallet.account.application.controller;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
 import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +23,9 @@ import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import se.digg.wallet.account.api.v0.model.KeyRequest;
-import se.digg.wallet.account.api.v0.model.KeyResponse;
-import se.digg.wallet.account.api.v0.model.KeysResponse;
+import se.digg.wallet.account.api.v0.model.EcJwkRequest;
+import se.digg.wallet.account.api.v0.model.EcJwkResponse;
+import se.digg.wallet.account.api.v0.model.EcJwkItemsResponse;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.model.PublicKeyDto;
@@ -97,7 +96,7 @@ public class AccountApiWalletKeyComponentTest {
 
     var problemResponse = client.post()
         .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
-        .body(KeyRequest.builder().build())
+        .body(EcJwkRequest.builder().build())
         .exchange()
         .expectStatus()
         .isBadRequest()
@@ -119,7 +118,7 @@ public class AccountApiWalletKeyComponentTest {
         Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
-    var invalidKey = KeyRequest.builder()
+    var invalidKey = EcJwkRequest.builder()
         .kid("1")
         .kty("2")
         .crv("3")
@@ -140,7 +139,7 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void addsWalletKeyToAccount() {
 
-    final KeyRequest walletKeyRequest = defaultKeyRequest().build();
+    final EcJwkRequest walletKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
 
     var accountDto = new AccountDto(
@@ -159,7 +158,7 @@ public class AccountApiWalletKeyComponentTest {
         .exchange()
         .expectStatus()
         .isCreated()
-        .expectBody(KeyResponse.class)
+        .expectBody(EcJwkResponse.class)
         .returnResult()
         .getResponseBody();
 
@@ -196,7 +195,7 @@ public class AccountApiWalletKeyComponentTest {
         .exchange()
         .expectStatus()
         .isOk()
-        .expectBody(KeysResponse.class)
+        .expectBody(EcJwkItemsResponse.class)
         .returnResult()
         .getResponseBody();
 
@@ -207,7 +206,7 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void servesWalletKeys() {
 
-    final KeyRequest walletKeyRequest = defaultKeyRequest().build();
+    final EcJwkRequest walletKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
 
     var accountDto = new AccountDto(
@@ -225,7 +224,7 @@ public class AccountApiWalletKeyComponentTest {
         .exchange()
         .expectStatus()
         .isOk()
-        .expectBody(KeysResponse.class)
+        .expectBody(EcJwkItemsResponse.class)
         .returnResult()
         .getResponseBody();
 
@@ -237,7 +236,7 @@ public class AccountApiWalletKeyComponentTest {
   @Test
   void servesWalletKeyById() {
 
-    final KeyRequest walletKeyRequest = defaultKeyRequest()
+    final EcJwkRequest walletKeyRequest = defaultKeyRequest()
         .kid(KEY_ID)
         .build();
     final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
@@ -257,7 +256,7 @@ public class AccountApiWalletKeyComponentTest {
         .exchange()
         .expectStatus()
         .isOk()
-        .expectBody(KeysResponse.class)
+        .expectBody(EcJwkItemsResponse.class)
         .returnResult()
         .getResponseBody();
 
@@ -266,8 +265,8 @@ public class AccountApiWalletKeyComponentTest {
     assertThat(keysResponse.getItems().getFirst()).isEqualTo(toKeyResponse(walletKeyRequest));
   }
 
-  private static KeyRequest.Builder defaultKeyRequest() {
-    return KeyRequest.builder()
+  private static EcJwkRequest.Builder defaultKeyRequest() {
+    return EcJwkRequest.builder()
         .kid(KEY_ID)
         .kty("EC")
         .crv("P-256")
@@ -275,7 +274,7 @@ public class AccountApiWalletKeyComponentTest {
         .y("5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40");
   }
 
-  private static PublicKeyDto toPublicKeyDto(KeyRequest keyRequest) {
+  private static PublicKeyDto toPublicKeyDto(EcJwkRequest keyRequest) {
     return new PublicKeyDto(
         keyRequest.getKty(),
         keyRequest.getKid(),
@@ -286,8 +285,8 @@ public class AccountApiWalletKeyComponentTest {
         keyRequest.getY());
   }
 
-  private static KeyResponse toKeyResponse(KeyRequest keyRequest) {
-    return KeyResponse.builder()
+  private static EcJwkResponse toKeyResponse(EcJwkRequest keyRequest) {
+    return EcJwkResponse.builder()
         .kty(keyRequest.getKty())
         .kid(keyRequest.getKid())
         .crv(keyRequest.getCrv())
@@ -304,12 +303,12 @@ public class AccountApiWalletKeyComponentTest {
     assertThat(problemResponse).isNotNull();
     assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
     assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isPresent();
-    assertThat(problemResponse.getInstance()).isNotEmpty();
-    assertThat(problemResponse.getType()).isPresent();
+    assertThat(problemResponse.getDetail()).isNotEmpty();
+    assertThat(problemResponse.getInstance()).isNotNull();
+    assertThat(problemResponse.getType()).isNotEmpty();
     assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
     if (expectedType != null) {
-      assertThat(problemResponse.getType()).get().isEqualTo(expectedType);
+      assertThat(problemResponse.getType()).isEqualTo(expectedType);
     }
 
     if (expectedInvalidParameterProperty != null) {
