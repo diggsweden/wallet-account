@@ -5,9 +5,9 @@
 package se.digg.wallet.account.domain.service;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class AppIntegrityServiceTest {
 
