@@ -9,32 +9,47 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class AppIntegrityServiceTest {
 
   private final AppIntegrityService appIntegrityService = new AppIntegrityService();
+  private final String MY_PACKAGE_NAME = "my.package.name";
 
   @Test
   void integrityTokenIsExtractedAndDecoded() {
-    appIntegrityService.extractAndDecode("");
-    // TODO: verify result
+    String expectedToken = "DECODED_TOKEN";
+
+    // TODO: test null and empty input
+    String result = appIntegrityService.extractAndDecode("");
+
+    assertThat(result).isEqualTo(expectedToken);
   }
 
   @Test
-  void payloadHashIsComputed() throws JSONException {
-    appIntegrityService.computeHash(createPayload().toString());
-    // TODO: verify result
+  void payloadHashIsComputed() throws Exception {
+    String expectedHash = "K_ONaPbHQv26N1bn10sVEmV0D5TORnBrhJmHcUUruOw";
+
+    // TODO: test null and empty input
+    String result = appIntegrityService.computeHash(createPayload(MY_PACKAGE_NAME).toString());
+
+    assertThat(result).isEqualTo(expectedHash);
   }
 
   @Test
   void hashValuesAreCompared() {
-    appIntegrityService.compareHashValues("", "2");
-    // TODO: verify result
+    boolean result = appIntegrityService.compareHashValues("hashOne", "hash2");
+
+    assertFalse(result);
   }
 
   @Test
   void payloadIsEvaluatedAccordingToPolicy() throws JSONException {
-    appIntegrityService.evaluatePolicy(createPayload());
-    // TODO: verify result
+    boolean result = appIntegrityService.evaluatePolicy(createPayload(MY_PACKAGE_NAME));
+
+    assertTrue(result);
   }
 
 
@@ -42,12 +57,12 @@ public class AppIntegrityServiceTest {
    * { "requestDetails": { ... }, "accountDetails": { ... }, "appIntegrity": { ... },
    * "deviceIntegrity": { ... }, "environmentDetails": { ... } }
    */
-  private JSONObject createPayload() throws JSONException {
+  private JSONObject createPayload(String packageName) throws JSONException {
 
     JSONObject thePayload = new JSONObject();
-    thePayload.put("requestDetails", createRequestDetails());
+    thePayload.put("requestDetails", createRequestDetails(packageName));
     thePayload.put("accountDetails", createAccountDetails());
-    thePayload.put("appIntegrity", createAppIntegrity());
+    thePayload.put("appIntegrity", createAppIntegrity(packageName));
     thePayload.put("deviceIntegrity", createDeviceIntegrity());
 
     // If you have opted in to the App Access Risk verdict or the Play Protect verdict
@@ -71,9 +86,8 @@ public class AppIntegrityServiceTest {
    * "nonce": "aGVsbG8gd29scmQgdGhlcmU", // The timestamp in milliseconds when the request was made
    * (computed on the server). "timestampMillis": "1617893780" }
    */
-  private JSONObject createRequestDetails() throws JSONException {
+  private JSONObject createRequestDetails(String packageName) throws JSONException {
     JSONObject theRequestDetails = new JSONObject();
-    String packageName = "PACKAGE_NAME";
     String requestHash = "REQUEST_HASH";
     int timestampMillis = 1234;
     String nonce = "NONCE";
@@ -112,14 +126,13 @@ public class AppIntegrityServiceTest {
    * ["6a6a1474b5cbbb2b1aa57e0bc3"], // The version of the app. // This field is populated iff
    * appRecognitionVerdict != UNEVALUATED. "versionCode": "42" }
    */
-  private JSONObject createAppIntegrity() throws JSONException {
+  private JSONObject createAppIntegrity(String packageName) throws JSONException {
     JSONObject theAppIntegrity = new JSONObject();
 
     // PLAY_RECOGNIZED, UNRECOGNIZED_VERSION, or UNEVALUATED.
     String appRecognitionVerdict = "PLAY_RECOGNIZED";
 
     // iff appRecognitionVerdict != UNEVALUATED
-    String packageName = "PACKAGE_NAME";
     String certificateSha256Digest = "certificateSha256Digest";
     String versionCode = "1234";
 
@@ -138,8 +151,9 @@ public class AppIntegrityServiceTest {
     JSONObject theDeviceIntegrity = new JSONObject();
     JSONArray deviceRecognitionVerdict = new JSONArray();
 
-    // one of several possible values: MEETS_VIRTUAL_INTEGRITY, MEETS_BASIC_INTEGRITY,
-    // MEETS_STRONG_INTEGRITY,
+    // one of several possible values:
+    // MEETS_DEVICE_INTEGRITY, MEETS_VIRTUAL_INTEGRITY,
+    // MEETS_BASIC_INTEGRITY, MEETS_STRONG_INTEGRITY
     String meets = "MEETS_DEVICE_INTEGRITY";
     deviceRecognitionVerdict.put(meets);
     theDeviceIntegrity.put("deviceRecognitionVerdict", deviceRecognitionVerdict);
