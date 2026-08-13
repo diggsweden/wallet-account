@@ -7,6 +7,7 @@ package se.digg.wallet.account.domain.service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.json.JSONArray;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppIntegrityService {
   private final Logger logger = LoggerFactory.getLogger(AppIntegrityService.class);
-  private static final String EXPECTED_PACKAGE_NAME = "my.package.name";
+  private static final String EXPECTED_PACKAGE_NAME_FROM_ORIGINAL_REQUEST = "my.package.name";
+  private static final String EXPECTED_REQUEST_HASH_FROM_ORIGINAL_REQUEST = "abc123";
+  private static final String EXPECTED_NONCE_FROM_ORIGINAL_REQUEST = "def456";
 
   /*
    * securely parse HTTP requests, cryptographically validate Play Integrity tokens, enforce
@@ -69,16 +72,16 @@ public class AppIntegrityService {
   // requestPackageName
   public boolean evaluatePolicy(JSONObject playIntegrityVerdictsPayload) {
 
-    String requestPackageName;
+    JSONObject requestDetails;
     JSONArray deviceRecognitionVerdict;
     String appLicensingVerdict;
     String appRecognitionVerdict;
 
     try {
-      requestPackageName = playIntegrityVerdictsPayload
-          .getJSONObject("requestDetails")
-          .getString("requestPackageName");
-      logger.debug("requestPackageName: {}", requestPackageName);
+      // TODO: if standard decodeIntegrityTokenResponse else if classic payload
+      requestDetails = playIntegrityVerdictsPayload
+          .getJSONObject("requestDetails");
+      logger.debug("requestDetails: {}", requestDetails);
 
       deviceRecognitionVerdict = playIntegrityVerdictsPayload
           .getJSONObject("deviceIntegrity")
@@ -99,21 +102,78 @@ public class AppIntegrityService {
       return false;
     }
 
-    boolean packageNameValidated = evaluateRequestPackageName(requestPackageName);
-    boolean deviceRecognized = evaluateDeviceRecognition(deviceRecognitionVerdict);
-    boolean appLicensed = evaluateAppLicensing(appLicensingVerdict);
-    boolean appRecognized = evaluateAppRecognition(appRecognitionVerdict);
+    if (!isRequestDetailsValidated(requestDetails)) {
+      return false;
+    }
+    if (!isDeviceRecognized(deviceRecognitionVerdict)) {
+      return false;
+    }
+    if (!isAppLicensed(appLicensingVerdict)) {
+      return false;
+    }
+    if (!isAppRecognized(appRecognitionVerdict)) {
+      return false;
+    }
 
-    return packageNameValidated && deviceRecognized && appLicensed && appRecognized;
+    return true;
   }
 
-  private boolean evaluateRequestPackageName(String packageName) {
-    // TODO: requestHash/nonce and timestampMillis
+  private boolean isRequestDetailsValidated(JSONObject requestDetails) {
+    String packageName = requestDetails.getString("requestPackageName");
+    if (!isExpectedPackageName(packageName)) {
+      logger.warn("Unexpected package name: {}", packageName);
+      return false;
+    }
 
-    return packageName.equals(EXPECTED_PACKAGE_NAME);
+    // TODO: if standard requestHash else if classic nonce
+
+    String requestHash = requestDetails.getString("requestHash");
+    if (!isExpectedRequestHash(requestHash)) {
+      logger.warn("Unexpected request hash: {}", requestHash);
+      return false;
+    }
+
+    String nonce = requestDetails.getString("nonce");
+    if (!isExpectedNonce(nonce)) {
+      logger.warn("Unexpected nonce: {}", nonce);
+      return false;
+    }
+
+    long timestampMillis = requestDetails.getLong("timestampMillis");
+    if (!isFreshTimestamp(timestampMillis)) {
+      logger.warn("Rotten timestamp: {}", timestampMillis);
+      return false;
+    }
+
+    return true;
   }
 
-  private boolean evaluateDeviceRecognition(JSONArray deviceRecognition) {
+  private boolean isExpectedPackageName(String packageName) {
+    return packageName.equals(EXPECTED_PACKAGE_NAME_FROM_ORIGINAL_REQUEST);
+  }
+
+  private boolean isExpectedRequestHash(String requestHash) {
+    return requestHash.equals(EXPECTED_REQUEST_HASH_FROM_ORIGINAL_REQUEST);
+  }
+
+  private boolean isExpectedNonce(String nonce) {
+    return nonce.equals(EXPECTED_NONCE_FROM_ORIGINAL_REQUEST);
+  }
+
+  private boolean isFreshTimestamp(long timestampMillis) {
+    // Ensure the freshness of the token.
+
+    // allow max 10 minutes old tokens
+    long ALLOWED_WINDOW_MILLIS = 10 * 60 * 1000;
+    long currentTimestampMillis = Instant.now().toEpochMilli();
+    logger.debug("current: {}", currentTimestampMillis);
+    logger.debug(" requested: {}", timestampMillis);
+    logger.debug(" diff: {}", currentTimestampMillis - timestampMillis);
+    logger.debug(" allowed max: {}", ALLOWED_WINDOW_MILLIS);
+    return currentTimestampMillis - timestampMillis <= ALLOWED_WINDOW_MILLIS;
+  }
+
+  private boolean isDeviceRecognized(JSONArray deviceRecognition) {
     AtomicBoolean isDeviceApproved = new AtomicBoolean(false);
 
     // one of several possible values:
@@ -137,7 +197,7 @@ public class AppIntegrityService {
     return isDeviceApproved.get();
   }
 
-  private boolean evaluateAppLicensing(String appLicensing) {
+  private boolean isAppLicensed(String appLicensing) {
     boolean isAppLicensed = false;
 
     // This field can be LICENSED, UNLICENSED, or UNEVALUATED.
@@ -156,7 +216,7 @@ public class AppIntegrityService {
     return isAppLicensed;
   }
 
-  private boolean evaluateAppRecognition(String appRecognition) {
+  private boolean isAppRecognized(String appRecognition) {
     boolean isAppRecognized = false;
 
     // PLAY_RECOGNIZED, UNRECOGNIZED_VERSION, or UNEVALUATED.

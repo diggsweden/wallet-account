@@ -4,6 +4,7 @@
 
 package se.digg.wallet.account.domain.service;
 
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +18,9 @@ public class AppIntegrityServiceTest {
 
   private final AppIntegrityService appIntegrityService = new AppIntegrityService();
   private final String MY_PACKAGE_NAME = "my.package.name";
+  private final String REQUEST_HASH = "abc123";
+  private final String NONCE = "def456";
+  private final long FIVE_MINUTES_IN_MILLISECONDS = 5 * 60 * 1000;
 
   @Test
   void integrityTokenIsExtractedAndDecoded() {
@@ -30,24 +34,37 @@ public class AppIntegrityServiceTest {
 
   @Test
   void payloadHashIsComputed() throws Exception {
-    String expectedHash = "K_ONaPbHQv26N1bn10sVEmV0D5TORnBrhJmHcUUruOw";
+    String expectedHash = "Xwy5irW65qVvX--xP733GbO4LqQbV1Nuo3hEru-ILCQ";
 
     // TODO: test null and empty input
-    String result = appIntegrityService.computeHash(createPayload(MY_PACKAGE_NAME).toString());
+
+    long timestampMillis = 1786611850378L;
+    String result = appIntegrityService.computeHash(
+        createPayload(MY_PACKAGE_NAME, REQUEST_HASH, NONCE, timestampMillis).toString());
 
     assertThat(result).isEqualTo(expectedHash);
   }
 
   @Test
-  void hashValuesAreCompared() {
+  void differentHashValuesAreComparedFalse() {
     boolean result = appIntegrityService.compareHashValues("hashOne", "hash2");
 
     assertFalse(result);
   }
 
   @Test
+  void sameHashValuesAreComparedTrue() {
+    String aHashValue = "aHashValue";
+    boolean result = appIntegrityService.compareHashValues(aHashValue, aHashValue);
+
+    assertTrue(result);
+  }
+
+  @Test
   void payloadIsEvaluatedAccordingToPolicy() throws JSONException {
-    boolean result = appIntegrityService.evaluatePolicy(createPayload(MY_PACKAGE_NAME));
+    long timestampMillis = Instant.now().toEpochMilli() - FIVE_MINUTES_IN_MILLISECONDS;
+    boolean result = appIntegrityService
+        .evaluatePolicy(createPayload(MY_PACKAGE_NAME, REQUEST_HASH, NONCE, timestampMillis));
 
     assertTrue(result);
   }
@@ -57,10 +74,12 @@ public class AppIntegrityServiceTest {
    * { "requestDetails": { ... }, "accountDetails": { ... }, "appIntegrity": { ... },
    * "deviceIntegrity": { ... }, "environmentDetails": { ... } }
    */
-  private JSONObject createPayload(String packageName) throws JSONException {
+  private JSONObject createPayload(String packageName, String requestHash, String nonce,
+      long timestampMillis) throws JSONException {
 
     JSONObject thePayload = new JSONObject();
-    thePayload.put("requestDetails", createRequestDetails(packageName));
+    thePayload.put("requestDetails",
+        createRequestDetails(packageName, requestHash, nonce, timestampMillis));
     thePayload.put("accountDetails", createAccountDetails());
     thePayload.put("appIntegrity", createAppIntegrity(packageName));
     thePayload.put("deviceIntegrity", createDeviceIntegrity());
@@ -86,11 +105,9 @@ public class AppIntegrityServiceTest {
    * "nonce": "aGVsbG8gd29scmQgdGhlcmU", // The timestamp in milliseconds when the request was made
    * (computed on the server). "timestampMillis": "1617893780" }
    */
-  private JSONObject createRequestDetails(String packageName) throws JSONException {
+  private JSONObject createRequestDetails(String packageName, String requestHash, String nonce,
+      long timestampMillis) throws JSONException {
     JSONObject theRequestDetails = new JSONObject();
-    String requestHash = "REQUEST_HASH";
-    int timestampMillis = 1234;
-    String nonce = "NONCE";
     theRequestDetails.put("requestPackageName", packageName);
     theRequestDetails.put("requestHash", requestHash);
 
