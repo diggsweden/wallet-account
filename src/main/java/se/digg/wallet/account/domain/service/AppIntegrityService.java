@@ -16,6 +16,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import se.digg.wallet.account.application.exception.NoIntegrityTokenException;
+import se.digg.wallet.account.application.exception.NoPayloadException;
 
 @Component
 public class AppIntegrityService {
@@ -24,18 +26,15 @@ public class AppIntegrityService {
   private static final String EXPECTED_REQUEST_HASH_FROM_ORIGINAL_REQUEST = "abc123";
   private static final String EXPECTED_NONCE_FROM_ORIGINAL_REQUEST = "def456";
 
-  /*
-   * securely parse HTTP requests, cryptographically validate Play Integrity tokens, enforce
-   * business rules using a dedicated Policy file.
-   */
+  public String extractAndDecode(String integrityToken) throws NoIntegrityTokenException {
+    logger.debug("integrity token: {}", integrityToken);
 
-  // Extract & Decode
-  public String extractAndDecode(String integrityToken) {
-
-    // TODO: handle null or empty input
+    if (integrityToken == null || integrityToken.isBlank()) {
+      throw new NoIntegrityTokenException("integrityToken is missing");
+    }
 
     // TODO: call Google Play Integrity API
-    // decodeIntegrityToken(EXPECTED_PACKAGE_NAME, integrityToken);
+    // decodeIntegrityToken(EXPECTED_PACKAGE_NAME_FROM_ORIGINAL_REQUEST, integrityToken);
     String decodedToken = "DECODED_TOKEN";
 
     logger.debug("decoded integrity token: {}", decodedToken);
@@ -45,7 +44,9 @@ public class AppIntegrityService {
   public String computeHash(String jsonPayload) throws NoSuchAlgorithmException {
     logger.debug("jsonPayload: {}", jsonPayload);
 
-    // TODO: handle null or empty input
+    if (jsonPayload == null || jsonPayload.isBlank()) {
+      throw new NoPayloadException("payload is missing");
+    }
 
     // computes an SHA-256 hash of the JSON payload to verify Content Binding
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -58,19 +59,18 @@ public class AppIntegrityService {
     return result;
   }
 
-  // Compare Hash values
   public boolean compareHashValues(String hashFromRequest, String hashComputedFromPayload) {
     logger.debug("Comparing hash from request: {}", hashFromRequest);
     logger.debug(" with computed from payload: {}", hashComputedFromPayload);
     return hashFromRequest.equals(hashComputedFromPayload);
   }
 
-  // Inspect verdicts:
-  // deviceRecognitionVerdict
-  // appRecognitionVerdict
-  // appLicensingVerdict
-  // requestPackageName
   public boolean evaluatePolicy(JSONObject playIntegrityVerdictsPayload) {
+    logger.debug("playIntegrityVerdictsPayload: {}", playIntegrityVerdictsPayload);
+
+    if (playIntegrityVerdictsPayload == null || playIntegrityVerdictsPayload.isEmpty()) {
+      throw new NoPayloadException("payload is missing");
+    }
 
     JSONObject requestDetails;
     JSONArray deviceRecognitionVerdict;
@@ -163,7 +163,7 @@ public class AppIntegrityService {
   private boolean isFreshTimestamp(long timestampMillis) {
     // Ensure the freshness of the token.
 
-    // allow max 10 minutes old tokens
+    // allow tokens to be max 10 minutes old
     long ALLOWED_WINDOW_MILLIS = 10 * 60 * 1000;
     long currentTimestampMillis = Instant.now().toEpochMilli();
     logger.debug("current: {}", currentTimestampMillis);
@@ -176,9 +176,6 @@ public class AppIntegrityService {
   private boolean isDeviceRecognized(JSONArray deviceRecognition) {
     AtomicBoolean isDeviceApproved = new AtomicBoolean(false);
 
-    // one of several possible values:
-    // MEETS_DEVICE_INTEGRITY, MEETS_VIRTUAL_INTEGRITY,
-    // MEETS_BASIC_INTEGRITY, MEETS_STRONG_INTEGRITY
     deviceRecognition.forEach(m -> {
       logger.debug(m.toString());
       switch (m.toString()) {
@@ -219,7 +216,6 @@ public class AppIntegrityService {
   private boolean isAppRecognized(String appRecognition) {
     boolean isAppRecognized = false;
 
-    // PLAY_RECOGNIZED, UNRECOGNIZED_VERSION, or UNEVALUATED.
     switch (appRecognition) {
       case "PLAY_RECOGNIZED" -> {
         logger.debug("Play recognized");
