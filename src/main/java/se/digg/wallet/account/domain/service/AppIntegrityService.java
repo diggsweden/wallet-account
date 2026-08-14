@@ -23,7 +23,8 @@ import se.digg.wallet.account.application.exception.NoPayloadException;
 public class AppIntegrityService {
   private final Logger logger = LoggerFactory.getLogger(AppIntegrityService.class);
   private static final String EXPECTED_PACKAGE_NAME_FROM_ORIGINAL_REQUEST = "my.package.name";
-  private static final String EXPECTED_REQUEST_HASH_FROM_ORIGINAL_REQUEST = "abc123";
+
+  // TODO: storage for the nonce values until they expire
   private static final String EXPECTED_NONCE_FROM_ORIGINAL_REQUEST = "def456";
 
   public String extractAndDecode(String integrityToken) throws NoIntegrityTokenException {
@@ -78,7 +79,6 @@ public class AppIntegrityService {
     String appRecognitionVerdict;
 
     try {
-      // TODO: if standard decodeIntegrityTokenResponse else if classic payload
       requestDetails = playIntegrityVerdictsPayload
           .getJSONObject("requestDetails");
       logger.debug("requestDetails: {}", requestDetails);
@@ -125,14 +125,7 @@ public class AppIntegrityService {
       return false;
     }
 
-    // TODO: if standard requestHash else if classic nonce
-
-    String requestHash = requestDetails.getString("requestHash");
-    if (!isExpectedRequestHash(requestHash)) {
-      logger.warn("Unexpected request hash: {}", requestHash);
-      return false;
-    }
-
+    // we are using classic API requests which include a nonce
     String nonce = requestDetails.getString("nonce");
     if (!isExpectedNonce(nonce)) {
       logger.warn("Unexpected nonce: {}", nonce);
@@ -152,11 +145,8 @@ public class AppIntegrityService {
     return packageName.equals(EXPECTED_PACKAGE_NAME_FROM_ORIGINAL_REQUEST);
   }
 
-  private boolean isExpectedRequestHash(String requestHash) {
-    return requestHash.equals(EXPECTED_REQUEST_HASH_FROM_ORIGINAL_REQUEST);
-  }
-
   private boolean isExpectedNonce(String nonce) {
+    // TODO: verify the nonce
     return nonce.equals(EXPECTED_NONCE_FROM_ORIGINAL_REQUEST);
   }
 

@@ -24,7 +24,6 @@ public class AppIntegrityServiceTest {
 
   private final AppIntegrityService appIntegrityService = new AppIntegrityService();
   private final String MY_PACKAGE_NAME = "my.package.name";
-  private final String REQUEST_HASH = "abc123";
   private final String NONCE = "def456";
   private final long FIVE_MINUTES_IN_MILLISECONDS = 5 * 60 * 1000;
 
@@ -47,11 +46,11 @@ public class AppIntegrityServiceTest {
 
   @Test
   void payloadHashIsComputed() throws Exception {
-    String expectedHash = "Xwy5irW65qVvX--xP733GbO4LqQbV1Nuo3hEru-ILCQ";
+    String expectedHash = "Ytg_1fBCKsvu1A9S2iSqyoCiQv45iq0gdzls8VbLpZI";
 
     long timestampMillis = 1786611850378L;
     String result = appIntegrityService.computeHash(
-        createPayload(MY_PACKAGE_NAME, REQUEST_HASH, NONCE, timestampMillis).toString());
+        createPayload(MY_PACKAGE_NAME, NONCE, timestampMillis).toString());
 
     assertThat(result).isEqualTo(expectedHash);
   }
@@ -82,7 +81,7 @@ public class AppIntegrityServiceTest {
   void payloadIsEvaluatedAccordingToPolicy() throws JSONException {
     long timestampMillis = Instant.now().toEpochMilli() - FIVE_MINUTES_IN_MILLISECONDS;
     boolean result = appIntegrityService
-        .evaluatePolicy(createPayload(MY_PACKAGE_NAME, REQUEST_HASH, NONCE, timestampMillis));
+        .evaluatePolicy(createPayload(MY_PACKAGE_NAME, NONCE, timestampMillis));
 
     assertTrue(result);
   }
@@ -98,12 +97,12 @@ public class AppIntegrityServiceTest {
    * }
    */
   // @formatter:on
-  private JSONObject createPayload(String packageName, String requestHash, String nonce,
+  private JSONObject createPayload(String packageName, String nonce,
       long timestampMillis) throws JSONException {
 
     JSONObject thePayload = new JSONObject();
     thePayload.put("requestDetails",
-        createRequestDetails(packageName, requestHash, nonce, timestampMillis));
+        createRequestDetails(packageName, nonce, timestampMillis));
     thePayload.put("accountDetails", createAccountDetails());
     thePayload.put("appIntegrity", createAppIntegrity(packageName));
     thePayload.put("deviceIntegrity", createDeviceIntegrity());
@@ -116,17 +115,7 @@ public class AppIntegrityServiceTest {
 
   // @formatter:off
   /**
-   * For standard:
-   * "requestDetails": {
-   *   // Application package name this attestation was requested for.
-   *   // Note that this field might be spoofed in the middle of the request.
-   *   "requestPackageName": "com.package.name",
-   *   // Request hash provided by the developer.
-   *   "requestHash": "aGVsbG8gd29scmQgdGhlcmU",
-   *   // The timestamp in milliseconds when the integrity token was requested.
-   *   "timestampMillis": "1675655009345"
-   * }
-   * or for classic:
+   * For classic API requests:
    * "requestDetails": {
    *   // Application package name this attestation was requested for.
    *   // Note that this field might be spoofed in the middle of the request.
@@ -138,16 +127,13 @@ public class AppIntegrityServiceTest {
    * }
    */
   // @formatter:on
-  private JSONObject createRequestDetails(String packageName, String requestHash, String nonce,
+  private JSONObject createRequestDetails(String packageName, String nonce,
       long timestampMillis) throws JSONException {
     JSONObject theRequestDetails = new JSONObject();
     theRequestDetails.put("requestPackageName", packageName);
-    theRequestDetails.put("requestHash", requestHash);
-
-    // for standard
     theRequestDetails.put("timestampMillis", timestampMillis);
 
-    // or for classic
+    // for classic API requests, there is a nonce
     theRequestDetails.put("nonce", nonce);
 
     return theRequestDetails;
