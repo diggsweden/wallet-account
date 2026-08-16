@@ -27,14 +27,14 @@ public class AppIntegrityService {
   // TODO: storage for the nonce values until they expire
   private static final String EXPECTED_NONCE_FROM_ORIGINAL_REQUEST = "def456";
 
-  public String extractAndDecode(String integrityToken) throws NoIntegrityTokenException {
+  public String extractAndDecode(String integrityToken) {
     logger.debug("integrity token: {}", integrityToken);
 
     if (integrityToken == null || integrityToken.isBlank()) {
       throw new NoIntegrityTokenException("integrityToken is missing");
     }
 
-    // TODO: call Google Play Integrity API
+    // TODO: call Google Play Integrity API or decrypt and verify locally?
     // decodeIntegrityToken(EXPECTED_PACKAGE_NAME_FROM_ORIGINAL_REQUEST, integrityToken);
     String decodedToken = "DECODED_TOKEN";
 
@@ -66,6 +66,7 @@ public class AppIntegrityService {
     return hashFromRequest.equals(hashComputedFromPayload);
   }
 
+  // TODO: Structured error responses (not just 500 but 403 Forbidden including why failed)
   public boolean evaluatePolicy(JSONObject playIntegrityVerdictsPayload) {
     logger.debug("playIntegrityVerdictsPayload: {}", playIntegrityVerdictsPayload);
 
@@ -217,6 +218,4 @@ public class AppIntegrityService {
     }
     return isAppRecognized;
   }
-
-  // TODO: Structured error (not just 500 but 403 Forbidden including why failed)
 }

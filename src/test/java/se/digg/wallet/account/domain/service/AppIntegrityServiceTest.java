@@ -29,7 +29,7 @@ public class AppIntegrityServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"someToken"})
-  void integrityTokenIsExtractedAndDecoded(String integrityToken) throws Exception {
+  void integrityTokenIsExtractedAndDecoded(String integrityToken) {
     String expectedToken = "DECODED_TOKEN";
 
     String result = appIntegrityService.extractAndDecode(integrityToken);
@@ -57,7 +57,7 @@ public class AppIntegrityServiceTest {
 
   @ParameterizedTest
   @NullAndEmptySource
-  void missingPayloadThrowsException(String payload) throws Exception {
+  void missingPayloadThrowsException(String payload) {
     assertThrows(NoPayloadException.class,
         () -> appIntegrityService.computeHash(payload));
   }
@@ -78,7 +78,7 @@ public class AppIntegrityServiceTest {
   }
 
   @Test
-  void payloadIsEvaluatedAccordingToPolicy() throws JSONException {
+  void payloadIsEvaluatedAccordingToPolicy() {
     long timestampMillis = Instant.now().toEpochMilli() - FIVE_MINUTES_IN_MILLISECONDS;
     boolean result = appIntegrityService
         .evaluatePolicy(createPayload(MY_PACKAGE_NAME, NONCE, timestampMillis));
