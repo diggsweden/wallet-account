@@ -322,8 +322,8 @@ alter table accounts drop column opaque_envelope;
 
 ## Rollback the database using mvn plugin
 
-The liquibase-maven-plugin uses its own configuration. It's in the pom.xml and not in Spring Boot's application.yml.
-Please make sure the url "jdbc:postgresql://..." is correct when running rollback/update commands.
+The liquibase-maven-plugin uses its own configuration. It is located in the pom.xml and not in Spring Boot's
+application.yml. Please make sure the url "jdbc:postgresql://..." is correct when running rollback/update commands.
 
 ### Rollback the latest changeSet
 
