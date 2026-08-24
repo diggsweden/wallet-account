@@ -59,5 +59,9 @@ ecb854ba498e2352b3529afca6a3809e9ecff68f:src/test/java/se/digg/wallet/account/ap
 ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/domain/service/AccountService.java:digg-internal-hosts:5
 2d399d7d6a0ed92060eed5e10231cbf8cfcc4dc0:src/main/java/se/digg/wallet/account/domain/service/AccountService2.java:digg-internal-hosts:1
 2e4081d40414e3ddb9fd56d0b8c3356c2175bc05:src/main/java/se/digg/wallet/account/domain/service/AccountService2.java:digg-internal-hosts:1
+631c73cf52cddb10d356e0a196bbfb84dab318d1:src/test/java/se/digg/wallet/account/domain/service/AccountServiceTest.java:digg-internal-hosts:5
+d1cb2434cfd04306834eee813891f1f90febabb6:src/main/java/se/digg/wallet/account/domain/service/AppIntegrityService.java:digg-internal-hosts:5
+d1cb2434cfd04306834eee813891f1f90febabb6:src/test/java/se/digg/wallet/account/domain/service/AppIntegrityServiceTest.java:digg-internal-hosts:5
 ae4001a2566a8d797d02d2451410e9a4a054a12d:src/main/java/se/digg/wallet/account/domain/service/JwkValidationService.java:digg-internal-hosts:5
 ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/domain/service/JwkValidationService.java:digg-internal-hosts:5
+631c73cf52cddb10d356e0a196bbfb84dab318d1:src/test/java/se/digg/wallet/account/domain/service/JwkValidationTest.java:digg-internal-hosts:5
