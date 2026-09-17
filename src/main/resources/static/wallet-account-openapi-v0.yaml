@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
   title: Wallet Account API
-  version: 0.0.4
+  version: 0.0.5
   description: |
     Wallet Account API tillhandahåller serveroperationer för hantering av plånbokskonton till den svenska
     statliga digitala identitetsplånboken. Detta API används endast internt.
@@ -406,7 +406,7 @@ components:
           "deviceKey": {
             "kid": "1f3b6eeb-76dc-4686-82df-7d4709067dae",
             "kty": "EC",
-            "crv": "P-256,
+            "crv": "P-256",
             "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
             "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
           }
@@ -450,7 +450,7 @@ components:
           "deviceKey": {
             "kid": "1f3b6eeb-76dc-4686-82df-7d4709067dae",
             "kty": "EC",
-            "crv": "P-256,
+            "crv": "P-256",
             "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
             "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
           }
@@ -480,7 +480,7 @@ components:
         {
           "kid": "1f3b6eeb-76dc-4686-82df-7d4709067dae",
           "kty": "EC",
-          "crv": "P-256,
+          "crv": "P-256",
           "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
           "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
         }
@@ -544,7 +544,7 @@ components:
         {
           "kid": "1f3b6eeb-76dc-4686-82df-7d4709067dae",
           "kty": "EC",
-          "crv": "P-256,
+          "crv": "P-256",
           "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
           "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
         }
@@ -560,7 +560,7 @@ components:
             {
               "kid": "1f3b6eeb-76dc-4686-82df-7d4709067dae",
               "kty": "EC",
-              "crv": "P-256,
+              "crv": "P-256",
               "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
               "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
             }
