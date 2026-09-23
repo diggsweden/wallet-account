@@ -4,10 +4,13 @@
 version: "3.9"
 
 services:
-  db:
+  # Local dev database; Postgres needs a writable filesystem (data, socket and tmp dirs).
+  db: # nosemgrep: yaml.docker-compose.security.writable-filesystem-service.writable-filesystem-service
     image: postgres:16
     container_name: postgres16
     restart: always
+    security_opt:
+      - no-new-privileges:true
     environment:
       POSTGRES_USER: mywalletuser
       POSTGRES_PASSWORD: mywalletuser
