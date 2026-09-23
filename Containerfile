@@ -27,7 +27,7 @@ COPY src ./src
 
 # Build the application (skip checkstyle in Docker build)
 RUN ./mvnw clean package -DskipTests -Dcheckstyle.skip=true -B && \
-    java -Djarmode=layertools -jar target/*.jar extract
+    java -Djarmode=tools -jar target/*.jar extract --layers --launcher --destination extracted
 
 # Stage 2: Runtime stage
 FROM cgr.dev/chainguard/jre:latest@sha256:f7b0d54a3ac6be469db3014e0b679aa285d46ac016de69e849466ad015c43d45 AS runtime
@@ -38,10 +38,10 @@ LABEL description="Wallet Account"
 WORKDIR /app
 
 # Copy Spring Boot layers from builder stage (nonroot user: 65532)
-COPY --from=builder --chown=65532:65532 /app/dependencies/ ./
-COPY --from=builder --chown=65532:65532 /app/spring-boot-loader/ ./
-COPY --from=builder --chown=65532:65532 /app/snapshot-dependencies/ ./
-COPY --from=builder --chown=65532:65532 /app/application/ ./
+COPY --from=builder --chown=65532:65532 /app/extracted/dependencies/ ./
+COPY --from=builder --chown=65532:65532 /app/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=65532:65532 /app/extracted/snapshot-dependencies/ ./
+COPY --from=builder --chown=65532:65532 /app/extracted/application/ ./
 
 EXPOSE 8080
 
