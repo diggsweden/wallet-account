@@ -20,6 +20,9 @@ name: Release Workflow Dev
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read # Best Security practice. Jobs only get read as base, and then permissions are added as needed
+
 jobs:
   dev-release:
     permissions:
