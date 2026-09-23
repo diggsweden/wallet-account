@@ -1,12 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "local>diggsweden/.github:renovate-base",
-    ":maintainLockFilesWeekly"
-  ],
+  "extends": ["local>diggsweden/.github:renovate-base"],
   "enabledManagers": [
     "github-actions",
-    "npm",
     "maven",
     "dockerfile",
     "docker-compose",
@@ -17,26 +13,6 @@
       "description": "Maven dependencies - shorten commit message (long groupId:artifactId coordinates push past commit-lint limits)",
       "matchManagers": ["maven"],
       "commitMessageTopic": "{{depName}}"
-    },
-    {
-      "description": "Node.js dependencies - Major updates",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["dependencies", "major-update"]
-    },
-    {
-      "description": "Node.js dependencies - Non-major updates",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "addLabels": ["dependencies"],
-      "groupName": "npm non-major"
-    },
-    {
-      "description": "Development dependencies",
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
-      "groupName": "dev dependencies",
-      "addLabels": ["dev-deps"]
     },
     {
       "description": "Maven dependencies - Major updates",
