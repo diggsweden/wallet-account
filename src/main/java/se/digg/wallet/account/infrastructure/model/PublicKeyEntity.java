@@ -39,9 +39,6 @@ public class PublicKeyEntity {
   @OneToOne(mappedBy = "deviceKey")
   private AccountEntity accountEntityForDeviceKey;
 
-  @OneToOne(mappedBy = "walletKey")
-  private AccountEntity accountEntityForWalletKey;
-
   public PublicKeyEntity() {}
 
   public PublicKeyEntity(String kty, String kid, String alg, String use, String crv, String x,

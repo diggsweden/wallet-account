@@ -5,13 +5,9 @@
 package se.digg.wallet.account.application.model;
 
 import io.soabase.recordbuilder.core.RecordBuilder;
-import java.util.Optional;
 
 @RecordBuilder
 public record CreateAccountRequestDto(
-    Optional<String> personalIdentityNumber,
-    Optional<String> emailAdress,
-    Optional<String> telephoneNumber,
     PublicKeyDto publicKey) {
 
 }
