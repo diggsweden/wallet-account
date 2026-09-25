@@ -6,7 +6,6 @@ package se.digg.wallet.account.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import se.digg.wallet.account.TestUtils;
@@ -25,16 +24,12 @@ class AccountMapperTest {
   @Test
   void testToAccountEntity() {
     CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
-        .emailAdress(Optional.of("none@your.businnes.se"))
-        .personalIdentityNumber(Optional.of("770101-1234"))
-        .telephoneNumber(Optional.of("070 123 123 12"))
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22").build())
         .build();
     assertThat(accountEntityMapper.toAccountEntity(requestDto))
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.getId()).isNull();
-          assertThat(account.getEmail()).isEqualTo(requestDto.emailAdress().orElse(null));
           assertThat(account.getDeviceKey()).isNotNull();
           assertThat(account.getDeviceKey().getX()).isEqualTo(requestDto.publicKey().x());
         });
@@ -43,9 +38,6 @@ class AccountMapperTest {
   @Test
   void testToAccountEntityAllOptionalFieldsNull() {
     CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
-        .emailAdress(Optional.of("none@your.businnes.se"))
-        .personalIdentityNumber(Optional.of("770101-1234"))
-        .telephoneNumber(Optional.empty())
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22")
             .kid(null)
             .alg(null)
@@ -55,7 +47,6 @@ class AccountMapperTest {
     assertThat(accountEntityMapper.toAccountEntity(requestDto))
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.getPhone()).isNull();
           assertThat(account.getDeviceKey().getAlg()).isNull();
           assertThat(account.getDeviceKey().getUse()).isNull();
           assertThat(account.getDeviceKey().getKid()).isNull();
@@ -65,11 +56,7 @@ class AccountMapperTest {
   @Test
   void testToDto() {
     AccountEntity entity = new AccountEntity(
-        "770101-1234",
-        "none@your.business.se",
-        "070 123 123 12",
         null,
-        TestUtils.generateJwkEntity(null),
         TestUtils.generateJwkEntity("11"));
     entity.setId(UUID.randomUUID());
     ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
@@ -77,10 +64,6 @@ class AccountMapperTest {
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.id()).isNotNull();
-          assertThat(account.emailAdress().orElseThrow()).isEqualTo("none@your.business.se");
-          assertThat(account.personalIdentityNumber().orElseThrow()).isEqualTo("770101-1234");
-          assertThat(account.telephoneNumber()).isPresent();
-          assertThat(account.telephoneNumber().get()).contains("070 123 123 12");
           assertThat(account.deviceKey()).isNotNull();
           assertThat(account.deviceKey().x())
               .isEqualTo(TestUtils.generateJwkEntity("11").getX());
@@ -92,11 +75,7 @@ class AccountMapperTest {
   @Test
   void testToDtoAllOptionalFieldsNull() {
     AccountEntity entity = new AccountEntity(
-        "770101-1234",
-        "none@your.business.se",
         null,
-        null,
-        TestUtils.generateJwkEntity(null),
         new PublicKeyEntity(
             "EC",
             null,
@@ -110,7 +89,6 @@ class AccountMapperTest {
     assertThat(accountDto)
         .isNotNull()
         .satisfies(account -> {
-          assertThat(account.telephoneNumber()).isEmpty();
           assertThat(account.deviceKey()).isNotNull();
           assertThat(account.deviceKey().kid()).isNull();
           assertThat(account.deviceKey().alg()).isNull();

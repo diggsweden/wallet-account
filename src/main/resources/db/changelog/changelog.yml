@@ -167,3 +167,47 @@ databaseChangeLog:
             columnName: kid
         - sql:
             sql: ALTER TABLE public_key DROP CONSTRAINT chk_kid_min_length;
+  - changeSet:
+      id: 20260925-0
+      author: Erik Eriksson
+      labels: drop-personal-data
+      changes:
+        - dropColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: personal_identity_number
+              - column:
+                  name: email
+              - column:
+                  name: phone
+      rollback:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: personal_identity_number
+                  type: VARCHAR(12)
+              - column:
+                  name: email
+                  type: VARCHAR(50)
+              - column:
+                  name: phone
+                  type: VARCHAR(20)
+  - changeSet:
+      id: 20260925-1
+      author: Erik Eriksson
+      labels: drop-wallet-key
+      changes:
+        - sql:
+            sql: DELETE FROM public_key WHERE id IN (SELECT wallet_key_id FROM accounts WHERE wallet_key_id IS NOT NULL);
+        - dropColumn:
+            tableName: accounts
+            columnName: wallet_key_id
+      rollback:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: wallet_key_id
+                  type: UUID

@@ -5,7 +5,6 @@
 package se.digg.wallet.account.infrastructure.mapper;
 
 import java.sql.SQLException;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 import se.digg.wallet.account.application.exception.WalletAccountException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
@@ -22,10 +21,7 @@ public class AccountEntityMapper {
 
 
   public AccountEntity toAccountEntity(CreateAccountRequestDto accountRequestDto) {
-    return new AccountEntity(accountRequestDto.personalIdentityNumber().orElse(null),
-        accountRequestDto.emailAdress().orElse(null),
-        accountRequestDto.telephoneNumber().orElse(null),
-        null,
+    return new AccountEntity(
         null,
         new PublicKeyEntity(
             accountRequestDto.publicKey().kty(),
@@ -41,19 +37,7 @@ public class AccountEntityMapper {
     try {
       return ExtendedAccountDtoBuilder.builder()
           .id(accountEntity.getId())
-          .emailAdress(Optional.ofNullable(accountEntity.getEmail()))
-          .personalIdentityNumber(Optional.ofNullable(accountEntity.getPersonalIdentityNumber()))
-          .telephoneNumber(Optional.ofNullable(accountEntity.getPhone()))
           .securityEnvelope(BlobMapper.blobToString(accountEntity.getSecurityEnvelope()))
-          .walletKey(PublicKeyDtoBuilder.builder()
-              .kty(accountEntity.getWalletKey().getKty())
-              .kid(accountEntity.getWalletKey().getKid())
-              .alg(accountEntity.getWalletKey().getAlg())
-              .use(accountEntity.getWalletKey().getUse())
-              .crv(accountEntity.getWalletKey().getCrv())
-              .x(accountEntity.getWalletKey().getX())
-              .y(accountEntity.getWalletKey().getY())
-              .build())
           .deviceKey(PublicKeyDtoBuilder.builder()
               .kty(accountEntity.getDeviceKey().getKty())
               .kid(accountEntity.getDeviceKey().getKid())
@@ -73,9 +57,6 @@ public class AccountEntityMapper {
   public AccountDto toAccountDto(AccountEntity accountEntity) {
     return AccountDtoBuilder.builder()
         .id(accountEntity.getId())
-        .emailAdress(Optional.ofNullable(accountEntity.getEmail()))
-        .personalIdentityNumber(Optional.ofNullable(accountEntity.getPersonalIdentityNumber()))
-        .telephoneNumber(Optional.ofNullable(accountEntity.getPhone()))
         .publicKey(PublicKeyDtoBuilder.builder()
             .kty(accountEntity.getDeviceKey().getKty())
             .kid(accountEntity.getDeviceKey().getKid())

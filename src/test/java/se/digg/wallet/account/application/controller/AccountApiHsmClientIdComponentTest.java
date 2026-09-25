@@ -111,9 +111,6 @@ public class AccountApiHsmClientIdComponentTest {
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
     when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
@@ -152,9 +149,6 @@ public class AccountApiHsmClientIdComponentTest {
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
     when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
@@ -172,9 +166,6 @@ public class AccountApiHsmClientIdComponentTest {
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
     when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));

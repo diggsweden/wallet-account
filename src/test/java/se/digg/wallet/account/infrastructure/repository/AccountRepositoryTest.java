@@ -56,25 +56,14 @@ class AccountRepositoryTest {
 
   private final String SECURITY_ENVELOPE = "this is just a String";
   private final String KID = "019f6ff8-2cc5-7152-b579-4db56902bb1e";
-  private final String PERSONAL_IDENTITY_NUMBER = "770101-1234";
-  private final String EMAIL = "none@business.se";
-  private final String PHONE = "070-123 123 123";
 
   @Test
   void aSavedAccountCanBeRetrieved() throws SQLException {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     AccountEntity entity =
-        new AccountEntity(null,
-            null,
-            null,
-            securityEnvelopeBlob,
-            TestUtils.generateJwkEntity("12345"),
+        new AccountEntity(securityEnvelopeBlob,
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
-
-    entity.setPersonalIdentityNumber(PERSONAL_IDENTITY_NUMBER);
-    entity.setPhone(PHONE);
-    entity.setEmail(EMAIL);
 
     AccountEntity storedEntity = accountRepository.save(entity);
     entityManager.flush();
@@ -89,76 +78,12 @@ class AccountRepositoryTest {
         .isNotNull();
     assertThat(
         BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
-    assertThat(foundEntity.getWalletKey())
-        .isNotNull();
-    assertThat(foundEntity.getWalletKey().getId()).isNotNull();
     assertThat(foundEntity.getDeviceKey())
         .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
-
-    assertThat(foundEntity.getPersonalIdentityNumber()).isEqualTo(PERSONAL_IDENTITY_NUMBER);
-    assertThat(foundEntity.getEmail()).isEqualTo(EMAIL);
-    assertThat(foundEntity.getPhone()).isEqualTo(PHONE);
   }
 
-  @Test
-  void saveAndRetrieveAccountAcceptsNullPersonalIdentityNumber() throws SQLException {
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
-    AccountEntity entity =
-        new AccountEntity(null,
-            EMAIL,
-            PHONE,
-            securityEnvelopeBlob,
-            TestUtils.generateJwkEntity("12345"),
-            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
-
-    AccountEntity storedEntity = accountRepository.save(entity);
-    entityManager.flush();
-    entityManager.clear();
-
-    AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
-
-    assertThat(foundEntity)
-        .isNotNull();
-    // .isEqualTo(storedEntity);
-
-    assertThat(foundEntity.getPersonalIdentityNumber()).isNull();
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = PERSONAL_IDENTITY_NUMBER)
-  @NullAndEmptySource
-  void personalIdentityNumberDoesNotHaveToBeUnique(String pin) throws SQLException {
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
-
-    // 1. Insert the first entity
-    AccountEntity entity = new AccountEntity(pin,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity("12345"),
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
-
-    accountRepository.save(entity);
-    entityManager.flush();
-    entityManager.clear();
-
-    // 2. Try inserting a second entity with the exact same personal identity number
-    AccountEntity entity2 = new AccountEntity(pin,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity("56789"),
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
-
-    // 3. Assert that the database does not throw a ConstraintViolationException
-    assertDoesNotThrow(() -> {
-      accountRepository.save(entity2);
-      entityManager.flush();
-      entityManager.clear();
-    });
-  }
 
   @ParameterizedTest
   @ValueSource(strings = KID)
@@ -166,11 +91,7 @@ class AccountRepositoryTest {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
     // 1. Insert the first entity
-    AccountEntity entity = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+    AccountEntity entity = new AccountEntity(securityEnvelopeBlob,
         TestUtils.generateJwkEntity(kid));
 
     accountRepository.save(entity);
@@ -178,11 +99,7 @@ class AccountRepositoryTest {
     entityManager.clear();
 
     // 2. Try inserting a second entity with the exact same device key id
-    AccountEntity entity2 = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+    AccountEntity entity2 = new AccountEntity(securityEnvelopeBlob,
         TestUtils.generateJwkEntity(kid));
 
     // 3. Assert that the database throws a ConstraintViolationException
@@ -198,11 +115,7 @@ class AccountRepositoryTest {
   void kidMinLengthConstraintRejectsNullOrZeroLength(String kid) throws SQLException {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
-    AccountEntity entity = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+    AccountEntity entity = new AccountEntity(securityEnvelopeBlob,
         TestUtils.generateJwkEntity(kid));
 
     assertThrows(ConstraintViolationException.class, () -> {
@@ -217,11 +130,7 @@ class AccountRepositoryTest {
   void kidMinLengthConstraintAcceptsLargerThanZeroLength(String kid) throws SQLException {
     final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
 
-    AccountEntity entity = new AccountEntity(PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE,
-        securityEnvelopeBlob,
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()),
+    AccountEntity entity = new AccountEntity(securityEnvelopeBlob,
         TestUtils.generateJwkEntity(kid));
 
     // Assert that the database does not throw a ConstraintViolationException
