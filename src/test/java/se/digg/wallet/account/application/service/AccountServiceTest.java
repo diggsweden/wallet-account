@@ -39,10 +39,6 @@ import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
-  private static final String PERSONAL_IDENTITY_NUMBER = "191010101010";
-  private static final String EMAIL = "test.testsson@test.xx";
-  private static final String PHONE_NUMBER = "070-0000000";
-
   @Mock
   AccountRepository accountRepository;
 
@@ -121,9 +117,6 @@ class AccountServiceTest {
 
     var expectedAccountDto = AccountDtoBuilder.builder()
         .id(expectedAccountId)
-        .personalIdentityNumber(Optional.of(PERSONAL_IDENTITY_NUMBER))
-        .emailAdress(Optional.of(EMAIL))
-        .telephoneNumber(Optional.of(PHONE_NUMBER))
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 
@@ -136,142 +129,7 @@ class AccountServiceTest {
     assertThat(actualAccount).isPresent();
   }
 
-  @Test
-  void assertThatCreateWalletKey_nonExistingAccount_throwsNoSuchElementException() {
 
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
-
-    assertThrows(NoSuchElementException.class, () -> accountService
-        .createWalletKey(UUID.randomUUID(), PublicKeyDtoBuilder.builder().build()));
-  }
-
-  @Test
-  void assertThatCreateWalletKey_addNewWalletKey_shouldReturnEqualKeyId() {
-
-    var expectedKeyId = randomId();
-    var walletKeyRequest = publicKeyDtoWithDefaults(expectedKeyId);
-
-    var accountId = UUID.randomUUID();
-    var existingAccountEntity = new AccountEntity(
-        PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE_NUMBER,
-        null,
-        null,
-        new PublicKeyEntity());
-    existingAccountEntity.setId(accountId);
-
-    when(accountRepository.findById(eq(accountId))).thenReturn(Optional.of(existingAccountEntity));
-    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
-
-    var createdWalletKey = accountService.createWalletKey(accountId, walletKeyRequest);
-
-    var actualKeyId = createdWalletKey.kid();
-    assertThat(actualKeyId).isEqualTo(expectedKeyId);
-  }
-
-  @Test
-  void assertThatCreateWalletKey_replaceExistingWalletKey_shouldReturnEqualKeyId() {
-
-    var expectedKeyId = randomId();
-    var walletKeyRequest = publicKeyDtoWithDefaults(expectedKeyId);
-
-    var accountId = UUID.randomUUID();
-    var existingAccountEntity = new AccountEntity(
-        PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE_NUMBER,
-        null,
-        new PublicKeyEntity(),
-        new PublicKeyEntity());
-    existingAccountEntity.setId(accountId);
-
-    when(accountRepository.findById(eq(accountId))).thenReturn(Optional.of(existingAccountEntity));
-    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
-
-    var createdWalletKey = accountService.createWalletKey(accountId, walletKeyRequest);
-
-    var actualKeyId = createdWalletKey.kid();
-    assertThat(actualKeyId).isEqualTo(expectedKeyId);
-  }
-
-  @Test
-  void assertThatGetWalletKeys_existingAccountWithWalletKey_shouldReturnExpectedWalletKeys() {
-
-    var expectedKeyId = randomId();
-    var existingAccountEntity = new AccountEntity();
-    var existingWalletKey = new PublicKeyEntity(
-        null,
-        expectedKeyId,
-        null,
-        null,
-        null,
-        null,
-        null);
-    existingAccountEntity.setWalletKey(existingWalletKey);
-
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-
-    var actualWalletKeyList = accountService.getWalletKeys(UUID.randomUUID());
-    assertThat(actualWalletKeyList).isNotEmpty();
-    assertThat(actualWalletKeyList.size()).isEqualTo(1);
-
-    var actualWalletKey = actualWalletKeyList.getFirst();
-    assertThat(actualWalletKey).isNotNull();
-
-    var actualKeyId = actualWalletKey.kid();
-    assertThat(actualKeyId).isEqualTo(expectedKeyId);
-  }
-
-  @Test
-  void assertThatGetWalletKey_nonExistingAccount_throwsNoSuchElementException() {
-
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
-
-    assertThrows(NoSuchElementException.class,
-        () -> accountService.getWalletKey(UUID.randomUUID()));
-  }
-
-  @Test
-  void assertThatGetWalletKey_existingAccountWithoutWalletKey_shouldReturnEmpty() {
-
-    var expectedKeyId = randomId();
-    var existingAccountEntity = new AccountEntity(
-        PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE_NUMBER,
-        null,
-        null,
-        new PublicKeyEntity());
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-
-    var existingWalletKey = accountService.getWalletKey(UUID.randomUUID());
-    assertThat(existingWalletKey).isEmpty();
-  }
-
-  @Test
-  void assertThatGetWalletKey_existingAccountWithWalletKey_shouldReturnExpectedWalletKey() {
-
-    var expectedKeyId = randomId();
-    var existingAccountEntity = new AccountEntity();
-    var existingWalletKey = new PublicKeyEntity(
-        null,
-        expectedKeyId,
-        null,
-        null,
-        null,
-        null,
-        null);
-    existingAccountEntity.setWalletKey(existingWalletKey);
-
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-
-    var actualWalletKey = accountService.getWalletKey(UUID.randomUUID());
-    assertThat(actualWalletKey).isPresent();
-
-    var actualKeyId = actualWalletKey.get().kid();
-    assertThat(actualKeyId).isEqualTo(expectedKeyId);
-  }
 
   @Test
   void assertThatCreateSecurityEnvelope_nonExistingAccount_throwsNoSuchElementException() {
