@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -57,26 +56,6 @@ public class AccountEntityMapperTest {
     assertDoesNotThrow(() -> mapper.toAccountEntity(accountRequestDto));
   }
 
-  @Test
-  void assertThatToAccountEntity_accountValues_containsMappedEqualValues() {
-
-    var expectedPersonalIdentityNumber = randomId();
-    var expectedEmail = "test.testsson@test.xx";
-    var expectedPhoneNumber = "0700000000";
-
-    var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
-        .personalIdentityNumber(Optional.of(expectedPersonalIdentityNumber))
-        .emailAdress(Optional.of(expectedEmail))
-        .telephoneNumber(Optional.of(expectedPhoneNumber))
-        .publicKey(PublicKeyDtoBuilder.builder().build())
-        .build();
-
-    var accountEntity = mapper.toAccountEntity(accountRequestDto);
-
-    assertEquals(expectedPersonalIdentityNumber, accountEntity.getPersonalIdentityNumber());
-    assertEquals(expectedEmail, accountEntity.getEmail());
-    assertEquals(expectedPhoneNumber, accountEntity.getPhone());
-  }
 
   @Test
   void assertThatToAccountEntity_deviceKeyValues_containsMappedValues() {
@@ -111,72 +90,22 @@ public class AccountEntityMapperTest {
   void assertThatToExtendedAccountDto_nullDeviceKey_throwsException() {
 
     var accountEntity = new AccountEntity();
-    accountEntity.setWalletKey(new PublicKeyEntity());
 
     assertThrows(Exception.class, () -> mapper.toExtendedAccountDto(accountEntity));
   }
 
-  @Test
-  void assertThatToExtendedAccountDto_nullWalletKey_throwsException() {
 
-    var accountEntity = new AccountEntity();
-    accountEntity.setDeviceKey(new PublicKeyEntity());
-
-    assertThrows(Exception.class, () -> mapper.toExtendedAccountDto(accountEntity));
-  }
-
-  @Test
-  void assertThatToExtendedAccountEntity_accountValues_containsEqualMappedValues() {
-
-    var expectedPersonalIdentityNumber = randomId();
-    var expectedEmail = "test.testsson@test.xx";
-    var expectedPhoneNumber = "0700000000";
-
-    var accountEntity = new AccountEntity(
-        expectedPersonalIdentityNumber,
-        expectedEmail,
-        expectedPhoneNumber,
-        null,
-        new PublicKeyEntity(),
-        new PublicKeyEntity());
-
-    var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
-
-    assertEquals(expectedPersonalIdentityNumber,
-        extendedAccountDto.personalIdentityNumber().orElseThrow());
-    assertEquals(expectedEmail, extendedAccountDto.emailAdress().orElseThrow());
-    assertThat(extendedAccountDto.telephoneNumber()).isPresent();
-    assertEquals(expectedPhoneNumber, extendedAccountDto.telephoneNumber().get());
-  }
 
   @Test
   void assertThatToExtendedAccountEntity_nullDeviceKey_throwsException() {
 
     var accountEntity = new AccountEntity(
         null,
-        null,
-        null,
-        null,
-        new PublicKeyEntity(),
         null);
 
     assertThrows(Exception.class, () -> mapper.toExtendedAccountDto(accountEntity));
   }
 
-  @Test
-  void assertThatToExtendedAccountEntity_nullWalletKey_throwsException() {
-
-    var accountEntity = new AccountEntity(
-        null,
-        null,
-        null,
-        null,
-        null,
-        new PublicKeyEntity());
-
-
-    assertThrows(Exception.class, () -> mapper.toExtendedAccountDto(accountEntity));
-  }
 
   @Test
   void assertThatToExtendedAccountEntity_deviceKeyValues_mappedToEqualKeyId() {
@@ -192,10 +121,6 @@ public class AccountEntityMapperTest {
         randomId());
     var accountEntity = new AccountEntity(
         null,
-        null,
-        null,
-        null,
-        new PublicKeyEntity(),
         publicKeyEntity);
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
@@ -212,39 +137,6 @@ public class AccountEntityMapperTest {
     assertNotNull(actualKey.y());
   }
 
-  @Test
-  void assertThatToExtendedAccountEntity_walletKeyValues_containsMappedValues() {
-
-    var expectedKeyId = randomId();
-    var publicKeyEntity = new PublicKeyEntity(
-        randomId(),
-        expectedKeyId,
-        randomId(),
-        randomId(),
-        randomId(),
-        randomId(),
-        randomId());
-    var accountEntity = new AccountEntity(
-        null,
-        null,
-        null,
-        null,
-        publicKeyEntity,
-        new PublicKeyEntity());
-
-    var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
-    var actualKey = extendedAccountDto.walletKey();
-
-    assertThat(actualKey).isNotNull();
-    assertNotNull(actualKey.kid());
-    assertEquals(expectedKeyId, actualKey.kid());
-    assertNotNull(actualKey.alg());
-    assertNotNull(actualKey.use());
-    assertNotNull(actualKey.kty());
-    assertNotNull(actualKey.crv());
-    assertNotNull(actualKey.x());
-    assertNotNull(actualKey.y());
-  }
 
   @Test
   void assertThatToExtendedAccountEntity_securityEnvelopeContent_containsMappedEqualContent()
@@ -255,11 +147,7 @@ public class AccountEntityMapperTest {
     var blob = new SerialBlob(bytes);
 
     var accountEntity = new AccountEntity(
-        null,
-        null,
-        null,
         blob,
-        new PublicKeyEntity(),
         new PublicKeyEntity());
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
@@ -289,38 +177,11 @@ public class AccountEntityMapperTest {
 
     var accountEntity = new AccountEntity(
         null,
-        null,
-        null,
-        null,
-        new PublicKeyEntity(),
         new PublicKeyEntity());
 
     assertDoesNotThrow(() -> mapper.toAccountDto(accountEntity));
   }
 
-  @Test
-  void assertThatToAccountDto_withPersonalAccountValues_containsMappedEqualValues() {
-
-    var expectedPersonalIdentityNumber = randomId();
-    var expectedEmail = "test.testsson@test.xx";
-    var expectedPhoneNumber = "0700000000";
-
-    var accountEntity = new AccountEntity(
-        expectedPersonalIdentityNumber,
-        expectedEmail,
-        expectedPhoneNumber,
-        null,
-        new PublicKeyEntity(),
-        new PublicKeyEntity());
-
-    var mappedEntity = mapper.toAccountDto(accountEntity);
-
-    assertEquals(expectedPersonalIdentityNumber,
-        mappedEntity.personalIdentityNumber().orElseThrow());
-    assertEquals(expectedEmail, mappedEntity.emailAdress().orElseThrow());
-    assertThat(mappedEntity.telephoneNumber()).isPresent();
-    assertEquals(expectedPhoneNumber, mappedEntity.telephoneNumber().get());
-  }
 
   @Test
   void assertThatToAccountDto_deviceKeyValues_containsMappedValues() {
@@ -336,10 +197,6 @@ public class AccountEntityMapperTest {
         randomId());
     var accountEntity = new AccountEntity(
         null,
-        null,
-        null,
-        null,
-        new PublicKeyEntity(),
         publicKeyEntity);
 
     var mappedEntity = mapper.toAccountDto(accountEntity);

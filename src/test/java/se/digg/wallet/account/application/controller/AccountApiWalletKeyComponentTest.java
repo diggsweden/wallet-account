@@ -5,7 +5,6 @@
 package se.digg.wallet.account.application.controller;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
@@ -24,19 +23,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
-import se.digg.wallet.account.api.v0.model.EcJwkResponse;
-import se.digg.wallet.account.api.v0.model.EcJwkItemsResponse;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
-import se.digg.wallet.account.application.model.PublicKeyDto;
-import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @Testcontainers
 @SpringBootTest(
@@ -72,16 +65,16 @@ public class AccountApiWalletKeyComponentTest {
   }
 
   @Test
-  void addingWalletKeyToNonExistingAccountReturnsNotFound() {
-
-    when(accountService.getAccountById(any())).thenReturn(Optional.empty());
+  void addingWalletKeyReturnsGone() {
 
     client.post()
         .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .body(defaultKeyRequest().build())
         .exchange()
         .expectStatus()
-        .isNotFound();
+        .isEqualTo(HttpStatus.GONE);
+
+    verifyNoInteractions(accountService);
   }
 
   @ParameterizedTest
@@ -109,160 +102,15 @@ public class AccountApiWalletKeyComponentTest {
   }
 
   @Test
-  void addingInvalidWalletKeyReturnsBadRequest() {
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        toPublicKeyDto(defaultKeyRequest().build()));
-
-    var invalidKey = EcJwkRequest.builder()
-        .kid("1")
-        .kty("2")
-        .crv("3")
-        .x("4")
-        .y("5")
-        .build();
-
-    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
-
-    client.post()
-        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
-        .body(invalidKey)
-        .exchange()
-        .expectStatus()
-        .isBadRequest();
-  }
-
-  @Test
-  void addsWalletKeyToAccount() {
-
-    final EcJwkRequest walletKeyRequest = defaultKeyRequest().build();
-    final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        toPublicKeyDto(defaultKeyRequest().build()));
-
-    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
-    when(accountService.createWalletKey(any(), any())).thenReturn(walletKeyDto);
-
-    var keyResponse = client.post()
-        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
-        .body(walletKeyRequest)
-        .exchange()
-        .expectStatus()
-        .isCreated()
-        .expectBody(EcJwkResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(keyResponse).isNotNull().isEqualTo(toKeyResponse(walletKeyRequest));
-  }
-
-  @Test
-  void fetchingWalletKeysFromNonExistingAccountReturnsNotFound() {
-
-    when(accountService.getAccountById(any())).thenReturn(Optional.empty());
+  void fetchingWalletKeysReturnsGone() {
 
     client.get()
         .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
         .exchange()
         .expectStatus()
-        .isNotFound();
-  }
+        .isEqualTo(HttpStatus.GONE);
 
-  @Test
-  void fetchingNonExistingWalletKeyReturnsEmptyList() {
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        toPublicKeyDto(defaultKeyRequest().build()));
-
-    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
-    when(accountService.getWalletKey(any())).thenReturn(Optional.empty());
-
-    var keysResponse = client.get()
-        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
-        .exchange()
-        .expectStatus()
-        .isOk()
-        .expectBody(EcJwkItemsResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(keysResponse).isNotNull();
-    assertThat(keysResponse.getItems()).isEmpty();
-  }
-
-  @Test
-  void servesWalletKeys() {
-
-    final EcJwkRequest walletKeyRequest = defaultKeyRequest().build();
-    final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        toPublicKeyDto(defaultKeyRequest().build()));
-
-    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
-    when(accountService.getWalletKey(any())).thenReturn(Optional.of(walletKeyDto));
-
-    var keysResponse = client.get()
-        .uri("/v0/accounts/{0}/wallet-keys", ACCOUNT_ID)
-        .exchange()
-        .expectStatus()
-        .isOk()
-        .expectBody(EcJwkItemsResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(keysResponse).isNotNull();
-    assertThat(keysResponse.getItems()).isNotEmpty().hasSize(1);
-    assertThat(keysResponse.getItems().getFirst()).isEqualTo(toKeyResponse(walletKeyRequest));
-  }
-
-  @Test
-  void servesWalletKeyById() {
-
-    final EcJwkRequest walletKeyRequest = defaultKeyRequest()
-        .kid(KEY_ID)
-        .build();
-    final PublicKeyDto walletKeyDto = toPublicKeyDto(walletKeyRequest);
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        toPublicKeyDto(defaultKeyRequest().build()));
-
-    when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
-    when(accountService.getWalletKey(any())).thenReturn(Optional.of(walletKeyDto));
-
-    var keysResponse = client.get()
-        .uri("/v0/accounts/{0}/wallet-keys?kid={1}", ACCOUNT_ID, KEY_ID)
-        .exchange()
-        .expectStatus()
-        .isOk()
-        .expectBody(EcJwkItemsResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(keysResponse).isNotNull();
-    assertThat(keysResponse.getItems()).isNotEmpty().hasSize(1);
-    assertThat(keysResponse.getItems().getFirst()).isEqualTo(toKeyResponse(walletKeyRequest));
+    verifyNoInteractions(accountService);
   }
 
   private static EcJwkRequest.Builder defaultKeyRequest() {
@@ -274,26 +122,7 @@ public class AccountApiWalletKeyComponentTest {
         .y("5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40");
   }
 
-  private static PublicKeyDto toPublicKeyDto(EcJwkRequest keyRequest) {
-    return new PublicKeyDto(
-        keyRequest.getKty(),
-        keyRequest.getKid(),
-        null,
-        null,
-        keyRequest.getCrv(),
-        keyRequest.getX(),
-        keyRequest.getY());
-  }
 
-  private static EcJwkResponse toKeyResponse(EcJwkRequest keyRequest) {
-    return EcJwkResponse.builder()
-        .kty(keyRequest.getKty())
-        .kid(keyRequest.getKid())
-        .crv(keyRequest.getCrv())
-        .x(keyRequest.getX())
-        .y(keyRequest.getY())
-        .build();
-  }
 
   private static void assertProblemDetails(ProblemResponse problemResponse,
       HttpStatus expectedHttpStatus,

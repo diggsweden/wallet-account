@@ -15,12 +15,10 @@ import org.springframework.stereotype.Component;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
 import se.digg.wallet.account.application.exception.WalletAccountException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
-import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.mapper.BlobMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 
 @Component
@@ -42,33 +40,6 @@ public class AccountService {
 
   public Optional<AccountDto> getAccountById(UUID id) {
     return accountRepository.findById(id).map(accountEntityMapper::toAccountDto);
-  }
-
-  public PublicKeyDto createWalletKey(UUID accountId, PublicKeyDto walletKeyDto) {
-
-    PublicKeyEntity walletKey = new PublicKeyEntity(
-        walletKeyDto.kty(),
-        walletKeyDto.kid(),
-        walletKeyDto.alg(),
-        walletKeyDto.use(),
-        walletKeyDto.crv(),
-        walletKeyDto.x(),
-        walletKeyDto.y());
-
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    entity.setWalletKey(walletKey);
-    var savedEntity = accountRepository.save(entity);
-    return toPublicKeyDto(savedEntity.getWalletKey());
-  }
-
-  public List<PublicKeyDto> getWalletKeys(UUID accountId) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return List.of(toPublicKeyDto(entity.getWalletKey()));
-  }
-
-  public Optional<PublicKeyDto> getWalletKey(UUID accountId) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return Optional.ofNullable(toPublicKeyDto(entity.getWalletKey()));
   }
 
   public String createHsmClientId(UUID accountId, String hsmClientId) {
@@ -124,17 +95,4 @@ public class AccountService {
     return storedEntity;
   }
 
-  private PublicKeyDto toPublicKeyDto(PublicKeyEntity wk) {
-    if (wk == null) {
-      return null;
-    }
-    return new PublicKeyDto(
-        wk.getKty(),
-        wk.getKid(),
-        wk.getAlg(),
-        wk.getUse(),
-        wk.getCrv(),
-        wk.getX(),
-        wk.getY());
-  }
 }
