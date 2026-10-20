@@ -1,13 +1,11 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for Digital Government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
 package se.digg.wallet.account.application.controller;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +24,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
 import se.digg.wallet.account.api.v0.model.HsmClientIdResponse;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
-import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
@@ -37,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static se.digg.wallet.account.application.controller.util.ProblemDetailAssertion.assertProblemDetails;
 
 @Testcontainers
 @SpringBootTest(
@@ -103,7 +101,8 @@ public class AccountApiHsmClientIdComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, VALIDATION_FAILURE, "clientId");
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
+        VALIDATION_FAILURE, "clientId");
   }
 
   @Test
@@ -202,32 +201,5 @@ public class AccountApiHsmClientIdComponentTest {
         keyRequest.getCrv(),
         keyRequest.getX(),
         keyRequest.getY());
-  }
-
-  private static void assertProblemDetails(ProblemResponse problemResponse,
-      HttpStatus expectedHttpStatus,
-      @Nullable String expectedType,
-      @Nullable String expectedInvalidParameterProperty) {
-
-    assertThat(problemResponse).isNotNull();
-    assertThat(problemResponse.getStatus()).isEqualTo(expectedHttpStatus.value());
-    assertThat(problemResponse.getTitle()).isNotEmpty();
-    assertThat(problemResponse.getDetail()).isNotEmpty();
-    assertThat(problemResponse.getInstance()).isNotNull();
-    assertThat(problemResponse.getType()).isNotEmpty();
-    assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(TRANSACTION_ID);
-    if (expectedType != null) {
-      assertThat(problemResponse.getType()).isEqualTo(expectedType);
-    }
-
-    if (expectedInvalidParameterProperty != null) {
-      assertThat(problemResponse.getInvalidParameters()).isNotEmpty();
-      assertThat(expectedInvalidParameterProperty).isIn(problemResponse.getInvalidParameters()
-          .stream()
-          .map(ProblemParameterResponse::getProperty)
-          .map(value -> value.orElse(null))
-          .filter(Objects::nonNull)
-          .toList());
-    }
   }
 }
