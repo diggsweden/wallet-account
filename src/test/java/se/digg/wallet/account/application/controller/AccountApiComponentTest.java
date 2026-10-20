@@ -30,6 +30,7 @@ import se.digg.wallet.account.api.v0.model.EcJwkResponse;
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
+import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.service.AccountService;
@@ -38,6 +39,7 @@ import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Testcontainers
@@ -221,9 +223,6 @@ public class AccountApiComponentTest {
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         deviceKeyDto);
     when(accountService.createAccount(any())).thenReturn(accountDto);
 
@@ -264,9 +263,6 @@ public class AccountApiComponentTest {
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.empty(),
-        Optional.of(email),
-        Optional.empty(),
         deviceKeyDto);
     when(accountService.createAccount(any())).thenReturn(accountDto);
 
@@ -288,21 +284,18 @@ public class AccountApiComponentTest {
     assertThat(accountResponse).isNotNull();
     assertThat(accountResponse.getId()).isNotNull().isEqualTo(ACCOUNT_ID);
     assertThat(accountResponse.getPersonalIdentityNumber()).isEmpty();
-    assertThat(accountResponse.getEmail()).isNotEmpty().get().isEqualTo(email);
+    assertThat(accountResponse.getEmail()).isEmpty();
     assertThat(accountResponse.getPhoneNumber()).isEmpty();
   }
 
   @Test
-  void createAccountWithOptionalsReturnsSavedValues() {
+  void createAccountWithDeprecatedFieldsIgnoresThem() {
 
     final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.of(PERSONAL_IDENTITY_NUMBER),
-        Optional.of(EMAIL),
-        Optional.of(PHONE_NUMBER),
         deviceKeyDto);
     when(accountService.createAccount(any())).thenReturn(accountDto);
 
@@ -323,11 +316,11 @@ public class AccountApiComponentTest {
 
     assertThat(accountResponse).isNotNull();
     assertThat(accountResponse.getId()).isNotNull().isEqualTo(ACCOUNT_ID);
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNotEmpty().get()
-        .isEqualTo(PERSONAL_IDENTITY_NUMBER);
-    assertThat(accountResponse.getEmail()).isNotEmpty().get().isEqualTo(EMAIL);
-    assertThat(accountResponse.getPhoneNumber()).isNotEmpty().get().isEqualTo(PHONE_NUMBER);
+    assertThat(accountResponse.getPersonalIdentityNumber()).isEmpty();
+    assertThat(accountResponse.getEmail()).isEmpty();
+    assertThat(accountResponse.getPhoneNumber()).isEmpty();
     assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
+    verify(accountService).createAccount(eq(new CreateAccountRequestDto(deviceKeyDto)));
   }
 
   @Test
@@ -371,9 +364,6 @@ public class AccountApiComponentTest {
 
     var accountDto = new AccountDto(
         ACCOUNT_ID,
-        Optional.of(PERSONAL_IDENTITY_NUMBER),
-        Optional.of(EMAIL),
-        Optional.of(PHONE_NUMBER),
         deviceKeyDto);
     when(accountService.getAccountById(eq(ACCOUNT_ID))).thenReturn(Optional.of(accountDto));
 
@@ -388,10 +378,9 @@ public class AccountApiComponentTest {
 
     assertThat(accountResponse).isNotNull();
     assertThat(accountResponse.getId()).isNotNull().isEqualTo(ACCOUNT_ID);
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNotEmpty().get()
-        .isEqualTo(PERSONAL_IDENTITY_NUMBER);
-    assertThat(accountResponse.getEmail()).isNotEmpty().get().isEqualTo(EMAIL);
-    assertThat(accountResponse.getPhoneNumber()).isNotEmpty().get().isEqualTo(PHONE_NUMBER);
+    assertThat(accountResponse.getPersonalIdentityNumber()).isEmpty();
+    assertThat(accountResponse.getEmail()).isEmpty();
+    assertThat(accountResponse.getPhoneNumber()).isEmpty();
     assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
   }
 

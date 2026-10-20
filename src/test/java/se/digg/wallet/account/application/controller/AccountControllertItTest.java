@@ -65,11 +65,7 @@ class AccountControllertItTest {
   void getAccount() {
 
     AccountEntity accountEntity = new AccountEntity(
-        PERSONAL_IDENTITY_NUMBER,
-        EMAIL,
-        PHONE_NUMBER,
         null,
-        TestUtils.generateJwkEntity(null),
         TestUtils.generateJwkEntity("1"));
     var accountId = repository.save(accountEntity).getId();
 
@@ -83,10 +79,9 @@ class AccountControllertItTest {
             .getResponseBody();
 
     assertThat(accountResponse).isNotNull();
-    assertThat(accountResponse.getPersonalIdentityNumber()).isPresent().get()
-        .isEqualTo(PERSONAL_IDENTITY_NUMBER);
-    assertThat(accountResponse.getEmail()).isPresent().get().isEqualTo(EMAIL);
-    assertThat(accountResponse.getPhoneNumber()).isPresent().get().isEqualTo(PHONE_NUMBER);
+    assertThat(accountResponse.getPersonalIdentityNumber()).isEmpty();
+    assertThat(accountResponse.getEmail()).isEmpty();
+    assertThat(accountResponse.getPhoneNumber()).isEmpty();
     assertThat(accountResponse.getDeviceKey()).isNotNull();
     assertThat(accountResponse.getDeviceKey().getKid()).isNotNull()
         .isEqualTo(accountEntity.getDeviceKey().getKid());
@@ -170,10 +165,9 @@ class AccountControllertItTest {
             .getResponseBody();
 
     assertThat(fetchedAccountResponse).isNotNull();
-    assertThat(fetchedAccountResponse.getPersonalIdentityNumber()).isPresent().get()
-        .isEqualTo(PERSONAL_IDENTITY_NUMBER);
-    assertThat(fetchedAccountResponse.getEmail()).isPresent().get().isEqualTo(EMAIL);
-    assertThat(fetchedAccountResponse.getPhoneNumber()).isPresent().get().isEqualTo(PHONE_NUMBER);
+    assertThat(fetchedAccountResponse.getPersonalIdentityNumber()).isEmpty();
+    assertThat(fetchedAccountResponse.getEmail()).isEmpty();
+    assertThat(fetchedAccountResponse.getPhoneNumber()).isEmpty();
     assertThat(fetchedAccountResponse.getDeviceKey()).isNotNull();
     assertThat(fetchedAccountResponse.getDeviceKey().getKid()).isNotNull().isEqualTo(keyId);
   }

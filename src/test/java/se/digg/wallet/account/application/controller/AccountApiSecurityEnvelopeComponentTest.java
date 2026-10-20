@@ -112,9 +112,6 @@ public class AccountApiSecurityEnvelopeComponentTest {
 
     var accountDto = new AccountDto(
         accountId,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
     when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
@@ -155,9 +152,6 @@ public class AccountApiSecurityEnvelopeComponentTest {
 
     var accountDto = new AccountDto(
         accountId,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
     when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));
@@ -184,9 +178,6 @@ public class AccountApiSecurityEnvelopeComponentTest {
 
     var accountDto = new AccountDto(
         accountId,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
         toPublicKeyDto(defaultKeyRequest().build()));
 
     when(accountService.getAccountById(eq(accountId))).thenReturn(Optional.of(accountDto));

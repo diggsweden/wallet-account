@@ -27,22 +27,11 @@ public class AccountEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
   @Column
-  private String personalIdentityNumber;
-  @Column
-  private String email;
-  @Column
-  private String phone;
-
-  @Column
   private String hsmClientId;
 
   @JdbcTypeCode(SqlTypes.BLOB)
   @Column(columnDefinition = "blob")
   private Blob securityEnvelope;
-
-  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  @JoinColumn(name = "wallet_key_id", referencedColumnName = "id")
-  private PublicKeyEntity walletKey;
 
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "device_key_id", referencedColumnName = "id")
@@ -51,14 +40,8 @@ public class AccountEntity {
 
   public AccountEntity() {}
 
-  public AccountEntity(String personalIdentityNumber, String email,
-      String phone, Blob securityEnvelope, PublicKeyEntity walletKey,
-      PublicKeyEntity deviceKey) {
-    this.personalIdentityNumber = personalIdentityNumber;
-    this.email = email;
-    this.phone = phone;
+  public AccountEntity(Blob securityEnvelope, PublicKeyEntity deviceKey) {
     this.securityEnvelope = securityEnvelope;
-    this.walletKey = walletKey;
     this.deviceKey = deviceKey;
   }
 
@@ -68,30 +51,6 @@ public class AccountEntity {
 
   public void setId(UUID id) {
     this.id = id;
-  }
-
-  public String getPersonalIdentityNumber() {
-    return personalIdentityNumber;
-  }
-
-  public void setPersonalIdentityNumber(String personalIdentityNumber) {
-    this.personalIdentityNumber = personalIdentityNumber;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public void setPhone(String phone) {
-    this.phone = phone;
   }
 
   public String getHsmClientId() {
@@ -110,14 +69,6 @@ public class AccountEntity {
     this.securityEnvelope = securityEnvelope;
   }
 
-  public PublicKeyEntity getWalletKey() {
-    return walletKey;
-  }
-
-  public void setWalletKey(PublicKeyEntity walletKey) {
-    this.walletKey = walletKey;
-  }
-
   public PublicKeyEntity getDeviceKey() {
     return deviceKey;
   }
@@ -128,7 +79,7 @@ public class AccountEntity {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, email, phone, hsmClientId, securityEnvelope, walletKey, deviceKey);
+    return Objects.hash(id, hsmClientId, securityEnvelope, deviceKey);
   }
 
   @Override
@@ -146,20 +97,16 @@ public class AccountEntity {
 
     AccountEntity other = (AccountEntity) obj;
     return Objects.equals(id, other.id)
-        && Objects.equals(email, other.email)
-        && Objects.equals(phone, other.phone)
         && Objects.equals(hsmClientId, other.hsmClientId)
         && Objects.equals(securityEnvelope, other.securityEnvelope)
-        && Objects.equals(walletKey, other.walletKey)
         && Objects.equals(other.deviceKey, deviceKey);
   }
 
   @Override
   public String toString() {
-    return "AccountEntity [id=" + id + ", personalIdentityNumber=" + personalIdentityNumber
-        + ", email=" + email + ", phone=" + phone
+    return "AccountEntity [id=" + id
         + ", hsmClientId=" + hsmClientId
-        + ", securityEnvelope=" + securityEnvelope + ", walletKey=" + walletKey
+        + ", securityEnvelope=" + securityEnvelope
         + ", deviceKey=" + deviceKey + "]";
   }
 
