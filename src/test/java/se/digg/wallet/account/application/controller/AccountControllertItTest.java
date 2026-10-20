@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for Digital Government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -79,12 +79,39 @@ class AccountControllertItTest {
             .getResponseBody();
 
     assertThat(accountResponse).isNotNull();
-    assertThat(accountResponse.getPersonalIdentityNumber()).isEmpty();
-    assertThat(accountResponse.getEmail()).isEmpty();
-    assertThat(accountResponse.getPhoneNumber()).isEmpty();
+    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
+    assertThat(accountResponse.getEmail()).isNull();
+    assertThat(accountResponse.getPhoneNumber()).isNull();
     assertThat(accountResponse.getDeviceKey()).isNotNull();
     assertThat(accountResponse.getDeviceKey().getKid()).isNotNull()
         .isEqualTo(accountEntity.getDeviceKey().getKid());
+  }
+
+  @Test
+  void saveAccountDoesNotSaveOptionals() {
+
+    AccountRequest requestDto =
+        AccountRequest.builder()
+            .email(EMAIL)
+            .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
+            .phoneNumber(PHONE_NUMBER)
+            .deviceKey(deviceKeyWithDefaults("2"))
+            .build();
+
+    var accountResponse = client.post()
+        .uri("/v0/accounts")
+        .body(requestDto)
+        .exchange()
+        .expectStatus().isCreated()
+        .expectBody(AccountResponse.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertThat(accountResponse).isNotNull();
+    assertThat(accountResponse.getId()).isNotNull();
+    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
+    assertThat(accountResponse.getEmail()).isNull();
+    assertThat(accountResponse.getPhoneNumber()).isNull();
   }
 
   @Test
@@ -92,9 +119,6 @@ class AccountControllertItTest {
 
     AccountRequest requestDto =
         AccountRequest.builder()
-            .email(EMAIL)
-            .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-            .phoneNumber(PHONE_NUMBER)
             .deviceKey(deviceKeyWithDefaults("2"))
             .build();
 
@@ -165,9 +189,9 @@ class AccountControllertItTest {
             .getResponseBody();
 
     assertThat(fetchedAccountResponse).isNotNull();
-    assertThat(fetchedAccountResponse.getPersonalIdentityNumber()).isEmpty();
-    assertThat(fetchedAccountResponse.getEmail()).isEmpty();
-    assertThat(fetchedAccountResponse.getPhoneNumber()).isEmpty();
+    assertThat(fetchedAccountResponse.getPersonalIdentityNumber()).isNull();
+    assertThat(fetchedAccountResponse.getEmail()).isNull();
+    assertThat(fetchedAccountResponse.getPhoneNumber()).isNull();
     assertThat(fetchedAccountResponse.getDeviceKey()).isNotNull();
     assertThat(fetchedAccountResponse.getDeviceKey().getKid()).isNotNull().isEqualTo(keyId);
   }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for Digital Government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -67,7 +67,8 @@ public class DefaultExceptionHandlerTest {
     assertThat(responseEntity).isNotNull();
     assertThat(responseEntity.getBody()).isInstanceOf(ProblemResponse.class);
     var problemResponse = (ProblemResponse) responseEntity.getBody();
-    assertThat(problemResponse.getTransactionId()).isEmpty();
+    assertThat(problemResponse).isNotNull();
+    assertThat(problemResponse.getTransactionId()).isNull();
   }
 
   @Test
@@ -85,8 +86,8 @@ public class DefaultExceptionHandlerTest {
     assertThat(responseEntity).isNotNull();
     assertThat(responseEntity.getBody()).isInstanceOf(ProblemResponse.class);
     var problemResponse = (ProblemResponse) responseEntity.getBody();
-
-    assertThat(problemResponse.getTransactionId()).isPresent().get().isEqualTo(transactionId);
+    assertThat(problemResponse).isNotNull();
+    assertThat(problemResponse.getTransactionId()).isEqualTo(transactionId);
   }
 
   private static void assertProblemDetails(ProblemResponse problemResponse,

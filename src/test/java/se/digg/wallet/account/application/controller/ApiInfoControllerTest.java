@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for Digital Government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -53,8 +53,8 @@ public class ApiInfoControllerTest {
     assertThat(apiInfoResponse).isNotNull();
     assertThat(apiInfoResponse.getName()).isNotEmpty();
     assertThat(apiInfoResponse.getVersion()).isNotEmpty();
-    assertThat(apiInfoResponse.getReleaseDate()).isNotEmpty();
-    assertThat(apiInfoResponse.getReleaseDate().get()).isAfter(LocalDate.EPOCH);
+    assertThat(apiInfoResponse.getReleaseDate()).isNotNull();
+    assertThat(apiInfoResponse.getReleaseDate()).isAfter(LocalDate.EPOCH);
     assertThat(apiInfoResponse.getStatus()).isNotEmpty();
   }
 }

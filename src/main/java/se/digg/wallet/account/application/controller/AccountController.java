@@ -69,7 +69,7 @@ public class AccountController implements AccountApi {
   }
 
   @Override
-  public ResponseEntity<ProblemResponse> getAccountWalletKey(UUID id, Optional<String> kid) {
+  public ResponseEntity<ProblemResponse> getAccountWalletKey(UUID id, String kid) {
     return ResponseEntity.status(HttpStatus.GONE).build();
   }
 
@@ -150,8 +150,8 @@ public class AccountController implements AccountApi {
         Optional.of(deviceKey).map(dk -> new PublicKeyDto(
             dk.getKty(),
             dk.getKid(),
-            dk.getAlg().orElse(null),
-            dk.getUse().orElse(null),
+            dk.getAlg(),
+            dk.getUse(),
             dk.getCrv(),
             dk.getX(),
             dk.getY()))

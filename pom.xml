@@ -91,11 +91,6 @@ SPDX-License-Identifier: EUPL-1.2
       <version>0.2.12</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-      <version>2.22.3</version>
-    </dependency>
-    <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
       <version>10.10</version>
@@ -327,7 +322,7 @@ SPDX-License-Identifier: EUPL-1.2
                 <useTags>true</useTags>
                 <skipDefaultInterface>true</skipDefaultInterface>
                 <generateBuilders>true</generateBuilders>
-                <useOptional>true</useOptional>
+                <useOptional>false</useOptional>
                 <includeHttpRequestContext>false</includeHttpRequestContext>
               </configOptions>
             </configuration>
