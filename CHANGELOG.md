@@ -5,11 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-10-20
+
+### Changed
+
+- Stop storing wallet key and personal data (#91)
+- Update java non-major (#94)
+- Update diggsweden/wallet-ecosystem digest to 002f8a4 (#96)
+- Update diggsweden/wallet-ecosystem digest to 726b7d0 (#92)
+- Update diggsweden/wallet-ecosystem digest to 8cfebb0 (#88)
+- Update java non-major (#89)
+- Fix/renovate cleanup (#86)
+- Update docker.io/library/eclipse-temurin:25-jdk-alpine docker digest to 541729c (#25)
+- Update cgr.dev/chainguard/jre:latest docker digest to df582a7 (#21)
+- Update org.apache.tomcat.embed:tomcat-embed-core to v11.0.25 [security] (#82)
+- Update java non-major (#80)
+- Fix/renovate config (#85)
+- Error logging improvements (#81)
+- Update github actions (#79)
+- Update dependency prettier to v3.9.6 (#78)
+- Update java major to v53 (#28)
+
+### Fixed
+
+- Example json syntax (#84)
+- Api spec and log fix (#76)
+
+### Removed
+
+- Remove mise paranoid setting (#93)
+
 ## [0.1.9] - 2026-07-31
 
 ### Changed
 
 - Api-spec improvements (#73)
+
 
 ## [0.1.8] - 2026-07-28
 
@@ -242,6 +273,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix license and megalinter
 
 
+[0.1.10]: https://github.com/diggsweden/wallet-account/compare/v0.1.9..v0.1.10
 [0.1.9]: https://github.com/diggsweden/wallet-account/compare/v0.1.8..v0.1.9
 [0.1.8]: https://github.com/diggsweden/wallet-account/compare/v0.1.7..v0.1.8
 [0.1.7]: https://github.com/diggsweden/wallet-account/compare/v0.1.6..v0.1.7
