@@ -27,7 +27,6 @@ import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.api.v0.model.EcJwkResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
-import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.service.AccountService;
@@ -36,7 +35,6 @@ import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static se.digg.wallet.account.application.controller.util.ProblemDetailAssertion.assertProblemDetails;
 
@@ -48,9 +46,6 @@ import static se.digg.wallet.account.application.controller.util.ProblemDetailAs
     })
 public class AccountApiComponentTest {
 
-  private static final String PERSONAL_IDENTITY_NUMBER = "2010101010";
-  private static final String EMAIL = "test.testsson@test.test";
-  private static final String PHONE_NUMBER = "0700000000";
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
   private static final String ALREADY_EXISTS = "/problem-details/resource-already-exists";
   private static final UUID ACCOUNT_ID = UUID.fromString("61128b3c-ef55-4410-8dff-d8e8bf0cb9a7");
@@ -143,34 +138,6 @@ public class AccountApiComponentTest {
         .isBadRequest();
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {
-      " ",
-      "test@domain",
-      "domain.xx",
-      "test.testsson#domain.xx",
-      "test.testsson@domain",
-      "test.testsson.domain.se"
-  })
-  void createAccountWithBadEmailFormatReturnsEmailProblem(String badFormattedEmailAddress) {
-
-    var problemResponse = client.post()
-        .uri("/v0/accounts")
-        .body(AccountRequest.builder()
-            .email(badFormattedEmailAddress)
-            .deviceKey(defaultKeyRequest().build())
-            .build())
-        .exchange()
-        .expectStatus()
-        .isBadRequest()
-        .expectBody(ProblemResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
-        VALIDATION_FAILURE, "email");
-  }
-
   @Test
   void createAccountFailsWithUnexpectedServerErrorReturnsGenericServerProblem() {
 
@@ -216,7 +183,7 @@ public class AccountApiComponentTest {
   }
 
   @Test
-  void createAccountWithoutOptionalsReturnsSavedValues() {
+  void createAccountReturnsSavedValues() {
 
     final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
     final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
@@ -242,85 +209,6 @@ public class AccountApiComponentTest {
     assertThat(accountResponse.getId()).isNotNull();
     assertThat(accountResponse.getId()).isEqualTo(ACCOUNT_ID);
     assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {
-      "a@a.se",
-      "test@domain.com",
-      "test.testsson@domain.xx",
-      "test@domain.sub.eu",
-      "a-very-long-firstname.and.another-long-lasting-lastname@sub-department.the-domain.net",
-      "123@sub2.sub1.domain.com",
-      "First.Last@Mixed.Se",
-      "ONLY.CAPITAL.LETTERS@THE.DOMAIN.COM",
-      "100@100.se"
-  })
-  void acceptsCreateAccountRequestsWithValidEmail(String email) {
-
-    final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
-    final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        deviceKeyDto);
-    when(accountService.createAccount(any())).thenReturn(accountDto);
-
-    var accountResponse = client.post()
-        .uri("/v0/accounts")
-        .body(AccountRequest.builder()
-            .personalIdentityNumber(null)
-            .email(email)
-            .phoneNumber(null)
-            .deviceKey(deviceKeyRequest)
-            .build())
-        .exchange()
-        .expectStatus()
-        .isCreated()
-        .expectBody(AccountResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(accountResponse).isNotNull();
-    assertThat(accountResponse.getId()).isNotNull().isEqualTo(ACCOUNT_ID);
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
-    assertThat(accountResponse.getEmail()).isNull();
-    assertThat(accountResponse.getPhoneNumber()).isNull();
-  }
-
-  @Test
-  void createAccountWithDeprecatedFieldsIgnoresThem() {
-
-    final EcJwkRequest deviceKeyRequest = defaultKeyRequest().build();
-    final PublicKeyDto deviceKeyDto = toPublicKeyDto(deviceKeyRequest);
-
-    var accountDto = new AccountDto(
-        ACCOUNT_ID,
-        deviceKeyDto);
-    when(accountService.createAccount(any())).thenReturn(accountDto);
-
-    var accountResponse = client.post()
-        .uri("/v0/accounts")
-        .body(AccountRequest.builder()
-            .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-            .email(EMAIL)
-            .phoneNumber(PHONE_NUMBER)
-            .deviceKey(deviceKeyRequest)
-            .build())
-        .exchange()
-        .expectStatus()
-        .isCreated()
-        .expectBody(AccountResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(accountResponse).isNotNull();
-    assertThat(accountResponse.getId()).isNotNull().isEqualTo(ACCOUNT_ID);
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
-    assertThat(accountResponse.getEmail()).isNull();
-    assertThat(accountResponse.getPhoneNumber()).isNull();
-    assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
-    verify(accountService).createAccount(eq(new CreateAccountRequestDto(deviceKeyDto)));
   }
 
   @Test
@@ -378,9 +266,6 @@ public class AccountApiComponentTest {
 
     assertThat(accountResponse).isNotNull();
     assertThat(accountResponse.getId()).isNotNull().isEqualTo(ACCOUNT_ID);
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
-    assertThat(accountResponse.getEmail()).isNull();
-    assertThat(accountResponse.getPhoneNumber()).isNull();
     assertThat(accountResponse.getDeviceKey()).isEqualTo(toKeyResponse(deviceKeyRequest));
   }
 

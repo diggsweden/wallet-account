@@ -36,9 +36,6 @@ import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 @AutoConfigureRestTestClient
 class AccountControllertItTest {
 
-  private static final String PERSONAL_IDENTITY_NUMBER = "2010101010";
-  private static final String EMAIL = "test.testsson@test.test";
-  private static final String PHONE_NUMBER = "0700000000";
   private static final String TRANSACTION_ID = "a7240655-a568-41c8-8059-7b18859d5d88";
 
   @Container
@@ -79,39 +76,9 @@ class AccountControllertItTest {
             .getResponseBody();
 
     assertThat(accountResponse).isNotNull();
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
-    assertThat(accountResponse.getEmail()).isNull();
-    assertThat(accountResponse.getPhoneNumber()).isNull();
     assertThat(accountResponse.getDeviceKey()).isNotNull();
     assertThat(accountResponse.getDeviceKey().getKid()).isNotNull()
         .isEqualTo(accountEntity.getDeviceKey().getKid());
-  }
-
-  @Test
-  void saveAccountDoesNotSaveOptionals() {
-
-    AccountRequest requestDto =
-        AccountRequest.builder()
-            .email(EMAIL)
-            .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-            .phoneNumber(PHONE_NUMBER)
-            .deviceKey(deviceKeyWithDefaults("2"))
-            .build();
-
-    var accountResponse = client.post()
-        .uri("/v0/accounts")
-        .body(requestDto)
-        .exchange()
-        .expectStatus().isCreated()
-        .expectBody(AccountResponse.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(accountResponse).isNotNull();
-    assertThat(accountResponse.getId()).isNotNull();
-    assertThat(accountResponse.getPersonalIdentityNumber()).isNull();
-    assertThat(accountResponse.getEmail()).isNull();
-    assertThat(accountResponse.getPhoneNumber()).isNull();
   }
 
   @Test
@@ -140,9 +107,6 @@ class AccountControllertItTest {
 
     var keyId = "3";
     var accountRequest = AccountRequest.builder()
-        .personalIdentityNumber(PERSONAL_IDENTITY_NUMBER)
-        .email(EMAIL)
-        .phoneNumber(PHONE_NUMBER)
         .deviceKey(deviceKeyWithDefaults(keyId))
         .build();
     var duplicateAccountRequest = AccountRequest.builder()
@@ -189,9 +153,6 @@ class AccountControllertItTest {
             .getResponseBody();
 
     assertThat(fetchedAccountResponse).isNotNull();
-    assertThat(fetchedAccountResponse.getPersonalIdentityNumber()).isNull();
-    assertThat(fetchedAccountResponse.getEmail()).isNull();
-    assertThat(fetchedAccountResponse.getPhoneNumber()).isNull();
     assertThat(fetchedAccountResponse.getDeviceKey()).isNotNull();
     assertThat(fetchedAccountResponse.getDeviceKey().getKid()).isNotNull().isEqualTo(keyId);
   }
