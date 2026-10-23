@@ -30,7 +30,7 @@ public class AccountEntity {
   private String hsmClientId;
 
   @JdbcTypeCode(SqlTypes.BLOB)
-  @Column(columnDefinition = "blob")
+  @Column(columnDefinition = "oid")
   private Blob securityEnvelope;
 
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
