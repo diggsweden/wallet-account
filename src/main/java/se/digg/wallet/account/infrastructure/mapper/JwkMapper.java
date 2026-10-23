@@ -7,26 +7,26 @@ package se.digg.wallet.account.infrastructure.mapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import java.text.ParseException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.infrastructure.model.StoredJwk;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Maps between the public key DTO and a stored JWK. The DTO's fields are named after the JWK
+ * members, so the conversion goes through a plain json object.
+ */
 public class JwkMapper {
+
+  private static final JsonMapper MAPPER = JsonMapper.builder().build();
+  private static final TypeReference<Map<String, Object>> JSON_OBJECT = new TypeReference<>() {};
 
   public static StoredJwk toStoredJwk(PublicKeyDto key) {
     Objects.requireNonNull(key, "key");
-    Map<String, Object> members = new LinkedHashMap<>();
-    putIfPresent(members, "kty", key.kty());
-    putIfPresent(members, "kid", key.kid());
-    putIfPresent(members, "alg", key.alg());
-    putIfPresent(members, "use", key.use());
-    putIfPresent(members, "crv", key.crv());
-    putIfPresent(members, "x", key.x());
-    putIfPresent(members, "y", key.y());
     try {
-      JWK jwk = JWK.parse(members).toPublicJWK();
+      JWK jwk = JWK.parse(MAPPER.convertValue(key, JSON_OBJECT)).toPublicJWK();
       return new StoredJwk(jwk.toJSONString(), jwk.getKeyID(),
           jwk.computeThumbprint().toString());
     } catch (ParseException | JOSEException ex) {
@@ -38,23 +38,9 @@ public class JwkMapper {
     Objects.requireNonNull(storedJwk, "storedJwk");
     Objects.requireNonNull(storedJwk.getJwk(), "storedJwk.jwk");
     try {
-      Map<String, Object> members = JWK.parse(storedJwk.getJwk()).toJSONObject();
-      return new PublicKeyDto(
-          (String) members.get("kty"),
-          (String) members.get("kid"),
-          (String) members.get("alg"),
-          (String) members.get("use"),
-          (String) members.get("crv"),
-          (String) members.get("x"),
-          (String) members.get("y"));
+      return MAPPER.convertValue(JWK.parse(storedJwk.getJwk()).toJSONObject(), PublicKeyDto.class);
     } catch (ParseException ex) {
       throw new IllegalStateException("Stored JWK is not parseable: " + ex.getMessage(), ex);
-    }
-  }
-
-  private static void putIfPresent(Map<String, Object> members, String name, String value) {
-    if (value != null) {
-      members.put(name, value);
     }
   }
 
