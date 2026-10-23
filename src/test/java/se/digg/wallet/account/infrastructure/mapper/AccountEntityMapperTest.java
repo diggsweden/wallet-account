@@ -18,7 +18,6 @@ import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 
 
 public class AccountEntityMapperTest {
@@ -46,13 +45,13 @@ public class AccountEntityMapperTest {
   }
 
   @Test
-  void assertThatToAccountEntity_emptyPersonalValues_shouldNotThrow() {
+  void assertThatToAccountEntity_publicKeyWithoutMembers_throwsException() {
 
     var accountRequestDto = CreateAccountRequestDtoBuilder.builder()
         .publicKey(PublicKeyDtoBuilder.builder().build())
         .build();
 
-    assertDoesNotThrow(() -> mapper.toAccountEntity(accountRequestDto));
+    assertThrows(IllegalArgumentException.class, () -> mapper.toAccountEntity(accountRequestDto));
   }
 
 
@@ -71,12 +70,9 @@ public class AccountEntityMapperTest {
     assertThat(actualDeviceKey).isNotNull();
     assertNotNull(actualDeviceKey.getKid());
     assertEquals(expectedKeyId, actualDeviceKey.getKid());
-    assertNotNull(actualDeviceKey.getAlg());
-    assertNotNull(actualDeviceKey.getUse());
-    assertNotNull(actualDeviceKey.getKty());
-    assertNotNull(actualDeviceKey.getCrv());
-    assertNotNull(actualDeviceKey.getX());
-    assertNotNull(actualDeviceKey.getY());
+    assertNotNull(actualDeviceKey.getThumbprint());
+    assertEquals(TestUtils.expectedJwk(accountRequestDto.publicKey()),
+        TestUtils.parseJwk(actualDeviceKey.getJwk()));
   }
 
   @Test
@@ -110,14 +106,8 @@ public class AccountEntityMapperTest {
   void assertThatToExtendedAccountEntity_deviceKeyValues_mappedToEqualKeyId() {
 
     var expectedKeyId = randomId();
-    var publicKeyEntity = new PublicKeyEntity(
-        randomId(),
-        expectedKeyId,
-        randomId(),
-        randomId(),
-        randomId(),
-        randomId(),
-        randomId());
+    var publicKeyEntity = JwkMapper.toStoredJwk(
+        TestUtils.publicKeyDtoBuilderWithDefaults(expectedKeyId).build());
     var accountEntity = new AccountEntity(
         null,
         publicKeyEntity);
@@ -147,7 +137,7 @@ public class AccountEntityMapperTest {
 
     var accountEntity = new AccountEntity(
         blob,
-        new PublicKeyEntity());
+        TestUtils.generateJwkEntity(randomId()));
 
     var extendedAccountDto = mapper.toExtendedAccountDto(accountEntity);
     var actualContent = extendedAccountDto.securityEnvelope();
@@ -176,7 +166,7 @@ public class AccountEntityMapperTest {
 
     var accountEntity = new AccountEntity(
         null,
-        new PublicKeyEntity());
+        TestUtils.generateJwkEntity(randomId()));
 
     assertDoesNotThrow(() -> mapper.toAccountDto(accountEntity));
   }
@@ -186,14 +176,8 @@ public class AccountEntityMapperTest {
   void assertThatToAccountDto_deviceKeyValues_containsMappedValues() {
 
     var expectedKeyId = randomId();
-    var publicKeyEntity = new PublicKeyEntity(
-        randomId(),
-        expectedKeyId,
-        randomId(),
-        randomId(),
-        randomId(),
-        randomId(),
-        randomId());
+    var publicKeyEntity = JwkMapper.toStoredJwk(
+        TestUtils.publicKeyDtoBuilderWithDefaults(expectedKeyId).build());
     var accountEntity = new AccountEntity(
         null,
         publicKeyEntity);

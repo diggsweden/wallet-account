@@ -2,26 +2,18 @@
 --
 -- SPDX-License-Identifier: EUPL-1.2
 
-CREATE TABLE public_key (
-  id  UUID PRIMARY KEY,
-  kty VARCHAR(30),
-  kid VARCHAR(300) NOT NULL,
-  alg VARCHAR(30),
-  use VARCHAR(30),
-  crv VARCHAR(30),
-  x   VARCHAR(300),
-  y   VARCHAR(300),
-  CONSTRAINT public_key_kid_key UNIQUE (kid),
-  CONSTRAINT chk_kid_min_length CHECK (LENGTH(kid) >= 1)
-);
-
-CREATE INDEX idx_public_key_kid ON public_key (kid);
-
+-- The device key is a public JWK stored as json; kid and RFC 7638 thumbprint are extracted for
+-- lookup and uniqueness, so the same key cannot be registered twice under different kids.
 CREATE TABLE accounts (
-  id                UUID PRIMARY KEY,
-  device_key_id     UUID,
-  security_envelope BYTEA,
-  hsm_client_id     VARCHAR(255),
+  id                    UUID PRIMARY KEY,
+  device_key            JSONB NOT NULL,
+  device_key_kid        VARCHAR(300) NOT NULL,
+  device_key_thumbprint VARCHAR(64) NOT NULL,
+  security_envelope     BYTEA,
+  hsm_client_id         VARCHAR(255),
+  CONSTRAINT accounts_device_key_kid_key UNIQUE (device_key_kid),
+  CONSTRAINT accounts_device_key_thumbprint_key UNIQUE (device_key_thumbprint),
+  CONSTRAINT chk_device_key_kid_min_length CHECK (LENGTH(device_key_kid) >= 1),
   -- The API limits the envelope to 65536 characters; a UTF-8 character is at most 4 bytes.
   CONSTRAINT chk_security_envelope_max_size CHECK (OCTET_LENGTH(security_envelope) <= 262144)
 );

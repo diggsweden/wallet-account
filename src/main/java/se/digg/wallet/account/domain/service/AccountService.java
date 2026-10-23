@@ -4,7 +4,6 @@
 
 package se.digg.wallet.account.domain.service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -65,17 +64,18 @@ public class AccountService {
 
   private AccountEntity storeAccountWithUniqueDeviceKey(CreateAccountRequestDto accountRequestDto) {
 
-    String kid = accountRequestDto.publicKey().kid();
+    AccountEntity entity = accountEntityMapper.toAccountEntity(accountRequestDto);
+    var deviceKey = entity.getDeviceKey();
 
-    List<AccountEntity> entities = accountRepository.findByDeviceKeyKid(kid);
-    if (!entities.isEmpty()) {
-      logger.warn("An account already exists for device key kid {}: {}", kid, entities);
+    if (accountRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
+        deviceKey.getKid(), deviceKey.getThumbprint())) {
+      logger.warn("An account already exists for device key kid {} or thumbprint {}",
+          deviceKey.getKid(), deviceKey.getThumbprint());
       throw new AccountAlreadyExistsException(
           "An account already exists for the provided device key.");
     }
 
-    AccountEntity storedEntity =
-        accountRepository.save(accountEntityMapper.toAccountEntity(accountRequestDto));
+    AccountEntity storedEntity = accountRepository.save(entity);
     logger.debug("stored account {}", storedEntity);
     return storedEntity;
   }

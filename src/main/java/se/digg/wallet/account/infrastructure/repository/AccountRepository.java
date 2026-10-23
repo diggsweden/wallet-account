@@ -4,13 +4,12 @@
 
 package se.digg.wallet.account.infrastructure.repository;
 
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 
 
 public interface AccountRepository extends CrudRepository<AccountEntity, UUID> {
-  List<AccountEntity> findByDeviceKeyKid(String kid);
+  boolean existsByDeviceKeyKidOrDeviceKeyThumbprint(String kid, String thumbprint);
 
 }
