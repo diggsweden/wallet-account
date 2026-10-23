@@ -20,7 +20,6 @@ import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 
-import javax.sql.rowset.serial.SerialBlob;
 
 public class AccountEntityMapperTest {
 
@@ -144,7 +143,7 @@ public class AccountEntityMapperTest {
 
     var expectedContent = randomId();
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
-    var blob = new SerialBlob(bytes);
+    var blob = bytes;
 
     var accountEntity = new AccountEntity(
         blob,

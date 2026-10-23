@@ -4,9 +4,7 @@
 
 package se.digg.wallet.account.infrastructure.mapper;
 
-import java.sql.SQLException;
 import org.springframework.stereotype.Service;
-import se.digg.wallet.account.application.exception.WalletAccountException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDto;
@@ -34,24 +32,19 @@ public class AccountEntityMapper {
   }
 
   public ExtendedAccountDto toExtendedAccountDto(AccountEntity accountEntity) {
-    try {
-      return ExtendedAccountDtoBuilder.builder()
-          .id(accountEntity.getId())
-          .securityEnvelope(BlobMapper.blobToString(accountEntity.getSecurityEnvelope()))
-          .deviceKey(PublicKeyDtoBuilder.builder()
-              .kty(accountEntity.getDeviceKey().getKty())
-              .kid(accountEntity.getDeviceKey().getKid())
-              .alg(accountEntity.getDeviceKey().getAlg())
-              .use(accountEntity.getDeviceKey().getUse())
-              .crv(accountEntity.getDeviceKey().getCrv())
-              .x(accountEntity.getDeviceKey().getX())
-              .y(accountEntity.getDeviceKey().getY())
-              .build())
-          .build();
-    } catch (SQLException ex) {
-      // TODO: better exception handling
-      throw new WalletAccountException(ex.getMessage());
-    }
+    return ExtendedAccountDtoBuilder.builder()
+        .id(accountEntity.getId())
+        .securityEnvelope(BytesMapper.bytesToString(accountEntity.getSecurityEnvelope()))
+        .deviceKey(PublicKeyDtoBuilder.builder()
+            .kty(accountEntity.getDeviceKey().getKty())
+            .kid(accountEntity.getDeviceKey().getKid())
+            .alg(accountEntity.getDeviceKey().getAlg())
+            .use(accountEntity.getDeviceKey().getUse())
+            .crv(accountEntity.getDeviceKey().getCrv())
+            .x(accountEntity.getDeviceKey().getX())
+            .y(accountEntity.getDeviceKey().getY())
+            .build())
+        .build();
   }
 
   public AccountDto toAccountDto(AccountEntity accountEntity) {
