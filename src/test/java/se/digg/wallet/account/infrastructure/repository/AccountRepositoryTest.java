@@ -9,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -34,7 +33,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
-import se.digg.wallet.account.infrastructure.mapper.BlobMapper;
+import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 
 @DataJpaTest
@@ -59,10 +58,10 @@ class AccountRepositoryTest {
 
   @Test
   void aSavedAccountCanBeRetrieved() throws SQLException {
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+    final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
     AccountEntity entity =
-        new AccountEntity(securityEnvelopeBlob,
+        new AccountEntity(securityEnvelope,
             TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     AccountEntity storedEntity = accountRepository.save(entity);
@@ -77,7 +76,7 @@ class AccountRepositoryTest {
     assertThat(foundEntity.getSecurityEnvelope())
         .isNotNull();
     assertThat(
-        BlobMapper.blobToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
+        BytesMapper.bytesToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
     assertThat(foundEntity.getDeviceKey())
         .isNotNull();
     assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
@@ -88,10 +87,10 @@ class AccountRepositoryTest {
   @ParameterizedTest
   @ValueSource(strings = KID)
   void kidUniqueConstraintRejectsDuplicateKid(String kid) throws SQLException {
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+    final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
     // 1. Insert the first entity
-    AccountEntity entity = new AccountEntity(securityEnvelopeBlob,
+    AccountEntity entity = new AccountEntity(securityEnvelope,
         TestUtils.generateJwkEntity(kid));
 
     accountRepository.save(entity);
@@ -99,7 +98,7 @@ class AccountRepositoryTest {
     entityManager.clear();
 
     // 2. Try inserting a second entity with the exact same device key id
-    AccountEntity entity2 = new AccountEntity(securityEnvelopeBlob,
+    AccountEntity entity2 = new AccountEntity(securityEnvelope,
         TestUtils.generateJwkEntity(kid));
 
     // 3. Assert that the database throws a ConstraintViolationException
@@ -113,9 +112,9 @@ class AccountRepositoryTest {
   @ParameterizedTest
   @NullAndEmptySource
   void kidMinLengthConstraintRejectsNullOrZeroLength(String kid) throws SQLException {
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+    final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
-    AccountEntity entity = new AccountEntity(securityEnvelopeBlob,
+    AccountEntity entity = new AccountEntity(securityEnvelope,
         TestUtils.generateJwkEntity(kid));
 
     assertThrows(ConstraintViolationException.class, () -> {
@@ -128,12 +127,36 @@ class AccountRepositoryTest {
   @ParameterizedTest
   @ValueSource(strings = {"1", "123", KID})
   void kidMinLengthConstraintAcceptsLargerThanZeroLength(String kid) throws SQLException {
-    final Blob securityEnvelopeBlob = BlobMapper.stringToBlob(SECURITY_ENVELOPE);
+    final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
-    AccountEntity entity = new AccountEntity(securityEnvelopeBlob,
+    AccountEntity entity = new AccountEntity(securityEnvelope,
         TestUtils.generateJwkEntity(kid));
 
     // Assert that the database does not throw a ConstraintViolationException
+    assertDoesNotThrow(() -> {
+      accountRepository.save(entity);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+  @Test
+  void securityEnvelopeMaxSizeConstraintRejectsTooLargeEnvelope() {
+    AccountEntity entity = new AccountEntity(new byte[262145],
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+
+    assertThrows(ConstraintViolationException.class, () -> {
+      accountRepository.save(entity);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+  @Test
+  void securityEnvelopeMaxSizeConstraintAcceptsMaxSizeEnvelope() {
+    AccountEntity entity = new AccountEntity(new byte[262144],
+        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+
     assertDoesNotThrow(() -> {
       accountRepository.save(entity);
       entityManager.flush();
