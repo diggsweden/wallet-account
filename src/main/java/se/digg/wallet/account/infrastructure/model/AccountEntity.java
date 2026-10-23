@@ -4,15 +4,13 @@
 
 package se.digg.wallet.account.infrastructure.model;
 
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Arrays;
 import java.util.Objects;
@@ -30,14 +28,17 @@ public class AccountEntity {
   @Column
   private byte[] securityEnvelope;
 
-  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  @JoinColumn(name = "device_key_id", referencedColumnName = "id")
-  private PublicKeyEntity deviceKey;
+  @Embedded
+  @AttributeOverride(name = "jwk",
+      column = @Column(name = "device_key", columnDefinition = "jsonb"))
+  @AttributeOverride(name = "kid", column = @Column(name = "device_key_kid"))
+  @AttributeOverride(name = "thumbprint", column = @Column(name = "device_key_thumbprint"))
+  private StoredJwk deviceKey;
 
 
   public AccountEntity() {}
 
-  public AccountEntity(byte[] securityEnvelope, PublicKeyEntity deviceKey) {
+  public AccountEntity(byte[] securityEnvelope, StoredJwk deviceKey) {
     this.securityEnvelope = securityEnvelope;
     this.deviceKey = deviceKey;
   }
@@ -66,11 +67,11 @@ public class AccountEntity {
     this.securityEnvelope = securityEnvelope;
   }
 
-  public PublicKeyEntity getDeviceKey() {
+  public StoredJwk getDeviceKey() {
     return deviceKey;
   }
 
-  public void setDeviceKey(PublicKeyEntity deviceKey) {
+  public void setDeviceKey(StoredJwk deviceKey) {
     this.deviceKey = deviceKey;
   }
 

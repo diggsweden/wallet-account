@@ -35,6 +35,7 @@ import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.StoredJwk;
 
 @DataJpaTest
 @Testcontainers
@@ -79,7 +80,11 @@ class AccountRepositoryTest {
         BytesMapper.bytesToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
     assertThat(foundEntity.getDeviceKey())
         .isNotNull();
-    assertThat(foundEntity.getDeviceKey().getId()).isNotNull();
+    assertThat(foundEntity.getDeviceKey().getKid()).isEqualTo(entity.getDeviceKey().getKid());
+    assertThat(foundEntity.getDeviceKey().getThumbprint())
+        .isEqualTo(entity.getDeviceKey().getThumbprint());
+    assertThat(TestUtils.parseJwk(foundEntity.getDeviceKey().getJwk()))
+        .isEqualTo(TestUtils.parseJwk(entity.getDeviceKey().getJwk()));
   }
 
 
@@ -104,6 +109,23 @@ class AccountRepositoryTest {
     // 3. Assert that the database throws a ConstraintViolationException
     assertThrows(ConstraintViolationException.class, () -> {
       accountRepository.save(entity2);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+  @Test
+  void thumbprintUniqueConstraintRejectsSameKeyUnderNewKid() {
+    var deviceKey = TestUtils.generateJwkEntity(UUID.randomUUID().toString());
+    accountRepository.save(new AccountEntity(null, deviceKey));
+    entityManager.flush();
+    entityManager.clear();
+
+    var sameKeyNewKid = new StoredJwk(deviceKey.getJwk(), UUID.randomUUID().toString(),
+        deviceKey.getThumbprint());
+
+    assertThrows(ConstraintViolationException.class, () -> {
+      accountRepository.save(new AccountEntity(null, sameKeyNewKid));
       entityManager.flush();
       entityManager.clear();
     });
@@ -173,7 +195,7 @@ class AccountRepositoryTest {
 
       DatabaseMetaData metaData = conn.getMetaData();
 
-      try (ResultSet rs = metaData.getIndexInfo(null, null, "public_key", false, false)) {
+      try (ResultSet rs = metaData.getIndexInfo(null, null, "accounts", false, false)) {
         List<String> indexNames = new ArrayList<>();
         while (rs.next()) {
           String indexName = rs.getString("INDEX_NAME");
@@ -181,7 +203,8 @@ class AccountRepositoryTest {
             indexNames.add(indexName.toLowerCase());
           }
         }
-        assertThat(indexNames.contains("idx_public_key_kid")).isTrue();
+        assertThat(indexNames)
+            .contains("accounts_device_key_kid_key", "accounts_device_key_thumbprint_key");
       }
     }
   }
@@ -190,15 +213,12 @@ class AccountRepositoryTest {
   void databaseQueryOnKidUsesIndexScan() {
     UUID TEST_KEY_ID = UUID.randomUUID();
     String explainQuery =
-        "EXPLAIN SELECT * FROM public_key WHERE kid = '" + TEST_KEY_ID + "'";
+        "EXPLAIN SELECT * FROM accounts WHERE device_key_kid = '" + TEST_KEY_ID + "'";
 
     List<String> planLines = jdbcTemplate.queryForList(explainQuery, String.class);
     String executionPlan = String.join("\n", planLines).toLowerCase();
 
     // Assert that the plan contains an Index Scan/Seek instead of a Seq Scan/Full Table Scan
-    assertThat(executionPlan.contains("index scan") &&
-        (executionPlan.contains("idx_public_key_kid")
-            || executionPlan.contains("public_key_kid_key")))
-        .isTrue();
+    assertThat(executionPlan).contains("index scan", "accounts_device_key_kid_key");
   }
 }

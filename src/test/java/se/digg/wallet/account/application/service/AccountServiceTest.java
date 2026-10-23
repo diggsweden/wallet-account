@@ -13,8 +13,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,7 +30,6 @@ import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,12 +60,15 @@ class AccountServiceTest {
         .build();
 
     var createdAccountEntity = new AccountEntity();
+    var newAccountEntity = new AccountEntity(null, TestUtils.generateJwkEntity(randomId()));
 
     var expectedAccountDto = AccountDtoBuilder.builder()
         .id(expectedAccountId)
         .build();
 
-    when(accountRepository.findByDeviceKeyKid(any())).thenReturn(Collections.emptyList());
+    when(accountEntityMapper.toAccountEntity(any())).thenReturn(newAccountEntity);
+    when(accountRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(any(), any()))
+        .thenReturn(false);
     when(accountRepository.save(any())).thenReturn(createdAccountEntity);
     when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
 
@@ -79,7 +79,7 @@ class AccountServiceTest {
   }
 
   @Test
-  void assertThatCreateAccount_usingExistingDeviceKeyKid_throwsAndDoesNotStore() {
+  void assertThatCreateAccount_usingExistingDeviceKey_throwsAndDoesNotStore() {
 
     var kid = randomId();
 
@@ -87,8 +87,11 @@ class AccountServiceTest {
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(kid).build())
         .build();
 
-    var existingAccountEntities = List.of(new AccountEntity());
-    when(accountRepository.findByDeviceKeyKid(eq(kid))).thenReturn(existingAccountEntities);
+    var deviceKey = TestUtils.generateJwkEntity(kid);
+    when(accountEntityMapper.toAccountEntity(any()))
+        .thenReturn(new AccountEntity(null, deviceKey));
+    when(accountRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
+        eq(kid), eq(deviceKey.getThumbprint()))).thenReturn(true);
 
     assertThrows(AccountAlreadyExistsException.class,
         () -> accountService.createAccount(accountRequest));

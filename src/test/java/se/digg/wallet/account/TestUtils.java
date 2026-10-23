@@ -5,14 +5,20 @@
 package se.digg.wallet.account;
 
 import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyOperation;
 import com.nimbusds.jose.jwk.KeyRevocation;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
 import java.net.URI;
 import java.security.KeyStore;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,21 +26,42 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
-import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
+import se.digg.wallet.account.infrastructure.model.StoredJwk;
 
 public class TestUtils {
 
-  public static PublicKeyEntity generateJwkEntity(String kid) {
-    return new PublicKeyEntity(
-        "EC",
-        kid,
-        "alg",
-        "enc",
-        "P-256",
-        "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
-        "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM");
+  /**
+   * A stored device key with a freshly generated EC key, so every call has a unique thumbprint.
+   */
+  public static StoredJwk generateJwkEntity(String kid) {
+    try {
+      ECKey key = new ECKeyGenerator(Curve.P_256).keyID(kid).generate().toPublicJWK();
+      return new StoredJwk(key.toJSONString(), kid, key.computeThumbprint().toString());
+    } catch (JOSEException ex) {
+      throw new IllegalStateException(ex);
+    }
+  }
+
+  public static JWK parseJwk(String jwkJson) {
+    try {
+      return JWK.parse(jwkJson);
+    } catch (ParseException ex) {
+      throw new IllegalStateException(ex);
+    }
+  }
+
+  /**
+   * The JWK a public key DTO should be stored as, built with Nimbus independently of JwkMapper.
+   */
+  public static JWK expectedJwk(PublicKeyDto key) {
+    return new ECKey.Builder(Curve.parse(key.crv()), new Base64URL(key.x()), new Base64URL(key.y()))
+        .keyID(key.kid())
+        .algorithm(key.alg() == null ? null : new Algorithm(key.alg()))
+        .keyUse(key.use() == null ? null : new KeyUse(key.use()))
+        .build();
   }
 
   public static PublicKeyDtoBuilder publicKeyDtoBuilderWithDefaults(String kid) {
