@@ -4,8 +4,8 @@
 
 package se.digg.wallet.account.application.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -150,7 +150,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
   private void doLog(String timestamp, String correlationId, String key, Object details,
       long durationMs, Exception exception, int responseStatus)
-      throws JsonProcessingException {
+      throws JacksonException {
     Map<String, Object> logEntry = new LinkedHashMap<>();
 
     // Basic request info
@@ -219,7 +219,7 @@ public class LoggingFilter extends OncePerRequestFilter {
   }
 
   private void writeAsJsonToLogger(Map<String, Object> logEntry, int status)
-      throws JsonProcessingException {
+      throws JacksonException {
     // Log as JSON
     String jsonLog = objectMapper.writeValueAsString(logEntry);
 

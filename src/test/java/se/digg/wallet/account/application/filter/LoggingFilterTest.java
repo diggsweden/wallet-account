@@ -4,8 +4,9 @@
 
 package se.digg.wallet.account.application.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.Map;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.when;
 })
 @SpringBootTest(
     classes = {
-        ObjectMapper.class,
+        JsonMapper.class,
         LoggingFilter.class
     },
     properties = {
@@ -256,19 +257,22 @@ public class LoggingFilterTest {
     assertThat(getLoggedObject(consoleOut)).isEmpty();
   }
 
-  private Map<String, Object> getLoggedObject(String consoleOut) throws JsonProcessingException {
+  private Map<String, Object> getLoggedObject(String consoleOut) throws JacksonException {
 
     var startPos = consoleOut.indexOf("{");
     if (startPos > -1
         && consoleOut.substring(startPos, consoleOut.length() - 1).contains("}")) {
-      var jsonString = consoleOut.substring(startPos);
+      var endOfLine = consoleOut.indexOf('\n', startPos);
+      var jsonString = endOfLine > -1
+          ? consoleOut.substring(startPos, endOfLine)
+          : consoleOut.substring(startPos);
       return (Map<String, Object>) objectMapper.readValue(jsonString, Map.class);
     }
     return Map.of();
   }
 
   private Map<String, Object> getLoggedObject(String consoleOut, int rowNumberToGet)
-      throws JsonProcessingException {
+      throws JacksonException {
 
     var startPos = consoleOut.indexOf("{");
     if (startPos > -1
@@ -291,19 +295,19 @@ public class LoggingFilterTest {
     return Map.of();
   }
 
-  private Map<String, Object> getLoggedRequest(String consoleOut) throws JsonProcessingException {
+  private Map<String, Object> getLoggedRequest(String consoleOut) throws JacksonException {
 
     return (Map<String, Object>) getLoggedObject(consoleOut, 1).get("request");
   }
 
   private Map<String, Object> getLoggedRequestHeaders(String consoleOut)
-      throws JsonProcessingException {
+      throws JacksonException {
 
     var loggedRequest = getLoggedRequest(consoleOut);
     return (Map<String, Object>) loggedRequest.get("headers");
   }
 
-  private Map<String, Object> getLoggedResponse(String consoleOut) throws JsonProcessingException {
+  private Map<String, Object> getLoggedResponse(String consoleOut) throws JacksonException {
 
     return (Map<String, Object>) getLoggedObject(consoleOut, 2).get("response");
   }

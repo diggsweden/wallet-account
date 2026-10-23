@@ -4,10 +4,10 @@
 
 package se.digg.wallet.account.application.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -75,7 +75,7 @@ public class SensitiveDataMasker {
       JsonNode rootNode = objectMapper.readTree(jsonBody);
       maskJsonNode(rootNode);
       return objectMapper.writeValueAsString(rootNode);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       // Not valid JSON, apply pattern-based masking
       return maskPatterns(jsonBody);
     }
@@ -87,7 +87,7 @@ public class SensitiveDataMasker {
   private void maskJsonNode(JsonNode node) {
     if (node.isObject()) {
       ObjectNode objectNode = (ObjectNode) node;
-      objectNode.fieldNames().forEachRemaining(fieldName -> {
+      objectNode.propertyNames().forEach(fieldName -> {
         JsonNode childNode = objectNode.get(fieldName);
 
         if (sensitiveFields.contains(fieldName.toLowerCase(Locale.getDefault()))) {
@@ -96,9 +96,9 @@ public class SensitiveDataMasker {
         } else if (childNode.isObject() || childNode.isArray()) {
           // Recurse into nested structures
           maskJsonNode(childNode);
-        } else if (childNode.isTextual()) {
+        } else if (childNode.isString()) {
           // Check for patterns in string values
-          String value = childNode.asText();
+          String value = childNode.asString();
           String maskedValue = maskPatterns(value);
           if (!value.equals(maskedValue)) {
             objectNode.put(fieldName, maskedValue);

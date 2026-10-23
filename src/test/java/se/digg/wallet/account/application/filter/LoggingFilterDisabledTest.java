@@ -4,8 +4,9 @@
 
 package se.digg.wallet.account.application.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.Map;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 @SpringBootTest(
     classes = {
-        ObjectMapper.class,
+        JsonMapper.class,
         LoggingFilter.class,
         SensitiveDataMasker.class
     },
@@ -61,7 +62,7 @@ public class LoggingFilterDisabledTest {
     assertThat(getLoggedObject(consoleOut)).isEmpty();
   }
 
-  private Map getLoggedObject(String consoleOut) throws JsonProcessingException {
+  private Map getLoggedObject(String consoleOut) throws JacksonException {
 
     var startPos = consoleOut.indexOf("{");
     if (startPos > -1

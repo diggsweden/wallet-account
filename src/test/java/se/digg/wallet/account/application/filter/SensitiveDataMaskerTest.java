@@ -4,8 +4,9 @@
 
 package se.digg.wallet.account.application.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
     classes = {
-        ObjectMapper.class,
+        JsonMapper.class,
         SensitiveDataMasker.class
     },
     properties = {
@@ -139,7 +140,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void simpleBodyShouldReturnOriginBody() throws JsonProcessingException {
+  void simpleBodyShouldReturnOriginBody() throws JacksonException {
 
     var unmaskedAttributes = new HashMap<String, Object>();
     unmaskedAttributes.put("StringValue", randomString());
@@ -151,7 +152,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void complexBodyShouldReturnOriginBody() throws JsonProcessingException {
+  void complexBodyShouldReturnOriginBody() throws JacksonException {
 
     var unmaskedAttributes = new HashMap<String, Object>();
     unmaskedAttributes.put("StringValue", randomString());
@@ -169,7 +170,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void sensitiveFieldValueInBodyShouldBeReturnedAsMasked() throws JsonProcessingException {
+  void sensitiveFieldValueInBodyShouldBeReturnedAsMasked() throws JacksonException {
 
     var sensitiveAttribute = "sensitive";
     var unmaskedValue = "this is a sensitive value expected to be masked";
@@ -188,7 +189,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void nullSensitiveFieldValueInBodyShouldBeReturnedAsMasked() throws JsonProcessingException {
+  void nullSensitiveFieldValueInBodyShouldBeReturnedAsMasked() throws JacksonException {
 
     var sensitiveAttribute = "sensitive";
 
@@ -206,7 +207,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void shortSensitiveFieldValueInBodyShouldBeReturnedAsMasked() throws JsonProcessingException {
+  void shortSensitiveFieldValueInBodyShouldBeReturnedAsMasked() throws JacksonException {
 
     var sensitiveAttribute = "sensitive";
     var unmaskedValue = "A";
@@ -227,7 +228,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void emailAddressFieldValueInBodyShouldBeReturnedAsMasked() throws JsonProcessingException {
+  void emailAddressFieldValueInBodyShouldBeReturnedAsMasked() throws JacksonException {
 
     var emailAttribute = "email";
     var expectedEmailDomain = "@test.domain.xx";
@@ -250,7 +251,7 @@ public class SensitiveDataMaskerTest {
   }
 
   @Test
-  void shortEmailAddressFieldValueInBodyShouldBeReturnedAsMasked() throws JsonProcessingException {
+  void shortEmailAddressFieldValueInBodyShouldBeReturnedAsMasked() throws JacksonException {
 
     var emailAttribute = "email";
     var expectedEmailDomain = "@test.domain.xx";
