@@ -100,6 +100,25 @@ public class AccountApiSecurityEnvelopeComponentTest {
   }
 
   @Test
+  void addingTooLargeSecurityEnvelopeReturnsContentProblem() {
+
+    var problemResponse = client.post()
+        .uri("/v0/accounts/{0}/security-envelopes", UUID.randomUUID())
+        .body(SecurityEnvelopeRequest.builder()
+            .content("a".repeat(65537))
+            .build())
+        .exchange()
+        .expectStatus()
+        .isBadRequest()
+        .expectBody(ProblemResponse.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
+        VALIDATION_FAILURE, "content");
+  }
+
+  @Test
   void addsSecurityEnvelopeToAccount() {
 
     final UUID accountId = UUID.randomUUID();

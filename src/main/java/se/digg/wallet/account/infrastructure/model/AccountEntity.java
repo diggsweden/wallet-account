@@ -14,11 +14,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.sql.Blob;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "accounts")
@@ -29,9 +27,8 @@ public class AccountEntity {
   @Column
   private String hsmClientId;
 
-  @JdbcTypeCode(SqlTypes.BLOB)
-  @Column(columnDefinition = "oid")
-  private Blob securityEnvelope;
+  @Column
+  private byte[] securityEnvelope;
 
   @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "device_key_id", referencedColumnName = "id")
@@ -40,7 +37,7 @@ public class AccountEntity {
 
   public AccountEntity() {}
 
-  public AccountEntity(Blob securityEnvelope, PublicKeyEntity deviceKey) {
+  public AccountEntity(byte[] securityEnvelope, PublicKeyEntity deviceKey) {
     this.securityEnvelope = securityEnvelope;
     this.deviceKey = deviceKey;
   }
@@ -61,11 +58,11 @@ public class AccountEntity {
     this.hsmClientId = hsmClientId;
   }
 
-  public Blob getSecurityEnvelope() {
+  public byte[] getSecurityEnvelope() {
     return securityEnvelope;
   }
 
-  public void setSecurityEnvelope(Blob securityEnvelope) {
+  public void setSecurityEnvelope(byte[] securityEnvelope) {
     this.securityEnvelope = securityEnvelope;
   }
 
@@ -79,7 +76,7 @@ public class AccountEntity {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, hsmClientId, securityEnvelope, deviceKey);
+    return Objects.hash(id, hsmClientId, Arrays.hashCode(securityEnvelope), deviceKey);
   }
 
   @Override
@@ -98,7 +95,7 @@ public class AccountEntity {
     AccountEntity other = (AccountEntity) obj;
     return Objects.equals(id, other.id)
         && Objects.equals(hsmClientId, other.hsmClientId)
-        && Objects.equals(securityEnvelope, other.securityEnvelope)
+        && Arrays.equals(securityEnvelope, other.securityEnvelope)
         && Objects.equals(other.deviceKey, deviceKey);
   }
 
@@ -106,7 +103,8 @@ public class AccountEntity {
   public String toString() {
     return "AccountEntity [id=" + id
         + ", hsmClientId=" + hsmClientId
-        + ", securityEnvelope=" + securityEnvelope
+        + ", securityEnvelope="
+        + (securityEnvelope == null ? null : securityEnvelope.length + " bytes")
         + ", deviceKey=" + deviceKey + "]";
   }
 

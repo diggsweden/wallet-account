@@ -12,7 +12,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import javax.sql.rowset.serial.SerialBlob;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -160,7 +159,7 @@ class AccountServiceTest {
 
     var expectedContent = randomId();
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
-    var blob = new SerialBlob(bytes);
+    var blob = bytes;
 
     var existingAccountEntity = new AccountEntity();
     existingAccountEntity.setSecurityEnvelope(blob);
@@ -199,7 +198,7 @@ class AccountServiceTest {
 
     var expectedContent = randomId();
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
-    var blob = new SerialBlob(bytes);
+    var blob = bytes;
 
     var existingAccountEntity = new AccountEntity();
     existingAccountEntity.setSecurityEnvelope(blob);

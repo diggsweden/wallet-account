@@ -20,6 +20,11 @@ CREATE INDEX idx_public_key_kid ON public_key (kid);
 CREATE TABLE accounts (
   id                UUID PRIMARY KEY,
   device_key_id     UUID,
-  security_envelope OID,
-  hsm_client_id     VARCHAR(255)
+  security_envelope BYTEA,
+  hsm_client_id     VARCHAR(255),
+  -- The API limits the envelope to 65536 characters; a UTF-8 character is at most 4 bytes.
+  CONSTRAINT chk_security_envelope_max_size CHECK (OCTET_LENGTH(security_envelope) <= 262144)
 );
+
+COMMENT ON COLUMN accounts.security_envelope IS
+  'Opaque device state owned by the client. Stored and returned as is, never interpreted.';
