@@ -14,7 +14,7 @@ import org.hibernate.type.SqlTypes;
  * The public key of the device a wallet runs on.
  *
  * <p>
- * Stored as three columns in {@code accounts}:
+ * Stored as three columns in {@code wallets}:
  * <ul>
  * <li>{@code device_key}: the whole public JWK as json. This is the key itself.</li>
  * <li>{@code device_key_kid}: the JWK's {@code kid}, copied out so it can be looked up and kept

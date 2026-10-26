@@ -25,11 +25,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
+import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.DeviceKey;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 
 public class TestUtils {
 
@@ -43,6 +46,15 @@ public class TestUtils {
     } catch (JOSEException ex) {
       throw new IllegalStateException(ex);
     }
+  }
+
+  /**
+   * A wallet that belongs to an account with an id, as if both were loaded from the database.
+   */
+  public static WalletEntity wallet(byte[] securityEnvelope, DeviceKey deviceKey) {
+    var account = new AccountEntity();
+    account.setId(UUID.randomUUID());
+    return new WalletEntity(account, deviceKey, securityEnvelope);
   }
 
   public static JWK parseJwk(String jwkJson) {

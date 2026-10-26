@@ -10,30 +10,29 @@ import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
 import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.domain.model.ExtendedAccountDtoBuilder;
-import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.DeviceKey;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 
 @Service
 public class AccountEntityMapper {
 
 
-  public AccountEntity toAccountEntity(CreateAccountRequestDto accountRequestDto) {
-    return new AccountEntity(
-        null,
-        JwkMapper.toDeviceKey(accountRequestDto.publicKey()));
+  public DeviceKey toDeviceKey(CreateAccountRequestDto accountRequestDto) {
+    return JwkMapper.toDeviceKey(accountRequestDto.publicKey());
   }
 
-  public ExtendedAccountDto toExtendedAccountDto(AccountEntity accountEntity) {
+  public ExtendedAccountDto toExtendedAccountDto(WalletEntity wallet) {
     return ExtendedAccountDtoBuilder.builder()
-        .id(accountEntity.getId())
-        .securityEnvelope(BytesMapper.bytesToString(accountEntity.getSecurityEnvelope()))
-        .deviceKey(JwkMapper.toPublicKeyDto(accountEntity.getDeviceKey()))
+        .id(wallet.getAccount().getId())
+        .securityEnvelope(BytesMapper.bytesToString(wallet.getSecurityEnvelope()))
+        .deviceKey(JwkMapper.toPublicKeyDto(wallet.getDeviceKey()))
         .build();
   }
 
-  public AccountDto toAccountDto(AccountEntity accountEntity) {
+  public AccountDto toAccountDto(WalletEntity wallet) {
     return AccountDtoBuilder.builder()
-        .id(accountEntity.getId())
-        .publicKey(JwkMapper.toPublicKeyDto(accountEntity.getDeviceKey()))
+        .id(wallet.getAccount().getId())
+        .publicKey(JwkMapper.toPublicKeyDto(wallet.getDeviceKey()))
         .build();
   }
 }

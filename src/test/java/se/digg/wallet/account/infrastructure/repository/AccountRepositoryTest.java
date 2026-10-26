@@ -36,6 +36,7 @@ import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.DeviceKey;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 
 @DataJpaTest
 @Testcontainers
@@ -49,6 +50,9 @@ class AccountRepositoryTest {
   AccountRepository accountRepository;
 
   @Autowired
+  WalletRepository walletRepository;
+
+  @Autowired
   TestEntityManager entityManager;
 
   @Autowired
@@ -57,19 +61,93 @@ class AccountRepositoryTest {
   private final String SECURITY_ENVELOPE = "this is just a String";
   private final String KID = "019f6ff8-2cc5-7152-b579-4db56902bb1e";
 
+  private WalletEntity newWallet(byte[] securityEnvelope, DeviceKey deviceKey) {
+    return new WalletEntity(accountRepository.save(new AccountEntity()), deviceKey,
+        securityEnvelope);
+  }
+
+  @Test
+  void findByAccountIdReturnsOnlyThatAccountsWallets() {
+    WalletEntity storedWallet = walletRepository.save(
+        newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString())));
+    walletRepository.save(
+        newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString())));
+    var accountId = storedWallet.getAccount().getId();
+    entityManager.flush();
+    entityManager.clear();
+
+    var foundWallets = walletRepository.findByAccountId(accountId);
+
+    assertThat(foundWallets).extracting(WalletEntity::getId).containsExactly(storedWallet.getId());
+    assertThat(foundWallets.getFirst().getAccount().getId()).isEqualTo(accountId);
+  }
+
+  @Test
+  void findByAccountIdReturnsNothingForUnknownAccount() {
+    assertThat(walletRepository.findByAccountId(UUID.randomUUID())).isEmpty();
+  }
+
+  @Test
+  void hsmClientIdUniqueConstraintRejectsSameClientIdOnTwoWallets() {
+    var first = newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+    first.setHsmClientId("client-1");
+    walletRepository.save(first);
+    entityManager.flush();
+    entityManager.clear();
+
+    var second = newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+    second.setHsmClientId("client-1");
+
+    assertThrows(ConstraintViolationException.class, () -> {
+      walletRepository.save(second);
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+  @Test
+  void hsmClientIdUniqueConstraintAcceptsSeveralWalletsWithoutClientId() {
+    walletRepository.save(
+        newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString())));
+    entityManager.flush();
+
+    assertDoesNotThrow(() -> {
+      walletRepository.save(
+          newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString())));
+      entityManager.flush();
+      entityManager.clear();
+    });
+  }
+
+  @Test
+  void deletingAnAccountDeletesItsWalletsInTheDatabase() {
+    WalletEntity storedWallet = walletRepository.save(
+        newWallet(null, TestUtils.generateJwkEntity(UUID.randomUUID().toString())));
+    var walletId = storedWallet.getId();
+    var accountId = storedWallet.getAccount().getId();
+    entityManager.flush();
+    entityManager.clear();
+
+    // Only the account is deleted; ON DELETE CASCADE removes the wallet.
+    accountRepository.deleteById(accountId);
+    entityManager.flush();
+    entityManager.clear();
+
+    assertThat(walletRepository.findById(walletId)).isEmpty();
+  }
+
   @Test
   void aSavedAccountCanBeRetrieved() throws SQLException {
     final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
-    AccountEntity entity =
-        new AccountEntity(securityEnvelope,
-            TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+    WalletEntity entity =
+        newWallet(securityEnvelope, TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
-    AccountEntity storedEntity = accountRepository.save(entity);
+    WalletEntity storedEntity = walletRepository.save(entity);
     entityManager.flush();
     entityManager.clear();
 
-    AccountEntity foundEntity = accountRepository.findById(storedEntity.getId()).orElseThrow();
+    WalletEntity foundEntity = walletRepository.findById(storedEntity.getId()).orElseThrow();
 
     assertThat(foundEntity)
         .isNotNull();
@@ -77,10 +155,12 @@ class AccountRepositoryTest {
     assertThat(foundEntity.getSecurityEnvelope())
         .isNotNull();
     assertThat(
-        BytesMapper.bytesToString(foundEntity.getSecurityEnvelope()).equals(SECURITY_ENVELOPE));
+        BytesMapper.bytesToString(foundEntity.getSecurityEnvelope())
+            .equals(SECURITY_ENVELOPE));
     assertThat(foundEntity.getDeviceKey())
         .isNotNull();
-    assertThat(foundEntity.getDeviceKey().getKid()).isEqualTo(entity.getDeviceKey().getKid());
+    assertThat(foundEntity.getDeviceKey().getKid())
+        .isEqualTo(entity.getDeviceKey().getKid());
     assertThat(foundEntity.getDeviceKey().getThumbprint())
         .isEqualTo(entity.getDeviceKey().getThumbprint());
     assertThat(TestUtils.parseJwk(foundEntity.getDeviceKey().getJwk()))
@@ -95,20 +175,18 @@ class AccountRepositoryTest {
     final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
     // 1. Insert the first entity
-    AccountEntity entity = new AccountEntity(securityEnvelope,
-        TestUtils.generateJwkEntity(kid));
+    WalletEntity entity = newWallet(securityEnvelope, TestUtils.generateJwkEntity(kid));
 
-    accountRepository.save(entity);
+    walletRepository.save(entity);
     entityManager.flush();
     entityManager.clear();
 
     // 2. Try inserting a second entity with the exact same device key id
-    AccountEntity entity2 = new AccountEntity(securityEnvelope,
-        TestUtils.generateJwkEntity(kid));
+    WalletEntity entity2 = newWallet(securityEnvelope, TestUtils.generateJwkEntity(kid));
 
     // 3. Assert that the database throws a ConstraintViolationException
     assertThrows(ConstraintViolationException.class, () -> {
-      accountRepository.save(entity2);
+      walletRepository.save(entity2);
       entityManager.flush();
       entityManager.clear();
     });
@@ -117,7 +195,7 @@ class AccountRepositoryTest {
   @Test
   void thumbprintUniqueConstraintRejectsSameKeyUnderNewKid() {
     var deviceKey = TestUtils.generateJwkEntity(UUID.randomUUID().toString());
-    accountRepository.save(new AccountEntity(null, deviceKey));
+    walletRepository.save(newWallet(null, deviceKey));
     entityManager.flush();
     entityManager.clear();
 
@@ -125,7 +203,7 @@ class AccountRepositoryTest {
         deviceKey.getThumbprint());
 
     assertThrows(ConstraintViolationException.class, () -> {
-      accountRepository.save(new AccountEntity(null, sameKeyNewKid));
+      walletRepository.save(newWallet(null, sameKeyNewKid));
       entityManager.flush();
       entityManager.clear();
     });
@@ -136,11 +214,10 @@ class AccountRepositoryTest {
   void kidMinLengthConstraintRejectsNullOrZeroLength(String kid) throws SQLException {
     final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
-    AccountEntity entity = new AccountEntity(securityEnvelope,
-        TestUtils.generateJwkEntity(kid));
+    WalletEntity entity = newWallet(securityEnvelope, TestUtils.generateJwkEntity(kid));
 
     assertThrows(ConstraintViolationException.class, () -> {
-      accountRepository.save(entity);
+      walletRepository.save(entity);
       entityManager.flush();
       entityManager.clear();
     });
@@ -151,12 +228,11 @@ class AccountRepositoryTest {
   void kidMinLengthConstraintAcceptsLargerThanZeroLength(String kid) throws SQLException {
     final byte[] securityEnvelope = BytesMapper.stringToBytes(SECURITY_ENVELOPE);
 
-    AccountEntity entity = new AccountEntity(securityEnvelope,
-        TestUtils.generateJwkEntity(kid));
+    WalletEntity entity = newWallet(securityEnvelope, TestUtils.generateJwkEntity(kid));
 
     // Assert that the database does not throw a ConstraintViolationException
     assertDoesNotThrow(() -> {
-      accountRepository.save(entity);
+      walletRepository.save(entity);
       entityManager.flush();
       entityManager.clear();
     });
@@ -164,11 +240,11 @@ class AccountRepositoryTest {
 
   @Test
   void securityEnvelopeMaxSizeConstraintRejectsTooLargeEnvelope() {
-    AccountEntity entity = new AccountEntity(new byte[262145],
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+    WalletEntity entity =
+        newWallet(new byte[262145], TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     assertThrows(ConstraintViolationException.class, () -> {
-      accountRepository.save(entity);
+      walletRepository.save(entity);
       entityManager.flush();
       entityManager.clear();
     });
@@ -176,11 +252,11 @@ class AccountRepositoryTest {
 
   @Test
   void securityEnvelopeMaxSizeConstraintAcceptsMaxSizeEnvelope() {
-    AccountEntity entity = new AccountEntity(new byte[262144],
-        TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
+    WalletEntity entity =
+        newWallet(new byte[262144], TestUtils.generateJwkEntity(UUID.randomUUID().toString()));
 
     assertDoesNotThrow(() -> {
-      accountRepository.save(entity);
+      walletRepository.save(entity);
       entityManager.flush();
       entityManager.clear();
     });
@@ -195,7 +271,7 @@ class AccountRepositoryTest {
 
       DatabaseMetaData metaData = conn.getMetaData();
 
-      try (ResultSet rs = metaData.getIndexInfo(null, null, "accounts", false, false)) {
+      try (ResultSet rs = metaData.getIndexInfo(null, null, "wallets", false, false)) {
         List<String> indexNames = new ArrayList<>();
         while (rs.next()) {
           String indexName = rs.getString("INDEX_NAME");
@@ -204,7 +280,8 @@ class AccountRepositoryTest {
           }
         }
         assertThat(indexNames)
-            .contains("accounts_device_key_kid_key", "accounts_device_key_thumbprint_key");
+            .contains("wallets_device_key_kid_key", "wallets_device_key_thumbprint_key",
+                "idx_wallets_account_id");
       }
     }
   }
@@ -213,12 +290,12 @@ class AccountRepositoryTest {
   void databaseQueryOnKidUsesIndexScan() {
     UUID TEST_KEY_ID = UUID.randomUUID();
     String explainQuery =
-        "EXPLAIN SELECT * FROM accounts WHERE device_key_kid = '" + TEST_KEY_ID + "'";
+        "EXPLAIN SELECT * FROM wallets WHERE device_key_kid = '" + TEST_KEY_ID + "'";
 
     List<String> planLines = jdbcTemplate.queryForList(explainQuery, String.class);
     String executionPlan = String.join("\n", planLines).toLowerCase();
 
     // Assert that the plan contains an Index Scan/Seek instead of a Seq Scan/Full Table Scan
-    assertThat(executionPlan).contains("index scan", "accounts_device_key_kid_key");
+    assertThat(executionPlan).contains("index scan", "wallets_device_key_kid_key");
   }
 }

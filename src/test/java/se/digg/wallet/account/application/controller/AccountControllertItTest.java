@@ -28,7 +28,9 @@ import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
+import se.digg.wallet.account.infrastructure.repository.WalletRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -47,6 +49,9 @@ class AccountControllertItTest {
   @Autowired
   AccountRepository repository;
 
+  @Autowired
+  WalletRepository walletRepository;
+
   @BeforeEach
   void setUp(WebApplicationContext context) { // Inject the configuration
     client = RestTestClient.bindToApplicationContext(context).build();
@@ -61,10 +66,10 @@ class AccountControllertItTest {
   @Test
   void getAccount() {
 
-    AccountEntity accountEntity = new AccountEntity(
-        null,
-        TestUtils.generateJwkEntity("1"));
-    var accountId = repository.save(accountEntity).getId();
+    var deviceKey = TestUtils.generateJwkEntity("1");
+    var account = repository.save(new AccountEntity());
+    walletRepository.save(new WalletEntity(account, deviceKey, null));
+    var accountId = account.getId();
 
     var accountResponse =
         client.get()
@@ -78,7 +83,7 @@ class AccountControllertItTest {
     assertThat(accountResponse).isNotNull();
     assertThat(accountResponse.getDeviceKey()).isNotNull();
     assertThat(accountResponse.getDeviceKey().getKid()).isNotNull()
-        .isEqualTo(accountEntity.getDeviceKey().getKid());
+        .isEqualTo(deviceKey.getKid());
   }
 
   @Test

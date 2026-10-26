@@ -6,7 +6,6 @@ package se.digg.wallet.account.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
@@ -14,7 +13,7 @@ import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
 import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.mapper.JwkMapper;
-import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 
 class AccountMapperTest {
 
@@ -22,24 +21,22 @@ class AccountMapperTest {
   AccountEntityMapper accountEntityMapper = new AccountEntityMapper();
 
   @Test
-  void testToAccountEntity() {
+  void testToDeviceKey() {
     CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22").build())
         .build();
-    assertThat(accountEntityMapper.toAccountEntity(requestDto))
+    assertThat(accountEntityMapper.toDeviceKey(requestDto))
         .isNotNull()
-        .satisfies(account -> {
-          assertThat(account.getId()).isNull();
-          assertThat(account.getDeviceKey()).isNotNull();
-          assertThat(account.getDeviceKey().getKid()).isEqualTo("22");
-          assertThat(account.getDeviceKey().getThumbprint()).isNotBlank();
-          assertThat(TestUtils.parseJwk(account.getDeviceKey().getJwk()))
+        .satisfies(deviceKey -> {
+          assertThat(deviceKey.getKid()).isEqualTo("22");
+          assertThat(deviceKey.getThumbprint()).isNotBlank();
+          assertThat(TestUtils.parseJwk(deviceKey.getJwk()))
               .isEqualTo(TestUtils.expectedJwk(requestDto.publicKey()));
         });
   }
 
   @Test
-  void testToAccountEntityAllOptionalFieldsNull() {
+  void testToDeviceKeyAllOptionalFieldsNull() {
     CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22")
             .kid(null)
@@ -47,11 +44,11 @@ class AccountMapperTest {
             .use(null)
             .build())
         .build();
-    assertThat(accountEntityMapper.toAccountEntity(requestDto))
+    assertThat(accountEntityMapper.toDeviceKey(requestDto))
         .isNotNull()
-        .satisfies(account -> {
-          assertThat(account.getDeviceKey().getKid()).isNull();
-          assertThat(TestUtils.parseJwk(account.getDeviceKey().getJwk()))
+        .satisfies(deviceKey -> {
+          assertThat(deviceKey.getKid()).isNull();
+          assertThat(TestUtils.parseJwk(deviceKey.getJwk()))
               .isEqualTo(TestUtils.expectedJwk(requestDto.publicKey()));
         });
   }
@@ -59,8 +56,7 @@ class AccountMapperTest {
   @Test
   void testToDto() {
     var deviceKey = TestUtils.generateJwkEntity("11");
-    AccountEntity entity = new AccountEntity(null, deviceKey);
-    entity.setId(UUID.randomUUID());
+    WalletEntity entity = TestUtils.wallet(null, deviceKey);
     ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
     assertThat(accountDto)
         .isNotNull()
@@ -76,13 +72,12 @@ class AccountMapperTest {
 
   @Test
   void testToDtoAllOptionalFieldsNull() {
-    AccountEntity entity = new AccountEntity(
+    WalletEntity entity = TestUtils.wallet(
         null,
         JwkMapper.toDeviceKey(TestUtils.publicKeyDtoBuilderWithDefaults(null)
             .alg(null)
             .use(null)
             .build()));
-    entity.setId(UUID.randomUUID());
     ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
     assertThat(accountDto)
         .isNotNull()

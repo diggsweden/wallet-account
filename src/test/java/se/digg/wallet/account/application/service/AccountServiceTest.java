@@ -7,12 +7,14 @@ package se.digg.wallet.account.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,12 +33,16 @@ import se.digg.wallet.account.domain.service.AccountService;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
+import se.digg.wallet.account.infrastructure.repository.WalletRepository;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
   @Mock
   AccountRepository accountRepository;
+
+  @Mock
+  WalletRepository walletRepository;
 
   @Mock
   AccountEntityMapper accountEntityMapper;
@@ -60,16 +66,18 @@ class AccountServiceTest {
         .build();
 
     var createdAccountEntity = new AccountEntity();
-    var newAccountEntity = new AccountEntity(null, TestUtils.generateJwkEntity(randomId()));
+    createdAccountEntity.setId(expectedAccountId);
 
     var expectedAccountDto = AccountDtoBuilder.builder()
         .id(expectedAccountId)
         .build();
 
-    when(accountEntityMapper.toAccountEntity(any())).thenReturn(newAccountEntity);
-    when(accountRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(any(), any()))
+    when(accountEntityMapper.toDeviceKey(any()))
+        .thenReturn(TestUtils.generateJwkEntity(randomId()));
+    when(walletRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(any(), any()))
         .thenReturn(false);
     when(accountRepository.save(any())).thenReturn(createdAccountEntity);
+    when(walletRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
 
     var createdAccountDto = accountService.createAccount(accountRequest);
@@ -88,22 +96,21 @@ class AccountServiceTest {
         .build();
 
     var deviceKey = TestUtils.generateJwkEntity(kid);
-    when(accountEntityMapper.toAccountEntity(any()))
-        .thenReturn(new AccountEntity(null, deviceKey));
-    when(accountRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
+    when(accountEntityMapper.toDeviceKey(any())).thenReturn(deviceKey);
+    when(walletRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
         eq(kid), eq(deviceKey.getThumbprint()))).thenReturn(true);
 
     assertThrows(AccountAlreadyExistsException.class,
         () -> accountService.createAccount(accountRequest));
 
     verify(accountRepository, never()).save(any());
-    verify(accountRepository, never()).deleteAll(any());
+    verify(walletRepository, never()).save(any());
   }
 
   @Test
   void assertThatGetAccountById_nonExistingAccountId_shouldReturnEmptyList() {
 
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of());
 
     var actualAccount = accountService.getAccountById(UUID.randomUUID());
 
@@ -115,15 +122,15 @@ class AccountServiceTest {
 
     var expectedAccountId = UUID.randomUUID();
 
-    var existingAccountEntity = new AccountEntity();
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
 
     var expectedAccountDto = AccountDtoBuilder.builder()
         .id(expectedAccountId)
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(randomId()).build())
         .build();
 
-    when(accountRepository.findById(eq(expectedAccountId)))
-        .thenReturn(Optional.of(existingAccountEntity));
+    when(walletRepository.findByAccountId(eq(expectedAccountId)))
+        .thenReturn(List.of(existingWallet));
     when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
 
     var actualAccount = accountService.getAccountById(expectedAccountId);
@@ -136,7 +143,7 @@ class AccountServiceTest {
   @Test
   void assertThatCreateSecurityEnvelope_nonExistingAccount_throwsNoSuchElementException() {
 
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of());
 
     assertThrows(NoSuchElementException.class,
         () -> accountService.createSecurityEnvelope(UUID.randomUUID(), randomId()));
@@ -146,10 +153,10 @@ class AccountServiceTest {
   void assertThatCreateSecurityEnvelope_addNewContent_shouldReturnCreatedContent() {
 
     var expectedContent = randomId();
-    var existingAccountEntity = new AccountEntity();
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
+    when(walletRepository.save(eq(existingWallet))).thenReturn(existingWallet);
 
     var actualContent = accountService.createSecurityEnvelope(UUID.randomUUID(), expectedContent);
 
@@ -164,11 +171,10 @@ class AccountServiceTest {
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
     var blob = bytes;
 
-    var existingAccountEntity = new AccountEntity();
-    existingAccountEntity.setSecurityEnvelope(blob);
+    var existingWallet = TestUtils.wallet(blob, TestUtils.generateJwkEntity(randomId()));
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
+    when(walletRepository.save(eq(existingWallet))).thenReturn(existingWallet);
 
     var actualContent = accountService.createSecurityEnvelope(UUID.randomUUID(), expectedContent);
 
@@ -178,7 +184,7 @@ class AccountServiceTest {
   @Test
   void assertThatGetSecurityEnvelope_nonExistingAccount_throwsNoSuchElementException() {
 
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of());
 
     assertThrows(NoSuchElementException.class,
         () -> accountService.getSecurityEnvelope(UUID.randomUUID()));
@@ -187,9 +193,9 @@ class AccountServiceTest {
   @Test
   void assertThatGetSecurityEnvelope_existingAccountWithoutSecurityEnvelope_shouldReturnEmpty() {
 
-    var existingAccountEntity = new AccountEntity();
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
 
     var actualContent = accountService.getSecurityEnvelope(UUID.randomUUID());
     assertThat(actualContent).isEmpty();
@@ -203,10 +209,9 @@ class AccountServiceTest {
     byte[] bytes = expectedContent.getBytes(StandardCharsets.UTF_8);
     var blob = bytes;
 
-    var existingAccountEntity = new AccountEntity();
-    existingAccountEntity.setSecurityEnvelope(blob);
+    var existingWallet = TestUtils.wallet(blob, TestUtils.generateJwkEntity(randomId()));
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
 
     var actualContent = accountService.getSecurityEnvelope(UUID.randomUUID());
     assertThat(actualContent).isPresent();
@@ -216,7 +221,7 @@ class AccountServiceTest {
   @Test
   void assertThatCreateHsmClientId_nonExistingAccount_throwsNoSuchElementException() {
 
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of());
 
     assertThrows(NoSuchElementException.class,
         () -> accountService.createHsmClientId(UUID.randomUUID(), randomId()));
@@ -226,10 +231,10 @@ class AccountServiceTest {
   void assertThatCreateHsmClientId_addNewClientId_shouldReturnCreatedClientId() {
 
     var expectedClientId = randomId();
-    var existingAccountEntity = new AccountEntity();
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
+    when(walletRepository.save(eq(existingWallet))).thenReturn(existingWallet);
 
     var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
 
@@ -240,11 +245,11 @@ class AccountServiceTest {
   void assertThatCreateHsmClientId_replaceExistingClientId_shouldReturnReplacedClientId() {
 
     var expectedClientId = randomId();
-    var existingAccountEntity = new AccountEntity();
-    existingAccountEntity.setHsmClientId(randomId());
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
+    existingWallet.setHsmClientId(randomId());
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
-    when(accountRepository.save(eq(existingAccountEntity))).thenReturn(existingAccountEntity);
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
+    when(walletRepository.save(eq(existingWallet))).thenReturn(existingWallet);
 
     var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
 
@@ -254,7 +259,7 @@ class AccountServiceTest {
   @Test
   void assertThatGetHsmClientId_nonExistingAccount_throwsNoSuchElementException() {
 
-    when(accountRepository.findById(any())).thenReturn(Optional.empty());
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of());
 
     assertThrows(NoSuchElementException.class,
         () -> accountService.getHsmClientId(UUID.randomUUID()));
@@ -263,9 +268,9 @@ class AccountServiceTest {
   @Test
   void assertThatGetHsmClientId_existingAccountWithoutHsmClientId_shouldReturnEmpty() {
 
-    var existingAccountEntity = new AccountEntity();
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
 
     var actualClientId = accountService.getHsmClientId(UUID.randomUUID());
     assertThat(actualClientId).isEmpty();
@@ -275,14 +280,45 @@ class AccountServiceTest {
   void assertThatGetHsmClientId_existingAccountWithHsmClientId_shouldReturnExpectedClientId() {
 
     var expectedClientId = randomId();
-    var existingAccountEntity = new AccountEntity();
-    existingAccountEntity.setHsmClientId(expectedClientId);
+    var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
+    existingWallet.setHsmClientId(expectedClientId);
 
-    when(accountRepository.findById(any())).thenReturn(Optional.of(existingAccountEntity));
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
 
     var actualClientId = accountService.getHsmClientId(UUID.randomUUID());
     assertThat(actualClientId).isPresent();
     assertThat(actualClientId.get()).isEqualTo(expectedClientId);
+  }
+
+  @Test
+  void assertThatGetSecurityEnvelope_accountWithSeveralWallets_throwsIllegalStateException() {
+
+    when(walletRepository.findByAccountId(any())).thenReturn(List.of(
+        TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId())),
+        TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()))));
+
+    assertThrows(IllegalStateException.class,
+        () -> accountService.getSecurityEnvelope(UUID.randomUUID()));
+  }
+
+  @Test
+  void assertThatCreateAccount_storesAccountAndWalletWithDeviceKey() {
+
+    var deviceKey = TestUtils.generateJwkEntity(randomId());
+    var accountRequest = CreateAccountRequestDtoBuilder.builder()
+        .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults(deviceKey.getKid()).build())
+        .build();
+    var createdAccountEntity = new AccountEntity();
+    createdAccountEntity.setId(UUID.randomUUID());
+
+    when(accountEntityMapper.toDeviceKey(any())).thenReturn(deviceKey);
+    when(accountRepository.save(any())).thenReturn(createdAccountEntity);
+    when(walletRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    accountService.createAccount(accountRequest);
+
+    verify(walletRepository).save(argThat(wallet -> wallet.getAccount() == createdAccountEntity
+        && wallet.getDeviceKey() == deviceKey));
   }
 
   private static String randomId() {

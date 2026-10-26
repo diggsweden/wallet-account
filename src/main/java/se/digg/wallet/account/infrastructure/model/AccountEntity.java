@@ -4,39 +4,26 @@
 
 package se.digg.wallet.account.infrastructure.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * An account. Its wallets refer to it from the wallets table; they are loaded through
+ * WalletRepository, not through the account.
+ */
 @Entity
 @Table(name = "accounts")
 public class AccountEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
-  @Column
-  private String hsmClientId;
-
-  @Column
-  private byte[] securityEnvelope;
-
-  @Embedded
-  private DeviceKey deviceKey;
-
 
   public AccountEntity() {}
-
-  public AccountEntity(byte[] securityEnvelope, DeviceKey deviceKey) {
-    this.securityEnvelope = securityEnvelope;
-    this.deviceKey = deviceKey;
-  }
 
   public UUID getId() {
     return id;
@@ -46,33 +33,9 @@ public class AccountEntity {
     this.id = id;
   }
 
-  public String getHsmClientId() {
-    return hsmClientId;
-  }
-
-  public void setHsmClientId(String hsmClientId) {
-    this.hsmClientId = hsmClientId;
-  }
-
-  public byte[] getSecurityEnvelope() {
-    return securityEnvelope;
-  }
-
-  public void setSecurityEnvelope(byte[] securityEnvelope) {
-    this.securityEnvelope = securityEnvelope;
-  }
-
-  public DeviceKey getDeviceKey() {
-    return deviceKey;
-  }
-
-  public void setDeviceKey(DeviceKey deviceKey) {
-    this.deviceKey = deviceKey;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(id, hsmClientId, Arrays.hashCode(securityEnvelope), deviceKey);
+    return Objects.hash(id);
   }
 
   @Override
@@ -89,19 +52,12 @@ public class AccountEntity {
     }
 
     AccountEntity other = (AccountEntity) obj;
-    return Objects.equals(id, other.id)
-        && Objects.equals(hsmClientId, other.hsmClientId)
-        && Arrays.equals(securityEnvelope, other.securityEnvelope)
-        && Objects.equals(other.deviceKey, deviceKey);
+    return Objects.equals(id, other.id);
   }
 
   @Override
   public String toString() {
-    return "AccountEntity [id=" + id
-        + ", hsmClientId=" + hsmClientId
-        + ", securityEnvelope="
-        + (securityEnvelope == null ? null : securityEnvelope.length + " bytes")
-        + ", deviceKey=" + deviceKey + "]";
+    return "AccountEntity [id=" + id + "]";
   }
 
 }
