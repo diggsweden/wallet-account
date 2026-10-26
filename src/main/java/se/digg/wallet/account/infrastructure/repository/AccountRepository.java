@@ -10,6 +10,5 @@ import se.digg.wallet.account.infrastructure.model.AccountEntity;
 
 
 public interface AccountRepository extends CrudRepository<AccountEntity, UUID> {
-  boolean existsByDeviceKeyKidOrDeviceKeyThumbprint(String kid, String thumbprint);
 
 }
