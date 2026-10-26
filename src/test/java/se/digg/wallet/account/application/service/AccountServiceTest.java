@@ -77,7 +77,7 @@ class AccountServiceTest {
     when(walletRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(any(), any()))
         .thenReturn(false);
     when(accountRepository.save(any())).thenReturn(createdAccountEntity);
-    when(walletRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(walletRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(accountEntityMapper.toAccountDto(any())).thenReturn(expectedAccountDto);
 
     var createdAccountDto = accountService.createAccount(accountRequest);
@@ -104,7 +104,7 @@ class AccountServiceTest {
         () -> accountService.createAccount(accountRequest));
 
     verify(accountRepository, never()).save(any());
-    verify(walletRepository, never()).save(any());
+    verify(walletRepository, never()).saveAndFlush(any());
   }
 
   @Test
@@ -234,7 +234,7 @@ class AccountServiceTest {
     var existingWallet = TestUtils.wallet(null, TestUtils.generateJwkEntity(randomId()));
 
     when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
-    when(walletRepository.save(eq(existingWallet))).thenReturn(existingWallet);
+    when(walletRepository.saveAndFlush(eq(existingWallet))).thenReturn(existingWallet);
 
     var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
 
@@ -249,7 +249,7 @@ class AccountServiceTest {
     existingWallet.setHsmClientId(randomId());
 
     when(walletRepository.findByAccountId(any())).thenReturn(List.of(existingWallet));
-    when(walletRepository.save(eq(existingWallet))).thenReturn(existingWallet);
+    when(walletRepository.saveAndFlush(eq(existingWallet))).thenReturn(existingWallet);
 
     var actualClientId = accountService.createHsmClientId(UUID.randomUUID(), expectedClientId);
 
@@ -313,12 +313,13 @@ class AccountServiceTest {
 
     when(accountEntityMapper.toDeviceKey(any())).thenReturn(deviceKey);
     when(accountRepository.save(any())).thenReturn(createdAccountEntity);
-    when(walletRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(walletRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     accountService.createAccount(accountRequest);
 
-    verify(walletRepository).save(argThat(wallet -> wallet.getAccount() == createdAccountEntity
-        && wallet.getDeviceKey() == deviceKey));
+    verify(walletRepository)
+        .saveAndFlush(argThat(wallet -> wallet.getAccount() == createdAccountEntity
+            && wallet.getDeviceKey() == deviceKey));
   }
 
   private static String randomId() {

@@ -218,6 +218,12 @@ paths:
                 $ref: '#/components/schemas/HsmClientIdResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: The HSM client id is already in use by another wallet.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
         'default':
           $ref: '#/components/responses/default'
 
