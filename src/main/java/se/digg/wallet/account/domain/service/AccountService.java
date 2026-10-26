@@ -10,16 +10,20 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
+import se.digg.wallet.account.application.exception.HsmClientIdAlreadyInUseException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.DeviceKey;
 import se.digg.wallet.account.infrastructure.model.WalletEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
+import se.digg.wallet.account.infrastructure.repository.WalletConstraints;
 import se.digg.wallet.account.infrastructure.repository.WalletRepository;
 
 @Component
@@ -53,7 +57,16 @@ public class AccountService {
   public String createHsmClientId(UUID accountId, String hsmClientId) {
     WalletEntity wallet = singleWallet(accountId);
     wallet.setHsmClientId(hsmClientId);
-    return walletRepository.save(wallet).getHsmClientId();
+    try {
+      return walletRepository.saveAndFlush(wallet).getHsmClientId();
+    } catch (DataIntegrityViolationException e) {
+      if (WalletConstraints.isHsmClientIdViolation(e)) {
+        logger.warn("HSM client id is already in use by another wallet, account {}", accountId);
+        throw new HsmClientIdAlreadyInUseException(
+            "The HSM client id is already in use by another wallet.");
+      }
+      throw e;
+    }
   }
 
   public Optional<String> getHsmClientId(UUID accountId) {
@@ -75,18 +88,32 @@ public class AccountService {
 
     var deviceKey = accountEntityMapper.toDeviceKey(accountRequestDto);
 
+    // The check gives a clear answer in the normal case. Two concurrent requests can both pass it;
+    // the unique constraints then reject the second insert, which is mapped to the same conflict.
     if (walletRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
         deviceKey.getKid(), deviceKey.getThumbprint())) {
-      logger.warn("An account already exists for device key kid {} or thumbprint {}",
-          deviceKey.getKid(), deviceKey.getThumbprint());
-      throw new AccountAlreadyExistsException(
-          "An account already exists for the provided device key.");
+      throw deviceKeyAlreadyInUse(deviceKey);
     }
 
     AccountEntity account = accountRepository.save(new AccountEntity());
-    WalletEntity wallet = walletRepository.save(new WalletEntity(account, deviceKey, null));
+    WalletEntity wallet;
+    try {
+      wallet = walletRepository.saveAndFlush(new WalletEntity(account, deviceKey, null));
+    } catch (DataIntegrityViolationException e) {
+      if (WalletConstraints.isDeviceKeyViolation(e)) {
+        throw deviceKeyAlreadyInUse(deviceKey);
+      }
+      throw e;
+    }
     logger.debug("stored account {} with wallet {}", account, wallet);
     return wallet;
+  }
+
+  private AccountAlreadyExistsException deviceKeyAlreadyInUse(DeviceKey deviceKey) {
+    logger.warn("An account already exists for device key kid {} or thumbprint {}",
+        deviceKey.getKid(), deviceKey.getThumbprint());
+    return new AccountAlreadyExistsException(
+        "An account already exists for the provided device key.");
   }
 
   /**

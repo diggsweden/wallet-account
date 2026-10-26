@@ -37,6 +37,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
+import se.digg.wallet.account.application.exception.HsmClientIdAlreadyInUseException;
+import se.digg.wallet.account.application.exception.WalletAccountException;
 
 @RestControllerAdvice
 public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
@@ -148,12 +150,11 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   /*
-   * Handle AccountAlreadyExistsException. Occurs when account creation conflicts with an already
-   * existing account, e.g. the same device key kid is already in use.
+   * Handle conflicts with existing data: an account already exists for the device key, or the HSM
+   * client id is already in use by another wallet.
    */
-  @ExceptionHandler(AccountAlreadyExistsException.class)
-  public ResponseEntity<Object> handleAccountAlreadyExistsException(
-      AccountAlreadyExistsException e) {
+  @ExceptionHandler({AccountAlreadyExistsException.class, HsmClientIdAlreadyInUseException.class})
+  public ResponseEntity<Object> handleResourceAlreadyExistsException(WalletAccountException e) {
 
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
@@ -162,7 +163,7 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
         .instance(path)
         .build();
 
-    logWarn("Account already exists", method, path, null);
+    logWarn("Resource already exists", method, path, null);
     return createResponseEntity(problemResponse);
   }
 
