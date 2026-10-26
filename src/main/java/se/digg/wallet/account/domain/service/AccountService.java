@@ -91,7 +91,7 @@ public class AccountService {
 
   /**
    * The account's only wallet. The account-level endpoints assume exactly one wallet per account
-   * until the wallet API (ticket 8) decides how they behave with several.
+   * until the wallet API decides how they behave with several.
    *
    * @throws NoSuchElementException if the account has no wallet, i.e. does not exist
    */
