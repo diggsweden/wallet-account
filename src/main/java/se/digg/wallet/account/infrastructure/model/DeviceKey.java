@@ -26,6 +26,8 @@ import org.hibernate.type.SqlTypes;
  * <p>
  * The kid and thumbprint are derived from the JWK and must always match it. Create instances with
  * {@link se.digg.wallet.account.infrastructure.mapper.JwkMapper#toDeviceKey}, which computes both.
+ * The database also rejects a kid that doesn't match the json
+ * ({@code chk_device_key_kid_matches_jwk}).
  */
 @Embeddable
 public class DeviceKey {
