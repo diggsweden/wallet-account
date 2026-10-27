@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.nimbusds.jose.jwk.ECKey;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -199,14 +200,33 @@ class AccountRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    var sameKeyNewKid = new DeviceKey(deviceKey.getJwk(), UUID.randomUUID().toString(),
-        deviceKey.getThumbprint());
+    // The thumbprint does not cover the kid, so the same key under a new kid keeps its thumbprint.
+    var newKid = UUID.randomUUID().toString();
+    var sameKeyNewKid = new DeviceKey(
+        new ECKey.Builder(TestUtils.parseJwk(deviceKey.getJwk()).toECKey()).keyID(newKid).build()
+            .toJSONString(),
+        newKid, deviceKey.getThumbprint());
 
-    assertThrows(ConstraintViolationException.class, () -> {
+    var violation = assertThrows(ConstraintViolationException.class, () -> {
       walletRepository.save(newWallet(null, sameKeyNewKid));
       entityManager.flush();
       entityManager.clear();
     });
+    assertThat(violation.getConstraintName()).isEqualTo("wallets_device_key_thumbprint_key");
+  }
+
+  @Test
+  void kidColumnMustMatchTheKidInTheJwk() {
+    var deviceKey = TestUtils.generateJwkEntity(UUID.randomUUID().toString());
+    var mismatchingKid = new DeviceKey(deviceKey.getJwk(), UUID.randomUUID().toString(),
+        deviceKey.getThumbprint());
+
+    var violation = assertThrows(ConstraintViolationException.class, () -> {
+      walletRepository.save(newWallet(null, mismatchingKid));
+      entityManager.flush();
+      entityManager.clear();
+    });
+    assertThat(violation.getConstraintName()).isEqualTo("chk_device_key_kid_matches_jwk");
   }
 
   @ParameterizedTest

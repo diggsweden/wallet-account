@@ -23,6 +23,8 @@ CREATE TABLE wallets (
   CONSTRAINT wallets_device_key_thumbprint_key UNIQUE (device_key_thumbprint),
   CONSTRAINT wallets_hsm_client_id_key UNIQUE (hsm_client_id),
   CONSTRAINT chk_device_key_kid_min_length CHECK (LENGTH(device_key_kid) >= 1),
+  -- The kid column is extracted from the json for lookup; it must not drift from the key itself.
+  CONSTRAINT chk_device_key_kid_matches_jwk CHECK (device_key_kid = device_key ->> 'kid'),
   -- The API limits the envelope to 65536 characters; a UTF-8 character is at most 4 bytes.
   CONSTRAINT chk_security_envelope_max_size CHECK (OCTET_LENGTH(security_envelope) <= 262144)
 );
