@@ -4,7 +4,6 @@
 
 package se.digg.wallet.account.infrastructure.model;
 
-import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -29,16 +28,12 @@ public class AccountEntity {
   private byte[] securityEnvelope;
 
   @Embedded
-  @AttributeOverride(name = "jwk",
-      column = @Column(name = "device_key", columnDefinition = "jsonb"))
-  @AttributeOverride(name = "kid", column = @Column(name = "device_key_kid"))
-  @AttributeOverride(name = "thumbprint", column = @Column(name = "device_key_thumbprint"))
-  private StoredJwk deviceKey;
+  private DeviceKey deviceKey;
 
 
   public AccountEntity() {}
 
-  public AccountEntity(byte[] securityEnvelope, StoredJwk deviceKey) {
+  public AccountEntity(byte[] securityEnvelope, DeviceKey deviceKey) {
     this.securityEnvelope = securityEnvelope;
     this.deviceKey = deviceKey;
   }
@@ -67,11 +62,11 @@ public class AccountEntity {
     this.securityEnvelope = securityEnvelope;
   }
 
-  public StoredJwk getDeviceKey() {
+  public DeviceKey getDeviceKey() {
     return deviceKey;
   }
 
-  public void setDeviceKey(StoredJwk deviceKey) {
+  public void setDeviceKey(DeviceKey deviceKey) {
     this.deviceKey = deviceKey;
   }
 

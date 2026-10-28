@@ -35,7 +35,7 @@ import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.StoredJwk;
+import se.digg.wallet.account.infrastructure.model.DeviceKey;
 
 @DataJpaTest
 @Testcontainers
@@ -121,7 +121,7 @@ class AccountRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    var sameKeyNewKid = new StoredJwk(deviceKey.getJwk(), UUID.randomUUID().toString(),
+    var sameKeyNewKid = new DeviceKey(deviceKey.getJwk(), UUID.randomUUID().toString(),
         deviceKey.getThumbprint());
 
     assertThrows(ConstraintViolationException.class, () -> {
