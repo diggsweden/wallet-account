@@ -19,7 +19,7 @@ public class AccountEntityMapper {
   public AccountEntity toAccountEntity(CreateAccountRequestDto accountRequestDto) {
     return new AccountEntity(
         null,
-        JwkMapper.toStoredJwk(accountRequestDto.publicKey()));
+        JwkMapper.toDeviceKey(accountRequestDto.publicKey()));
   }
 
   public ExtendedAccountDto toExtendedAccountDto(AccountEntity accountEntity) {

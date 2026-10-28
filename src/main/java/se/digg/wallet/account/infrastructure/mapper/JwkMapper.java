@@ -10,7 +10,7 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.Objects;
 import se.digg.wallet.account.application.model.PublicKeyDto;
-import se.digg.wallet.account.infrastructure.model.StoredJwk;
+import se.digg.wallet.account.infrastructure.model.DeviceKey;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -23,18 +23,18 @@ public class JwkMapper {
   private static final JsonMapper MAPPER = JsonMapper.builder().build();
   private static final TypeReference<Map<String, Object>> JSON_OBJECT = new TypeReference<>() {};
 
-  public static StoredJwk toStoredJwk(PublicKeyDto key) {
+  public static DeviceKey toDeviceKey(PublicKeyDto key) {
     Objects.requireNonNull(key, "key");
     try {
       JWK jwk = JWK.parse(MAPPER.convertValue(key, JSON_OBJECT)).toPublicJWK();
-      return new StoredJwk(jwk.toJSONString(), jwk.getKeyID(),
+      return new DeviceKey(jwk.toJSONString(), jwk.getKeyID(),
           jwk.computeThumbprint().toString());
     } catch (ParseException | JOSEException ex) {
       throw new IllegalArgumentException("Invalid JWK: " + ex.getMessage(), ex);
     }
   }
 
-  public static PublicKeyDto toPublicKeyDto(StoredJwk storedJwk) {
+  public static PublicKeyDto toPublicKeyDto(DeviceKey storedJwk) {
     Objects.requireNonNull(storedJwk, "storedJwk");
     Objects.requireNonNull(storedJwk.getJwk(), "storedJwk.jwk");
     try {

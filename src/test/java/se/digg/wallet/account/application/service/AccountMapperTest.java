@@ -78,7 +78,7 @@ class AccountMapperTest {
   void testToDtoAllOptionalFieldsNull() {
     AccountEntity entity = new AccountEntity(
         null,
-        JwkMapper.toStoredJwk(TestUtils.publicKeyDtoBuilderWithDefaults(null)
+        JwkMapper.toDeviceKey(TestUtils.publicKeyDtoBuilderWithDefaults(null)
             .alg(null)
             .use(null)
             .build()));

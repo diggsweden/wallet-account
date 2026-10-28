@@ -29,17 +29,17 @@ import java.util.Set;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.application.model.PublicKeyDtoBuilder;
 import se.digg.wallet.account.domain.model.AccountDtoBuilder;
-import se.digg.wallet.account.infrastructure.model.StoredJwk;
+import se.digg.wallet.account.infrastructure.model.DeviceKey;
 
 public class TestUtils {
 
   /**
    * A stored device key with a freshly generated EC key, so every call has a unique thumbprint.
    */
-  public static StoredJwk generateJwkEntity(String kid) {
+  public static DeviceKey generateJwkEntity(String kid) {
     try {
       ECKey key = new ECKeyGenerator(Curve.P_256).keyID(kid).generate().toPublicJWK();
-      return new StoredJwk(key.toJSONString(), kid, key.computeThumbprint().toString());
+      return new DeviceKey(key.toJSONString(), kid, key.computeThumbprint().toString());
     } catch (JOSEException ex) {
       throw new IllegalStateException(ex);
     }

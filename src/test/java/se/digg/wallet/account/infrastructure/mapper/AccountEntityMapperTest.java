@@ -106,7 +106,7 @@ public class AccountEntityMapperTest {
   void assertThatToExtendedAccountEntity_deviceKeyValues_mappedToEqualKeyId() {
 
     var expectedKeyId = randomId();
-    var publicKeyEntity = JwkMapper.toStoredJwk(
+    var publicKeyEntity = JwkMapper.toDeviceKey(
         TestUtils.publicKeyDtoBuilderWithDefaults(expectedKeyId).build());
     var accountEntity = new AccountEntity(
         null,
@@ -176,7 +176,7 @@ public class AccountEntityMapperTest {
   void assertThatToAccountDto_deviceKeyValues_containsMappedValues() {
 
     var expectedKeyId = randomId();
-    var publicKeyEntity = JwkMapper.toStoredJwk(
+    var publicKeyEntity = JwkMapper.toDeviceKey(
         TestUtils.publicKeyDtoBuilderWithDefaults(expectedKeyId).build());
     var accountEntity = new AccountEntity(
         null,

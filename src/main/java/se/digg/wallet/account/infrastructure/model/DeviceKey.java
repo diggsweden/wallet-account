@@ -11,25 +11,38 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * A public JWK stored as json, with the kid and RFC 7638 thumbprint extracted into their own
- * columns for lookup and uniqueness.
+ * The public key of the device a wallet runs on.
+ *
+ * <p>
+ * Stored as three columns in {@code accounts}:
+ * <ul>
+ * <li>{@code device_key}: the whole public JWK as json. This is the key itself.</li>
+ * <li>{@code device_key_kid}: the JWK's {@code kid}, copied out so it can be looked up and kept
+ * unique.</li>
+ * <li>{@code device_key_thumbprint}: the RFC 7638 SHA-256 thumbprint of the key, unique so the same
+ * key can't be registered twice under different kids. Same value as DPoP {@code cnf.jkt}.</li>
+ * </ul>
+ *
+ * <p>
+ * The kid and thumbprint are derived from the JWK and must always match it. Create instances with
+ * {@link se.digg.wallet.account.infrastructure.mapper.JwkMapper#toDeviceKey}, which computes both.
  */
 @Embeddable
-public class StoredJwk {
+public class DeviceKey {
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "jwk", columnDefinition = "jsonb")
+  @Column(name = "device_key", columnDefinition = "jsonb")
   private String jwk;
 
-  @Column(name = "kid")
+  @Column(name = "device_key_kid")
   private String kid;
 
-  @Column(name = "thumbprint")
+  @Column(name = "device_key_thumbprint")
   private String thumbprint;
 
-  public StoredJwk() {}
+  public DeviceKey() {}
 
-  public StoredJwk(String jwk, String kid, String thumbprint) {
+  public DeviceKey(String jwk, String kid, String thumbprint) {
     this.jwk = jwk;
     this.kid = kid;
     this.thumbprint = thumbprint;
@@ -65,7 +78,7 @@ public class StoredJwk {
       return false;
     }
 
-    StoredJwk other = (StoredJwk) obj;
+    DeviceKey other = (DeviceKey) obj;
     return Objects.equals(jwk, other.jwk)
         && Objects.equals(kid, other.kid)
         && Objects.equals(thumbprint, other.thumbprint);
@@ -73,6 +86,6 @@ public class StoredJwk {
 
   @Override
   public String toString() {
-    return "StoredJwk [kid=" + kid + ", thumbprint=" + thumbprint + ", jwk=" + jwk + "]";
+    return "DeviceKey [kid=" + kid + ", thumbprint=" + thumbprint + ", jwk=" + jwk + "]";
   }
 }
