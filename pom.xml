@@ -67,7 +67,11 @@ SPDX-License-Identifier: EUPL-1.2
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-liquibase</artifactId>
+      <artifactId>spring-boot-starter-flyway</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -372,21 +376,6 @@ SPDX-License-Identifier: EUPL-1.2
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- Liquibase plugin -->
-      <plugin>
-        <groupId>org.liquibase</groupId>
-        <artifactId>liquibase-maven-plugin</artifactId>
-        <version>5.0.4</version>
-        <configuration>
-          <!-- TODO: Use a separate liquibase.properties file -->
-          <!-- TODO: Set values also for production ? -->
-          <changeLogFile>db/changelog/changelog.yml</changeLogFile>
-          <url>jdbc:postgresql://localhost:5432/walletaccount</url>
-          <username>mywalletuser</username>
-          <password>mywalletuser</password>
-        </configuration>
       </plugin>
 
     </plugins>

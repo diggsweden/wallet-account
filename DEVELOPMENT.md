@@ -280,7 +280,7 @@ The workflow sets the POM version and generates a changelog.
 docker compose up -d
 ```
 
-### Start the Spring Boot Application (and thereby run liquibase)
+### Start the Spring Boot Application (and thereby run the Flyway migrations)
 
 Create a Run/Debug Configuration for Spring Boot that points to se.digg.wallet.account.Application
 
@@ -302,16 +302,10 @@ docker exec -it postgres16 psql -U mywalletuser -W walletaccount
 select * from accounts;
 ```
 
-### Delete a changeSet
+### Show applied migrations
 
 ```shell
-delete from databasechangelog where id='addColumn-example';
-```
-
-### Rollback example
-
-```shell
-alter table accounts drop column opaque_envelope;
+select version, description, success from flyway_schema_history;
 ```
 
 ### Describe the table accounts
@@ -320,19 +314,16 @@ alter table accounts drop column opaque_envelope;
 \d accounts;
 ```
 
-## Rollback the database using mvn plugin
+## Database migrations
 
-The liquibase-maven-plugin uses its own configuration. It's in the pom.xml and not in Spring Boot's application.yml.
-Please make sure the url "jdbc:postgresql://..." is correct when running rollback/update commands.
+Migrations are managed by Flyway and run automatically when the application starts.
+They live in `src/main/resources/db/migration`.
 
-### Rollback the latest changeSet
-
-```shell
-mvn liquibase:rollback -Dliquibase.rollbackCount=1
-```
-
-### Update to the latest, not-yet-applied changeSet
+- Add a new file named `V<next number>__<description>.sql`, e.g. `V2__add_device_name.sql`.
+- Never edit a migration that has been applied in a shared environment; Flyway validates checksums
+  and will refuse to start. Fix mistakes with a new migration instead (roll forward).
+- There is no automatic rollback. To start over locally, recreate the database:
 
 ```shell
-mvn liquibase:update
+docker compose down -v && docker compose up -d
 ```
