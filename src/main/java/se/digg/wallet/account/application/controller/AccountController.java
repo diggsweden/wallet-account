@@ -54,6 +54,21 @@ public class AccountController implements AccountApi {
   }
 
   @Override
+  public ResponseEntity<AccountResponse> putAccountWallet(UUID id, AccountRequest accountRequest) {
+
+    var walletRequest = toCreateAccountDto(accountRequest);
+    if (!jwkValidationService.validateJwk(walletRequest.publicKey())) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    var result = accountService.putWallet(id, walletRequest);
+
+    return ResponseEntity
+        .status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
+        .body(toAccountResponse(result.account()));
+  }
+
+  @Override
   public ResponseEntity<AccountResponse> getAccount(UUID id) {
 
     var accountDto = accountService.getAccountById(id);

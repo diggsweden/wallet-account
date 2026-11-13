@@ -17,6 +17,7 @@ import se.digg.wallet.account.application.exception.AccountAlreadyExistsExceptio
 import se.digg.wallet.account.application.exception.HsmClientIdAlreadyInUseException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.domain.model.AccountDto;
+import se.digg.wallet.account.domain.model.PutWalletResult;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
 import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
@@ -44,6 +45,44 @@ public class AccountService {
   public AccountDto createAccount(CreateAccountRequestDto accountRequestDto) {
     return accountEntityMapper.toAccountDto(
         storeAccountWithUniqueDeviceKey(accountRequestDto));
+  }
+
+  /**
+   * Stores the wallet for a device key under an account id assigned by the authorization server.
+   * Putting the same device key again returns the stored wallet. An account has one wallet until
+   * the account-level endpoints support several.
+   */
+  @Transactional
+  public PutWalletResult putWallet(UUID accountId, CreateAccountRequestDto request) {
+    var deviceKey = accountEntityMapper.toDeviceKey(request);
+
+    // Concurrent puts for the account wait here, so the checks below see each other's wallet.
+    // Without the accounts table, a pg_advisory_xact_lock on the id would do the same.
+    accountRepository.insertIfAbsent(accountId);
+    AccountEntity account = accountRepository.findByIdForUpdate(accountId).orElseThrow();
+
+    List<WalletEntity> wallets = walletRepository.findByAccountId(accountId);
+    if (!wallets.isEmpty()) {
+      WalletEntity stored = singleWallet(accountId, wallets);
+      if (isSameKey(stored.getDeviceKey(), deviceKey)) {
+        return new PutWalletResult(accountEntityMapper.toAccountDto(stored), false);
+      }
+      logger.warn("Account {} already has a wallet with another device key", accountId);
+      throw new AccountAlreadyExistsException(
+          "The account already has a wallet with another device key.");
+    }
+    if (walletRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
+        deviceKey.getKid(), deviceKey.getThumbprint())) {
+      throw deviceKeyAlreadyInUse(deviceKey);
+    }
+
+    return new PutWalletResult(
+        accountEntityMapper.toAccountDto(saveWallet(account, deviceKey)), true);
+  }
+
+  private static boolean isSameKey(DeviceKey stored, DeviceKey requested) {
+    return stored.getThumbprint().equals(requested.getThumbprint())
+        && stored.getKid().equals(requested.getKid());
   }
 
   public Optional<AccountDto> getAccountById(UUID id) {
@@ -95,7 +134,10 @@ public class AccountService {
       throw deviceKeyAlreadyInUse(deviceKey);
     }
 
-    AccountEntity account = accountRepository.save(new AccountEntity());
+    return saveWallet(accountRepository.save(new AccountEntity()), deviceKey);
+  }
+
+  private WalletEntity saveWallet(AccountEntity account, DeviceKey deviceKey) {
     WalletEntity wallet;
     try {
       wallet = walletRepository.saveAndFlush(new WalletEntity(account, deviceKey, null));
