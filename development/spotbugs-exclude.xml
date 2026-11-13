@@ -33,4 +33,20 @@ SPDX-License-Identifier: CC0-1.0
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
         <Package name="se.digg.wallet.account.infrastructure.model.*"/>
     </Match>
+
+    <!-- Spring beans injected through the constructor are shared by design -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="se.digg.wallet.account.application.controller.AccountController"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="se.digg.wallet.account.domain.service.AccountService"/>
+    </Match>
+
+    <!-- null is a missing security envelope, stored as NULL; an empty array would store an empty one -->
+    <Match>
+        <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS"/>
+        <Class name="se.digg.wallet.account.infrastructure.mapper.BytesMapper"/>
+    </Match>
 </FindBugsFilter>
