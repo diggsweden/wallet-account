@@ -20,11 +20,7 @@ import se.digg.wallet.account.api.v0.model.ApiInfoResponse;
 import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 
 @Testcontainers
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.liquibase.enabled=false"
-    })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ApiInfoControllerTest {
 
   @Container

@@ -4,95 +4,137 @@
 
 package se.digg.wallet.account.domain.service;
 
-import jakarta.transaction.Transactional;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
-import se.digg.wallet.account.application.exception.WalletAccountException;
+import se.digg.wallet.account.application.exception.HsmClientIdAlreadyInUseException;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
-import se.digg.wallet.account.infrastructure.mapper.BlobMapper;
+import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
+import se.digg.wallet.account.infrastructure.model.DeviceKey;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
+import se.digg.wallet.account.infrastructure.repository.WalletConstraints;
+import se.digg.wallet.account.infrastructure.repository.WalletRepository;
 
 @Component
 public class AccountService {
   Logger logger = LoggerFactory.getLogger(AccountService.class);
   private final AccountRepository accountRepository;
+  private final WalletRepository walletRepository;
   private final AccountEntityMapper accountEntityMapper;
 
-  public AccountService(AccountRepository accountRepository,
+  public AccountService(AccountRepository accountRepository, WalletRepository walletRepository,
       AccountEntityMapper accountEntityMapper) {
     this.accountRepository = accountRepository;
+    this.walletRepository = walletRepository;
     this.accountEntityMapper = accountEntityMapper;
   }
 
+  @Transactional
   public AccountDto createAccount(CreateAccountRequestDto accountRequestDto) {
     return accountEntityMapper.toAccountDto(
         storeAccountWithUniqueDeviceKey(accountRequestDto));
   }
 
   public Optional<AccountDto> getAccountById(UUID id) {
-    return accountRepository.findById(id).map(accountEntityMapper::toAccountDto);
+    List<WalletEntity> wallets = walletRepository.findByAccountId(id);
+    if (wallets.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(accountEntityMapper.toAccountDto(singleWallet(id, wallets)));
   }
 
   public String createHsmClientId(UUID accountId, String hsmClientId) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    entity.setHsmClientId(hsmClientId);
-    var savedEntity = accountRepository.save(entity);
-    return savedEntity.getHsmClientId();
+    WalletEntity wallet = singleWallet(accountId);
+    wallet.setHsmClientId(hsmClientId);
+    try {
+      return walletRepository.saveAndFlush(wallet).getHsmClientId();
+    } catch (DataIntegrityViolationException e) {
+      if (WalletConstraints.isHsmClientIdViolation(e)) {
+        logger.warn("HSM client id is already in use by another wallet, account {}", accountId);
+        throw new HsmClientIdAlreadyInUseException(
+            "The HSM client id is already in use by another wallet.");
+      }
+      throw e;
+    }
   }
 
   public Optional<String> getHsmClientId(UUID accountId) {
-    AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-    return Optional.ofNullable(entity.getHsmClientId());
+    return Optional.ofNullable(singleWallet(accountId).getHsmClientId());
   }
 
   public String createSecurityEnvelope(UUID accountId, String securityEnvelope) {
-    try {
-      AccountEntity entity = accountRepository.findById(accountId).orElseThrow();
-      entity.setSecurityEnvelope(BlobMapper.stringToBlob(securityEnvelope));
-      var savedEntity = accountRepository.save(entity);
-      return BlobMapper.blobToString(savedEntity.getSecurityEnvelope());
-    } catch (SQLException ex) {
-      // TODO: better exception handling
-      throw new WalletAccountException(ex.getMessage());
-    }
+    WalletEntity wallet = singleWallet(accountId);
+    wallet.setSecurityEnvelope(BytesMapper.stringToBytes(securityEnvelope));
+    return BytesMapper.bytesToString(walletRepository.save(wallet).getSecurityEnvelope());
   }
 
-  @Transactional
   public Optional<String> getSecurityEnvelope(UUID accountId) {
-    try {
-      Optional<AccountEntity> entity = accountRepository.findById(accountId);
-      var securityEnvelopeBlob = entity.orElseThrow().getSecurityEnvelope();
-      return Optional.ofNullable(BlobMapper.blobToString(securityEnvelopeBlob));
-    } catch (SQLException ex) {
-      // TODO: better exception handling
-      throw new WalletAccountException(ex.getMessage());
-    }
+    return Optional.ofNullable(
+        BytesMapper.bytesToString(singleWallet(accountId).getSecurityEnvelope()));
   }
 
-  private AccountEntity storeAccountWithUniqueDeviceKey(CreateAccountRequestDto accountRequestDto) {
+  private WalletEntity storeAccountWithUniqueDeviceKey(CreateAccountRequestDto accountRequestDto) {
 
-    String kid = accountRequestDto.publicKey().kid();
+    var deviceKey = accountEntityMapper.toDeviceKey(accountRequestDto);
 
-    List<AccountEntity> entities = accountRepository.findByDeviceKeyKid(kid);
-    if (!entities.isEmpty()) {
-      logger.warn("An account already exists for device key kid {}: {}", kid, entities);
-      throw new AccountAlreadyExistsException(
-          "An account already exists for the provided device key.");
+    // The check gives a clear answer in the normal case. Two concurrent requests can both pass it;
+    // the unique constraints then reject the second insert, which is mapped to the same conflict.
+    if (walletRepository.existsByDeviceKeyKidOrDeviceKeyThumbprint(
+        deviceKey.getKid(), deviceKey.getThumbprint())) {
+      throw deviceKeyAlreadyInUse(deviceKey);
     }
 
-    AccountEntity storedEntity =
-        accountRepository.save(accountEntityMapper.toAccountEntity(accountRequestDto));
-    logger.debug("stored account {}", storedEntity);
-    return storedEntity;
+    AccountEntity account = accountRepository.save(new AccountEntity());
+    WalletEntity wallet;
+    try {
+      wallet = walletRepository.saveAndFlush(new WalletEntity(account, deviceKey, null));
+    } catch (DataIntegrityViolationException e) {
+      if (WalletConstraints.isDeviceKeyViolation(e)) {
+        throw deviceKeyAlreadyInUse(deviceKey);
+      }
+      throw e;
+    }
+    logger.debug("stored account {} with wallet {}", account, wallet);
+    return wallet;
+  }
+
+  private AccountAlreadyExistsException deviceKeyAlreadyInUse(DeviceKey deviceKey) {
+    logger.warn("An account already exists for device key kid {} or thumbprint {}",
+        deviceKey.getKid(), deviceKey.getThumbprint());
+    return new AccountAlreadyExistsException(
+        "An account already exists for the provided device key.");
+  }
+
+  /**
+   * The account's only wallet. The account-level endpoints assume exactly one wallet per account
+   * until the wallet API decides how they behave with several.
+   *
+   * @throws NoSuchElementException if the account has no wallet, i.e. does not exist
+   */
+  private WalletEntity singleWallet(UUID accountId) {
+    return singleWallet(accountId, walletRepository.findByAccountId(accountId));
+  }
+
+  private static WalletEntity singleWallet(UUID accountId, List<WalletEntity> wallets) {
+    if (wallets.isEmpty()) {
+      throw new NoSuchElementException("No wallet for account " + accountId);
+    }
+    if (wallets.size() > 1) {
+      throw new IllegalStateException(
+          "Expected exactly one wallet for account " + accountId + " but found " + wallets.size());
+    }
+    return wallets.getFirst();
   }
 
 }

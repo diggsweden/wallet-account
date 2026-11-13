@@ -152,8 +152,7 @@ paths:
       summary: Add a security envelope to an account
       description: |
         This operation will add a security envelope (typically used with the HSM) to the associated account.
-        An account can only have one security envelope for each type. Any existing envelope with the reqeusted
-        type will be replaced.
+        An account has at most one security envelope. Any existing envelope will be replaced.
       operationId: addAccountSecurityEnvelope
       parameters:
         - $ref: '#/components/parameters/AccountId'
@@ -219,6 +218,12 @@ paths:
                 $ref: '#/components/schemas/HsmClientIdResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: The HSM client id is already in use by another wallet.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
         'default':
           $ref: '#/components/responses/default'
 
@@ -544,7 +549,9 @@ components:
           type: string
           description: |
             The security envelope content. Typically encrypted opaque materials such as the current device state jws.
+            The content is opaque to this service: it is stored and returned as is and never interpreted.
           minLength: 1
+          maxLength: 65536
       required:
         - content
 

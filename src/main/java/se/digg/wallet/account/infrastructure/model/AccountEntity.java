@@ -4,46 +4,26 @@
 
 package se.digg.wallet.account.infrastructure.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.sql.Blob;
 import java.util.Objects;
 import java.util.UUID;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
+/**
+ * An account. Its wallets refer to it from the wallets table; they are loaded through
+ * WalletRepository, not through the account.
+ */
 @Entity
 @Table(name = "accounts")
 public class AccountEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
-  @Column
-  private String hsmClientId;
-
-  @JdbcTypeCode(SqlTypes.BLOB)
-  @Column(columnDefinition = "blob")
-  private Blob securityEnvelope;
-
-  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  @JoinColumn(name = "device_key_id", referencedColumnName = "id")
-  private PublicKeyEntity deviceKey;
-
 
   public AccountEntity() {}
-
-  public AccountEntity(Blob securityEnvelope, PublicKeyEntity deviceKey) {
-    this.securityEnvelope = securityEnvelope;
-    this.deviceKey = deviceKey;
-  }
 
   public UUID getId() {
     return id;
@@ -53,33 +33,9 @@ public class AccountEntity {
     this.id = id;
   }
 
-  public String getHsmClientId() {
-    return hsmClientId;
-  }
-
-  public void setHsmClientId(String hsmClientId) {
-    this.hsmClientId = hsmClientId;
-  }
-
-  public Blob getSecurityEnvelope() {
-    return securityEnvelope;
-  }
-
-  public void setSecurityEnvelope(Blob securityEnvelope) {
-    this.securityEnvelope = securityEnvelope;
-  }
-
-  public PublicKeyEntity getDeviceKey() {
-    return deviceKey;
-  }
-
-  public void setDeviceKey(PublicKeyEntity deviceKey) {
-    this.deviceKey = deviceKey;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(id, hsmClientId, securityEnvelope, deviceKey);
+    return Objects.hash(id);
   }
 
   @Override
@@ -96,18 +52,12 @@ public class AccountEntity {
     }
 
     AccountEntity other = (AccountEntity) obj;
-    return Objects.equals(id, other.id)
-        && Objects.equals(hsmClientId, other.hsmClientId)
-        && Objects.equals(securityEnvelope, other.securityEnvelope)
-        && Objects.equals(other.deviceKey, deviceKey);
+    return Objects.equals(id, other.id);
   }
 
   @Override
   public String toString() {
-    return "AccountEntity [id=" + id
-        + ", hsmClientId=" + hsmClientId
-        + ", securityEnvelope=" + securityEnvelope
-        + ", deviceKey=" + deviceKey + "]";
+    return "AccountEntity [id=" + id + "]";
   }
 
 }
