@@ -39,11 +39,7 @@ import static org.mockito.Mockito.when;
 import static se.digg.wallet.account.application.controller.util.ProblemDetailAssertion.assertProblemDetails;
 
 @Testcontainers
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.liquibase.enabled=false"
-    })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccountApiComponentTest {
 
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";

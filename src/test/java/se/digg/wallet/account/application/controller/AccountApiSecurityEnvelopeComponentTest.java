@@ -38,11 +38,7 @@ import static org.mockito.Mockito.when;
 import static se.digg.wallet.account.application.controller.util.ProblemDetailAssertion.assertProblemDetails;
 
 @Testcontainers
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.liquibase.enabled=false"
-    })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccountApiSecurityEnvelopeComponentTest {
 
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
@@ -91,6 +87,25 @@ public class AccountApiSecurityEnvelopeComponentTest {
         .uri("/v0/accounts/{0}/security-envelopes", UUID.randomUUID())
         .body(SecurityEnvelopeRequest.builder()
             .content(emptyContent)
+            .build())
+        .exchange()
+        .expectStatus()
+        .isBadRequest()
+        .expectBody(ProblemResponse.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
+        VALIDATION_FAILURE, "content");
+  }
+
+  @Test
+  void addingTooLargeSecurityEnvelopeReturnsContentProblem() {
+
+    var problemResponse = client.post()
+        .uri("/v0/accounts/{0}/security-envelopes", UUID.randomUUID())
+        .body(SecurityEnvelopeRequest.builder()
+            .content("a".repeat(65537))
             .build())
         .exchange()
         .expectStatus()
