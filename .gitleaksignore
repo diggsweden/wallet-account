@@ -65,3 +65,4 @@ d1cb2434cfd04306834eee813891f1f90febabb6:src/test/java/se/digg/wallet/account/do
 ae4001a2566a8d797d02d2451410e9a4a054a12d:src/main/java/se/digg/wallet/account/domain/service/JwkValidationService.java:digg-internal-hosts:5
 ecb854ba498e2352b3529afca6a3809e9ecff68f:src/main/java/se/digg/wallet/account/domain/service/JwkValidationService.java:digg-internal-hosts:5
 631c73cf52cddb10d356e0a196bbfb84dab318d1:src/test/java/se/digg/wallet/account/domain/service/JwkValidationTest.java:digg-internal-hosts:5
+development/spotbugs-exclude.xml:digg-internal-hosts:44

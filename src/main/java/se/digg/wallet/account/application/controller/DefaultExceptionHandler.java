@@ -8,7 +8,6 @@ import static se.digg.wallet.account.application.controller.ProblemType.INTERNAL
 import static se.digg.wallet.account.application.controller.ProblemType.REQUEST_ARGUMENT_NOT_VALID;
 import static se.digg.wallet.account.application.controller.ProblemType.REQUEST_VALIDATION_FAILURE;
 import static se.digg.wallet.account.application.controller.ProblemType.RESOURCE_ALREADY_EXISTS;
-import static se.digg.wallet.account.application.filter.LoggingFilter.MDC_TRANSACTION_ID;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -37,12 +36,15 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import se.digg.wallet.account.api.v0.model.ProblemParameterResponse;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.application.exception.AccountAlreadyExistsException;
+import se.digg.wallet.account.application.exception.HsmClientIdAlreadyInUseException;
+import se.digg.wallet.account.application.exception.WalletAccountException;
 
 @RestControllerAdvice
 public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
   private static final String ABOUT_BLANK = "about:blank";
+  private static final String MDC_OTEL_TRACE_ID = "trace_id";
 
   private final HttpServletRequest httpServletRequest;
 
@@ -148,12 +150,11 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   /*
-   * Handle AccountAlreadyExistsException. Occurs when account creation conflicts with an already
-   * existing account, e.g. the same device key kid is already in use.
+   * Handle conflicts with existing data: an account already exists for the device key, or the HSM
+   * client id is already in use by another wallet.
    */
-  @ExceptionHandler(AccountAlreadyExistsException.class)
-  public ResponseEntity<Object> handleAccountAlreadyExistsException(
-      AccountAlreadyExistsException e) {
+  @ExceptionHandler({AccountAlreadyExistsException.class, HsmClientIdAlreadyInUseException.class})
+  public ResponseEntity<Object> handleResourceAlreadyExistsException(WalletAccountException e) {
 
     var method = httpServletRequest.getMethod();
     var path = httpServletRequest.getServletPath();
@@ -162,7 +163,7 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
         .instance(path)
         .build();
 
-    logWarn("Account already exists", method, path, null);
+    logWarn("Resource already exists", method, path, null);
     return createResponseEntity(problemResponse);
   }
 
@@ -235,9 +236,9 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   private ResponseEntity<Object> createResponseEntity(ProblemResponse problemResponse) {
 
     try {
-      problemResponse.setTransactionId(MDC.get(MDC_TRANSACTION_ID));
+      problemResponse.setTransactionId(MDC.get(MDC_OTEL_TRACE_ID));
     } catch (Exception e) {
-      LOGGER.info("The MDC property {} is not present", MDC_TRANSACTION_ID);
+      LOGGER.info("The MDC property {} is not present", MDC_OTEL_TRACE_ID);
     }
     return ResponseEntity.status(problemResponse.getStatus()).body(problemResponse);
   }
@@ -254,19 +255,17 @@ public class DefaultExceptionHandler extends ResponseEntityExceptionHandler {
   private void logDebug(String message, String method, String path,
       @Nullable Map<String, ?> properties, Throwable e) {
 
-    LOGGER.debug("{} {} {} {} transaction-id: {}", method, path, message,
-        Optional.ofNullable(properties).orElse(Map.of()), MDC.get(MDC_TRANSACTION_ID), e);
+    LOGGER.debug("{} {} {} {}", method, path, message,
+        Optional.ofNullable(properties).orElse(Map.of()), e);
   }
 
   private void logWarn(String message, String method, String path, Throwable e) {
 
-    LOGGER.warn("{} {} {} transaction-id: {}", method, path, message, MDC.get(MDC_TRANSACTION_ID),
-        e);
+    LOGGER.warn("{} {} {}", method, path, message, e);
   }
 
   private void logError(String message, String method, String path, Throwable e) {
 
-    LOGGER.error("{} {} {} transaction-id: {}", method, path, message, MDC.get(MDC_TRANSACTION_ID),
-        e);
+    LOGGER.error("{} {} {}", method, path, message, e);
   }
 }

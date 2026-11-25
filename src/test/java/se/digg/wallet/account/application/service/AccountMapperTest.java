@@ -6,15 +6,14 @@ package se.digg.wallet.account.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.application.model.CreateAccountRequestDto;
 import se.digg.wallet.account.application.model.CreateAccountRequestDtoBuilder;
 import se.digg.wallet.account.domain.model.ExtendedAccountDto;
 import se.digg.wallet.account.infrastructure.mapper.AccountEntityMapper;
-import se.digg.wallet.account.infrastructure.model.AccountEntity;
-import se.digg.wallet.account.infrastructure.model.PublicKeyEntity;
+import se.digg.wallet.account.infrastructure.mapper.JwkMapper;
+import se.digg.wallet.account.infrastructure.model.WalletEntity;
 
 class AccountMapperTest {
 
@@ -22,21 +21,22 @@ class AccountMapperTest {
   AccountEntityMapper accountEntityMapper = new AccountEntityMapper();
 
   @Test
-  void testToAccountEntity() {
+  void testToDeviceKey() {
     CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22").build())
         .build();
-    assertThat(accountEntityMapper.toAccountEntity(requestDto))
+    assertThat(accountEntityMapper.toDeviceKey(requestDto))
         .isNotNull()
-        .satisfies(account -> {
-          assertThat(account.getId()).isNull();
-          assertThat(account.getDeviceKey()).isNotNull();
-          assertThat(account.getDeviceKey().getX()).isEqualTo(requestDto.publicKey().x());
+        .satisfies(deviceKey -> {
+          assertThat(deviceKey.getKid()).isEqualTo("22");
+          assertThat(deviceKey.getThumbprint()).isNotBlank();
+          assertThat(TestUtils.parseJwk(deviceKey.getJwk()))
+              .isEqualTo(TestUtils.expectedJwk(requestDto.publicKey()));
         });
   }
 
   @Test
-  void testToAccountEntityAllOptionalFieldsNull() {
+  void testToDeviceKeyAllOptionalFieldsNull() {
     CreateAccountRequestDto requestDto = CreateAccountRequestDtoBuilder.builder()
         .publicKey(TestUtils.publicKeyDtoBuilderWithDefaults("22")
             .kid(null)
@@ -44,29 +44,27 @@ class AccountMapperTest {
             .use(null)
             .build())
         .build();
-    assertThat(accountEntityMapper.toAccountEntity(requestDto))
+    assertThat(accountEntityMapper.toDeviceKey(requestDto))
         .isNotNull()
-        .satisfies(account -> {
-          assertThat(account.getDeviceKey().getAlg()).isNull();
-          assertThat(account.getDeviceKey().getUse()).isNull();
-          assertThat(account.getDeviceKey().getKid()).isNull();
+        .satisfies(deviceKey -> {
+          assertThat(deviceKey.getKid()).isNull();
+          assertThat(TestUtils.parseJwk(deviceKey.getJwk()))
+              .isEqualTo(TestUtils.expectedJwk(requestDto.publicKey()));
         });
   }
 
   @Test
   void testToDto() {
-    AccountEntity entity = new AccountEntity(
-        null,
-        TestUtils.generateJwkEntity("11"));
-    entity.setId(UUID.randomUUID());
+    var deviceKey = TestUtils.generateJwkEntity("11");
+    WalletEntity entity = TestUtils.wallet(null, deviceKey);
     ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
     assertThat(accountDto)
         .isNotNull()
         .satisfies(account -> {
           assertThat(account.id()).isNotNull();
           assertThat(account.deviceKey()).isNotNull();
-          assertThat(account.deviceKey().x())
-              .isEqualTo(TestUtils.generateJwkEntity("11").getX());
+          assertThat(TestUtils.expectedJwk(account.deviceKey()))
+              .isEqualTo(TestUtils.parseJwk(deviceKey.getJwk()));
           assertThat(account.deviceKey().kid()).isEqualTo("11");
 
         });
@@ -74,17 +72,12 @@ class AccountMapperTest {
 
   @Test
   void testToDtoAllOptionalFieldsNull() {
-    AccountEntity entity = new AccountEntity(
+    WalletEntity entity = TestUtils.wallet(
         null,
-        new PublicKeyEntity(
-            "EC",
-            null,
-            null,
-            null,
-            "P-256",
-            "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
-            "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"));
-    entity.setId(UUID.randomUUID());
+        JwkMapper.toDeviceKey(TestUtils.publicKeyDtoBuilderWithDefaults(null)
+            .alg(null)
+            .use(null)
+            .build()));
     ExtendedAccountDto accountDto = accountEntityMapper.toExtendedAccountDto(entity);
     assertThat(accountDto)
         .isNotNull()

@@ -10,26 +10,15 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.ApiInfoResponse;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
-@Testcontainers
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-        "spring.liquibase.enabled=false"
-    })
+@Import(TestcontainersConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ApiInfoControllerTest {
-
-  @Container
-  @ServiceConnection
-  private static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
 
   private static RestTestClient client;
 
