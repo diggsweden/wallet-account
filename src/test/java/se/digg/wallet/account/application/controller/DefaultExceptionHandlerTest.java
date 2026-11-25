@@ -74,9 +74,9 @@ public class DefaultExceptionHandlerTest {
   @Test
   void existingMdcTransactionIdReturnsTransactionId() {
 
-    var transactionId = "the-transaction-id";
+    final var traceId = "50a41978bfc3c5530ba1676f4be03216";
     MDC.clear();
-    MDC.put("transactionId", transactionId);
+    MDC.put("trace_id", traceId);
     var problemDetail = ProblemDetail.forStatus(400);
 
     var responseEntity = assertDoesNotThrow(() -> exceptionHandler
@@ -87,7 +87,7 @@ public class DefaultExceptionHandlerTest {
     assertThat(responseEntity.getBody()).isInstanceOf(ProblemResponse.class);
     var problemResponse = (ProblemResponse) responseEntity.getBody();
     assertThat(problemResponse).isNotNull();
-    assertThat(problemResponse.getTransactionId()).isEqualTo(transactionId);
+    assertThat(problemResponse.getTransactionId()).isEqualTo(traceId);
   }
 
   private static void assertProblemDetails(ProblemResponse problemResponse,

@@ -13,14 +13,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
@@ -30,7 +27,7 @@ import se.digg.wallet.account.application.exception.AccountAlreadyExistsExceptio
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.service.AccountService;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +35,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static se.digg.wallet.account.application.controller.util.ProblemDetailAssertion.assertProblemDetails;
 
-@Testcontainers
+@Import(TestcontainersConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccountApiComponentTest {
 
@@ -46,13 +43,9 @@ public class AccountApiComponentTest {
   private static final String ALREADY_EXISTS = "/problem-details/resource-already-exists";
   private static final UUID ACCOUNT_ID = UUID.fromString("61128b3c-ef55-4410-8dff-d8e8bf0cb9a7");
   private static final String KEY_ID = "26862913-ecd0-4d4d-a3d0-9271665d577e";
-  private static final String TRANSACTION_ID = "a7240655-a568-41c8-8059-7b18859d5d88";
+  private static final String TRACE_ID = "50a41978bfc3c5530ba1676f4be03216";
 
   private RestTestClient client;
-
-  @Container
-  @ServiceConnection
-  private static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
 
   @MockitoBean
   private AccountService accountService;
@@ -60,7 +53,7 @@ public class AccountApiComponentTest {
   @BeforeEach
   void setUp(WebApplicationContext context) { // Inject the configuration
     client = RestTestClient.bindToApplicationContext(context).build();
-    MDC.put("transactionId", TRANSACTION_ID);
+    MDC.put("trace_id", TRACE_ID);
   }
 
   @AfterEach
@@ -83,8 +76,8 @@ public class AccountApiComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
-        VALIDATION_FAILURE, "deviceKey");
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRACE_ID, VALIDATION_FAILURE,
+        "deviceKey");
   }
 
   @ParameterizedTest
@@ -109,8 +102,8 @@ public class AccountApiComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
-        VALIDATION_FAILURE, invalidProperty);
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRACE_ID, VALIDATION_FAILURE,
+        invalidProperty);
   }
 
   @Test
@@ -153,7 +146,7 @@ public class AccountApiComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.INTERNAL_SERVER_ERROR, TRANSACTION_ID);
+    assertProblemDetails(problemResponse, HttpStatus.INTERNAL_SERVER_ERROR, TRACE_ID);
   }
 
   @Test
@@ -175,7 +168,7 @@ public class AccountApiComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, conflict, TRANSACTION_ID, ALREADY_EXISTS, null);
+    assertProblemDetails(problemResponse, conflict, TRACE_ID, ALREADY_EXISTS, null);
   }
 
   @Test
@@ -221,7 +214,7 @@ public class AccountApiComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID);
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRACE_ID);
     assertThat(problemResponse.getDetail()).isNotEmpty().satisfies(detail -> {
       assertThat(detail).contains("'id'");
       assertThat(detail).contains("'%s'".formatted(badFormattedAccountId));

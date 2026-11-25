@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for Digital Government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -20,22 +20,19 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.api.v0.model.HsmClientIdRequest;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.repository.WalletRepository;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
 /**
  * Concurrent requests can both pass the service's duplicate check. These tests let the check pass
@@ -45,17 +42,13 @@ import se.digg.wallet.account.infrastructure.repository.WalletRepository;
  * No test transaction: a constraint violation aborts the surrounding PostgreSQL transaction, so
  * every test uses freshly generated keys instead of rolling back.
  */
+@Import(TestcontainersConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @AutoConfigureRestTestClient
 class UniqueConstraintConflictItTest {
 
-  private static final String TRANSACTION_ID = "2b0d7c5e-4a8f-4f6e-9c3a-1d2e3f4a5b6c";
+  private static final String TRACE_ID = "50a41978bfc3c5530ba1676f4be03216";
   private static final String ALREADY_EXISTS = "/problem-details/resource-already-exists";
-
-  @Container
-  @ServiceConnection
-  static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
 
   @MockitoSpyBean
   WalletRepository walletRepository;
@@ -65,7 +58,7 @@ class UniqueConstraintConflictItTest {
   @BeforeEach
   void setUp(WebApplicationContext context) {
     client = RestTestClient.bindToApplicationContext(context).build();
-    MDC.put("transactionId", TRANSACTION_ID);
+    MDC.put("trace_id", TRACE_ID);
   }
 
   @AfterEach
@@ -81,7 +74,7 @@ class UniqueConstraintConflictItTest {
 
     var problem = createAccountExpectingConflict(deviceKey(newKey(), kid));
 
-    assertProblemDetails(problem, HttpStatus.CONFLICT, TRANSACTION_ID, ALREADY_EXISTS, null);
+    assertProblemDetails(problem, HttpStatus.CONFLICT, TRACE_ID, ALREADY_EXISTS, null);
   }
 
   @Test
@@ -92,7 +85,7 @@ class UniqueConstraintConflictItTest {
 
     var problem = createAccountExpectingConflict(deviceKey(key, UUID.randomUUID().toString()));
 
-    assertProblemDetails(problem, HttpStatus.CONFLICT, TRANSACTION_ID, ALREADY_EXISTS, null);
+    assertProblemDetails(problem, HttpStatus.CONFLICT, TRACE_ID, ALREADY_EXISTS, null);
   }
 
   @Test
@@ -108,7 +101,7 @@ class UniqueConstraintConflictItTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problem, HttpStatus.CONFLICT, TRANSACTION_ID, ALREADY_EXISTS, null);
+    assertProblemDetails(problem, HttpStatus.CONFLICT, TRACE_ID, ALREADY_EXISTS, null);
   }
 
   @Test
