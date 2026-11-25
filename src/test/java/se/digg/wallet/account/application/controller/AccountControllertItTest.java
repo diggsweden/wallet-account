@@ -14,35 +14,28 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.TestUtils;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.WalletEntity;
 import se.digg.wallet.account.infrastructure.repository.AccountRepository;
 import se.digg.wallet.account.infrastructure.repository.WalletRepository;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
+@Import(TestcontainersConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @Transactional // Rollback happens automatically after each test
 @AutoConfigureRestTestClient
 class AccountControllertItTest {
 
-  private static final String TRANSACTION_ID = "a7240655-a568-41c8-8059-7b18859d5d88";
-
-  @Container
-  @ServiceConnection
-  static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
+  private static final String TRACE_ID = "50a41978bfc3c5530ba1676f4be03216";
 
   private RestTestClient client;
 
@@ -55,7 +48,7 @@ class AccountControllertItTest {
   @BeforeEach
   void setUp(WebApplicationContext context) { // Inject the configuration
     client = RestTestClient.bindToApplicationContext(context).build();
-    MDC.put("transactionId", TRANSACTION_ID);
+    MDC.put("trace_id", TRACE_ID);
   }
 
   @AfterEach

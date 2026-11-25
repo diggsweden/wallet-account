@@ -13,14 +13,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
 import se.digg.wallet.account.api.v0.model.ProblemResponse;
 import se.digg.wallet.account.api.v0.model.SecurityEnvelopeRequest;
@@ -29,7 +26,7 @@ import se.digg.wallet.account.api.v0.model.SecurityEnvelopesResponse;
 import se.digg.wallet.account.application.model.PublicKeyDto;
 import se.digg.wallet.account.domain.model.AccountDto;
 import se.digg.wallet.account.domain.service.AccountService;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,18 +34,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static se.digg.wallet.account.application.controller.util.ProblemDetailAssertion.assertProblemDetails;
 
-@Testcontainers
+@Import(TestcontainersConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccountApiSecurityEnvelopeComponentTest {
 
   private static final String VALIDATION_FAILURE = "/problem-details/field-validation-failure";
-  private static final String TRANSACTION_ID = "a7240655-a568-41c8-8059-7b18859d5d88";
+  private static final String TRACE_ID = "50a41978bfc3c5530ba1676f4be03216";
 
   private RestTestClient client;
-
-  @Container
-  @ServiceConnection
-  private static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
 
   @MockitoBean
   private AccountService accountService;
@@ -56,7 +49,7 @@ public class AccountApiSecurityEnvelopeComponentTest {
   @BeforeEach
   void setUp(WebApplicationContext context) {
     client = RestTestClient.bindToApplicationContext(context).build();
-    MDC.put("transactionId", TRANSACTION_ID);
+    MDC.put("trace_id", TRACE_ID);
   }
 
   @AfterEach
@@ -95,8 +88,8 @@ public class AccountApiSecurityEnvelopeComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
-        VALIDATION_FAILURE, "content");
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRACE_ID, VALIDATION_FAILURE,
+        "content");
   }
 
   @Test
@@ -114,8 +107,8 @@ public class AccountApiSecurityEnvelopeComponentTest {
         .returnResult()
         .getResponseBody();
 
-    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRANSACTION_ID,
-        VALIDATION_FAILURE, "content");
+    assertProblemDetails(problemResponse, HttpStatus.BAD_REQUEST, TRACE_ID, VALIDATION_FAILURE,
+        "content");
   }
 
   @Test

@@ -25,30 +25,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.api.v0.model.AccountRequest;
 import se.digg.wallet.account.api.v0.model.AccountResponse;
 import se.digg.wallet.account.api.v0.model.EcJwkRequest;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.repository.WalletRepository;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
 /**
  * Wallets put under an account id assigned elsewhere, by the authorization server.
  */
+@Import(TestcontainersConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 class AccountWalletsItTest {
 
   private static final int CONCURRENT_PUTS = 8;
-
-  @Container
-  @ServiceConnection
-  static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
 
   @Autowired
   WalletRepository walletRepository;

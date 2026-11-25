@@ -27,25 +27,22 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import se.digg.wallet.account.TestUtils;
-import se.digg.wallet.account.infrastructure.SharedPostgresContainer;
 import se.digg.wallet.account.infrastructure.mapper.BytesMapper;
 import se.digg.wallet.account.infrastructure.model.AccountEntity;
 import se.digg.wallet.account.infrastructure.model.DeviceKey;
 import se.digg.wallet.account.infrastructure.model.WalletEntity;
+import se.digg.wallet.account.infrastructure.TestcontainersConfig;
 
 @DataJpaTest
-@Testcontainers
+@Import(TestcontainersConfig.class)
 class AccountRepositoryTest {
 
-  @Container
-  @ServiceConnection
-  static PostgreSQLContainer<?> postgres = SharedPostgresContainer.getContainer();
+  @Autowired
+  PostgreSQLContainer<?> postgres;
 
   @Autowired
   AccountRepository accountRepository;
